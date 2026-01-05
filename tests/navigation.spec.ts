@@ -167,17 +167,6 @@ test.describe('Post: Beyond tabs and spaces: Finding a balance in coding convent
 });
 
 test.describe('Post: The renaissance of written coding conventions: Because AI reads manuals, too', () => {
-    test('should be accessible from the home page', async ({ page }) => {
-        await page.goto('./');
-        await expect(page).toHaveTitle(/Broken Robot/);
-
-        await page
-            .getByRole('heading')
-            .getByRole('link', { name: 'The renaissance of written coding conventions: Because AI reads manuals, too' })
-            .click();
-        await expect(page).toHaveTitle(/The renaissance of written coding conventions: Because AI reads manuals, too/);
-    });
-
     test('should be accessible from the blog page', async ({ page }) => {
         await page.goto('./blog');
         await expect(page).toHaveTitle(/Blog/);
@@ -247,5 +236,33 @@ test.describe('Post: Your AI Platform Will Inherit Your Engineering Culture', ()
             })
             .click();
         await expect(page).toHaveTitle(/Your AI Platform Will Inherit Your Engineering Culture/);
+    });
+});
+
+test.describe('Post: Navigating cultural clashes in global software teams', () => {
+    test('should be accessible from the home page', async ({ page }) => {
+        await page.goto('./');
+        await expect(page).toHaveTitle(/Broken Robot/);
+
+        await page
+            .getByRole('heading')
+            .getByRole('link', {
+                name: 'Navigating cultural clashes in global software teams'
+            })
+            .click();
+        await expect(page).toHaveTitle(/Navigating cultural clashes in global software teams/);
+    });
+
+    test('should be accessible from the blog page', async ({ page }) => {
+        await page.goto('./blog');
+        await expect(page).toHaveTitle(/Blog/);
+
+        await page
+            .getByRole('heading')
+            .getByRole('link', {
+                name: 'Navigating cultural clashes in global software teams'
+            })
+            .click();
+        await expect(page).toHaveTitle(/Navigating cultural clashes in global software teams/);
     });
 });
