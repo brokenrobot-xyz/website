@@ -23,7 +23,7 @@
         "specs:check": "openspec validate --all --strict",
         "test:e2e:check": "devcontainer exec --workspace-folder . bash -lc 'export BROKENROBOT_PORT=\"${BROKENROBOT_PORT:-8080}\"; npm run build && node_modules/.bin/playwright test'",
         "test:e2e:update": "devcontainer exec --workspace-folder . bash -lc 'export BROKENROBOT_PORT=\"${BROKENROBOT_PORT:-8080}\"; npm run build && node_modules/.bin/playwright test --update-snapshots'",
-        "dc:up": "devcontainer up --workspace-folder .",
+        "dc:up": "devcontainer up --workspace-folder . && devcontainer exec --workspace-folder . bash -lc 'test -x node_modules/.bin/astro || (sudo chown vscode:vscode node_modules && npm install && npm run install:playwright)'",
         "audit:check": "npm audit --package-lock-only --omit=dev",
         "build": "astro build",
         "serve": "astro preview",
