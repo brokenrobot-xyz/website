@@ -6,9 +6,9 @@ tradeoffs, one real architectural catch, and a recommended proof-of-concept.
 
 > **Status:** adopted (foundation). The DESIGN.md format is **alpha** ("expect changes"). The site's
 > colour token values are now the source of truth in `DESIGN.md` / `DESIGN.dark.md`, generated into
-> `src/styles/tokens.generated.css` (imported by `base.css`) via `npm run tokens:generate`, with a
-> `prebuild` drift-check + lint guard. The analysis below is the record of why. The `design-md-poc/`
-> folder is a throwaway trial, slated for removal.
+> `src/styles/tokens.generated.css` (imported by `base.css`) via `npm run tokens:generate`, gated in
+> CI by `tokens:check` (drift) and `designmd:check` (lint). The analysis below is the record of why.
+> The `design-md-poc/` folder is a throwaway trial, slated for removal.
 
 ## Summary
 
