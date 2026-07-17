@@ -60,6 +60,7 @@ design overhaul.
   it's correct on the first frame. See [architecture](architecture.md).
 - **Fonts stay self-hosted** (`font-src 'self'`, no third-party font CDNs), with preloading and
   `font-display: swap`; only the weights actually used are shipped.
-- **Stylesheets are inlined**, so keep CSS lean; design tokens belong in `src/styles/base.css`.
+- **Stylesheets are inlined**, so keep CSS lean; design tokens belong in `src/styles/base.css`
+  (colour token values are generated from `DESIGN.md` — see [architecture](architecture.md)).
 - **Everything is static** — there is no server runtime to lean on for theming or
   personalization.

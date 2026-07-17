@@ -8,3 +8,6 @@ design-handoff/
 # Forked OpenSpec workflow schema (templates + manifest) — workflow tooling, kept close to its
 # upstream fork source for easy reconciliation; not application source.
 openspec/schemas/
+
+# Generated from DESIGN.md by scripts/generate-tokens.mjs — the generator owns its formatting.
+src/styles/tokens.generated.css

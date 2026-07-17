@@ -91,6 +91,10 @@ The light/dark system, as implemented in the foundation:
   light values on `:root`, dark overrides on `html[data-theme="dark"]`. They express the
   semantic roles from [brand](brand.md) (`--bg`, `--surface`, `--surface-2`, `--text`,
   `--muted`, `--border`, `--accent`, `--accent-ink`, code colors, shadows, `--ff-*`).
+  The **colour token values** are the source of truth in `DESIGN.md` / `DESIGN.dark.md` and are
+  generated into `src/styles/tokens.generated.css` (imported by `base.css`) by
+  `npm run tokens:generate`; shadows, `--ff-*`, and `color-mix` derivations stay hand-authored in
+  `base.css`. See [design-md-assessment](design-md-assessment.md).
 - **Tokens exposed to Tailwind** via `@theme inline` (e.g. `--color-bg: var(--bg)`), so
   utilities like `bg-bg`/`text-muted` and the `prose` mapping (`--tw-prose-*`) follow the
   theme.

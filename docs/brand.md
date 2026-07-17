@@ -80,7 +80,9 @@ Components reference **semantic token roles**, not raw colors:
 The signature accent is a **warm amber** (`#f59e0b`), with `accent-ink` tuned per theme for
 contrast (light `#b45309`, dark `#fbbf24`). The base is a warm near-neutral: off-white in
 light (`--bg` `#faf7f2`), deep warm charcoal in dark (`--bg` `#17150f`) — never pure black.
-`base.css` holds the full token values for both themes.
+The token values for both themes are the source of truth in `DESIGN.md` (light) and
+`DESIGN.dark.md` (dark), compiled into `base.css` via `src/styles/tokens.generated.css` — see
+[design-md-assessment](design-md-assessment.md).
 
 ### Typography
 
