@@ -213,19 +213,6 @@ test.describe('Post: Your AI Platform Will Inherit Your Engineering Culture', ()
 });
 
 test.describe('Post: Navigating cultural clashes in global software teams', () => {
-    test('should be accessible from the home page', async ({ page }) => {
-        await page.goto('./');
-        await expect(page).toHaveTitle(/Broken Robot/);
-
-        await page
-            .getByRole('heading')
-            .getByRole('link', {
-                name: 'Navigating cultural clashes in global software teams'
-            })
-            .click();
-        await expect(page).toHaveTitle(/Navigating cultural clashes in global software teams/);
-    });
-
     test('should be accessible from the blog page', async ({ page }) => {
         await page.goto('./blog');
         await expect(page).toHaveTitle(/Blog/);
@@ -293,5 +280,33 @@ test.describe('Post: Spec-driven development: promised benefits, measured costs'
             })
             .click();
         await expect(page).toHaveTitle(/Spec-driven development: promised benefits, measured costs/);
+    });
+});
+
+test.describe('Post: Who gets to say the code is wrong', () => {
+    test('should be accessible from the home page', async ({ page }) => {
+        await page.goto('./');
+        await expect(page).toHaveTitle(/Broken Robot/);
+
+        await page
+            .getByRole('heading')
+            .getByRole('link', {
+                name: 'Who gets to say the code is wrong'
+            })
+            .click();
+        await expect(page).toHaveTitle(/Who gets to say the code is wrong/);
+    });
+
+    test('should be accessible from the blog page', async ({ page }) => {
+        await page.goto('./blog');
+        await expect(page).toHaveTitle(/Blog/);
+
+        await page
+            .getByRole('heading')
+            .getByRole('link', {
+                name: 'Who gets to say the code is wrong'
+            })
+            .click();
+        await expect(page).toHaveTitle(/Who gets to say the code is wrong/);
     });
 });
