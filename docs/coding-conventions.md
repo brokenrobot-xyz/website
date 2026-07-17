@@ -68,7 +68,9 @@ Pick the lightest tool for the job:
 - **Tailwind-first.** Reach for utilities before custom CSS.
 - **Design tokens via CSS custom properties** in `src/styles/base.css` (see
   [architecture](architecture.md)). Theme-aware components read tokens, not hard-coded
-  colors — this is what makes light/dark work.
+  colors — this is what makes light/dark work. Colour token _values_ are authored in `DESIGN.md` /
+  `DESIGN.dark.md`; run `npm run tokens:generate` after changing them and commit the regenerated
+  `src/styles/tokens.generated.css`.
 - Article body uses the `@tailwindcss/typography` `prose` classes; tune `prose` to the
   tokens so long-form content respects the active theme.
 

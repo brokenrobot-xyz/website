@@ -1,4 +1,7 @@
 @import 'tailwindcss';
+/* Colour token values for both themes are generated from DESIGN.md / DESIGN.dark.md —
+   see scripts/generate-tokens.mjs. Do not hand-edit tokens.generated.css. */
+@import './tokens.generated.css';
 @plugin '@tailwindcss/typography';
 
 /* Expose semantic tokens to Tailwind utilities (e.g. bg-bg, text-muted, font-prose).
@@ -20,18 +23,8 @@
 
 @layer base {
     /* ---- Design tokens: light (default) ---- */
+    /* Colour tokens (--bg, --surface, --text, --accent, …) come from tokens.generated.css. */
     :root {
-        --bg: #faf7f2;
-        --surface: #ffffff;
-        --surface-2: #f4f0e8;
-        --text: #211d18;
-        --muted: #736a5b;
-        --border: #e8e1d5;
-        --accent: #f59e0b;
-        --accent-ink: #b45309;
-        --code-bg: #211e19;
-        --code-text: #ece6da;
-        --code-line: #33302a;
         --shadow: 0 1px 2px rgba(33, 29, 24, 0.05), 0 8px 24px -12px rgba(33, 29, 24, 0.18);
         --shadow-lift: 0 2px 4px rgba(33, 29, 24, 0.06), 0 18px 40px -18px rgba(33, 29, 24, 0.3);
         --accent-soft: color-mix(in srgb, var(--accent) 14%, var(--bg));
@@ -48,18 +41,8 @@
     }
 
     /* ---- Design tokens: dark overrides ---- */
+    /* Colour tokens come from tokens.generated.css; only non-colour overrides remain here. */
     html[data-theme='dark'] {
-        --bg: #17150f;
-        --surface: #201d17;
-        --surface-2: #2a2620;
-        --text: #f4efe4;
-        --muted: #a89e8d;
-        --border: #332e25;
-        --accent: #f59e0b;
-        --accent-ink: #fbbf24;
-        --code-bg: #0f0e0b;
-        --code-text: #ece6da;
-        --code-line: #262320;
         --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 30px -14px rgba(0, 0, 0, 0.6);
         --shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.4), 0 22px 48px -20px rgba(0, 0, 0, 0.7);
 

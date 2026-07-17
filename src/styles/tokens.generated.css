@@ -1,0 +1,33 @@
+/* AUTO-GENERATED — do not edit.
+   Source of truth: DESIGN.md (light) and DESIGN.dark.md (dark).
+   Regenerate with `npm run tokens:generate`. */
+
+@layer base {
+    :root {
+        --bg: #faf7f2;
+        --surface: #ffffff;
+        --surface-2: #f4f0e8;
+        --text: #211d18;
+        --muted: #736a5b;
+        --border: #e8e1d5;
+        --accent: #f59e0b;
+        --accent-ink: #b45309;
+        --code-bg: #211e19;
+        --code-text: #ece6da;
+        --code-line: #33302a;
+    }
+
+    html[data-theme='dark'] {
+        --bg: #17150f;
+        --surface: #201d17;
+        --surface-2: #2a2620;
+        --text: #f4efe4;
+        --muted: #a89e8d;
+        --border: #332e25;
+        --accent: #f59e0b;
+        --accent-ink: #fbbf24;
+        --code-bg: #0f0e0b;
+        --code-text: #ece6da;
+        --code-line: #262320;
+    }
+}
