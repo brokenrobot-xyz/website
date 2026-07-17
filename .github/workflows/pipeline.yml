@@ -43,6 +43,12 @@ jobs:
       - name: OpenSpec validate
         run: npm run specs:check
 
+      - name: DESIGN lint
+        run: npm run designmd:check
+
+      - name: DESIGN token drift check
+        run: npm run tokens:check
+
       - name: Set up TerraForm
         uses: hashicorp/setup-terraform@v4
         with:
