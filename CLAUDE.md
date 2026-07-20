@@ -77,6 +77,7 @@ Read these before working on the design overhaul — they are the shared source 
 - [docs/vision.md](docs/vision.md) — why the site exists, audience, overhaul goals, and guardrails.
 - [docs/brand.md](docs/brand.md) — "Broken Robot" personality, voice, mascot, and directional visual proposals.
 - [docs/tech-stack.md](docs/tech-stack.md) — frameworks, dependencies, scripts, build & deploy.
+- [docs/development-environment.md](docs/development-environment.md) — machine setup: Node/npm versions, install, host vs. devcontainer, the required global LSP tools, worktrees, and editor setup.
 - [docs/architecture.md](docs/architecture.md) — code structure, content model, and theming guidance.
 - [docs/development/conventions/coding-conventions.md](docs/development/conventions/coding-conventions.md) — TypeScript, formatting, Astro patterns, and testing rules.
 - [docs/development/conventions/commit-conventions.md](docs/development/conventions/commit-conventions.md) — Conventional Commits and commit message guidance.

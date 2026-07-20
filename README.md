@@ -10,6 +10,8 @@ To install and run the project, please follow these steps:
 - Install dependencies by executing `npm install`
 - Start the development server by running `npm start`
 
+For the full setup — Node/npm versions, host vs. devcontainer, code-intelligence tooling, and worktrees — see [docs/development-environment.md](docs/development-environment.md).
+
 ## 💻 Technologies used
 
 The website was built using the following technologies:

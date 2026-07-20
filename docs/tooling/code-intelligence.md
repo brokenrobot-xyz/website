@@ -14,12 +14,13 @@ plugin adds go-to-definition, find-references, and error-checking for `.ts/.tsx/
   (committed). The `claude-plugins-official` marketplace is built into Claude Code, so no marketplace
   registration (`extraKnownMarketplaces`) is needed — that's only for custom/third-party sources.
 - The plugin launches a fixed `typescript-language-server --stdio` from `PATH` — the command is set
-  in the marketplace manifest and is **not** project-configurable. We therefore pin
-  `typescript-language-server` as a devDependency (`node_modules/.bin/`), so it resolves in every
-  worktree after `npm ci`. The `typescript` version it uses is the repo's own pinned `typescript`.
-- **Fallback:** if the plugin's LSP fails to start because the launch `PATH` doesn't include
-  `node_modules/.bin`, install the server once on the host — `npm i -g typescript-language-server`
-  (run outside the sandbox). The devDependency stays for documentation/reproducibility.
+  in the marketplace manifest and is **not** project-configurable. Claude Code's launch `PATH` does
+  **not** include the repo's `node_modules/.bin`, so the server must be installed **globally on the
+  host** (`npm i -g typescript-language-server typescript`) — a single install covers every worktree.
+  See [../development-environment.md](../development-environment.md) for the setup step.
+- We still pin `typescript-language-server` as a devDependency, but purely as a **version
+  reference** — the plugin doesn't consume it. Inside this repo the server uses the project's own
+  pinned `typescript`; the global `typescript` is only a fallback for projects without a local one.
 
 ## Codegraph (an MCP server)
 

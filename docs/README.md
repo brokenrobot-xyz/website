@@ -9,6 +9,8 @@ feel, and how the code is built. Read these before working on the design overhau
   visual proposals.
 - [tech-stack.md](tech-stack.md) — the shape of the stack, build & deployment, and what it
   means for the overhaul.
+- [development-environment.md](development-environment.md) — set up a machine to work on the site:
+  Node/npm versions, install, host vs. devcontainer, the global LSP tools, worktrees, and editor setup.
 - [architecture.md](architecture.md) — code structure, content model, and theming guidance.
 - [coding-conventions.md](coding-conventions.md) — TypeScript, formatting, Astro patterns,
   and testing rules.
