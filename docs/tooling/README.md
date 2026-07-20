@@ -9,6 +9,8 @@ built. These docs cover _how we work on it_.
   and the schema/config that bakes the guardrails into the propose flow.
 - [sandbox.md](sandbox.md) — the Claude Code sandbox & permission model: what the agent may read,
   write, run, and reach on the network, and why.
+- [code-intelligence.md](code-intelligence.md) — the code-intelligence tools (typescript-lsp plugin
+  and the Codegraph MCP server): how they're pinned, enabled, and used across worktrees.
 
 ## The pieces (in `.claude/`)
 

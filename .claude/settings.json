@@ -5,6 +5,9 @@
         "OPENSPEC_TELEMETRY": "0",
         "SHARP_IGNORE_GLOBAL_LIBVIPS": "1"
     },
+    "enabledPlugins": {
+        "typescript-lsp@claude-plugins-official": true
+    },
     "sandbox": {
         "enabled": true,
         "failIfUnavailable": true,
@@ -152,7 +155,8 @@
 
             "mcp__playwright",
             "mcp__chrome-devtools",
-            "mcp__terraform"
+            "mcp__terraform",
+            "mcp__codegraph"
         ],
         "deny": [
             "Bash(cd /*)",
@@ -189,6 +193,17 @@
         ]
     },
     "hooks": {
+        "SessionStart": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash scripts/worktree-init.sh",
+                        "timeout": 180
+                    }
+                ]
+            }
+        ],
         "PreToolUse": [
             {
                 "matcher": "Bash",

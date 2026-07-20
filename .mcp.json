@@ -12,6 +12,10 @@
             "command": "npx",
             "args": ["chrome-devtools-mcp", "--headless", "--isolated"]
         },
+        "codegraph": {
+            "command": "node_modules/.bin/codegraph",
+            "args": ["serve", "--mcp"]
+        },
         "terraform": {
             "command": "docker",
             "args": ["run", "-i", "--rm", "hashicorp/terraform-mcp-server:0.5.2", "--toolsets=registry"]
