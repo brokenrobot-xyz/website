@@ -1,9 +1,10 @@
 ---
 name: update-dependencies
 description: Update npm dependencies in package.json for brokenrobot.xyz — detect what's outdated, bucket into patch/minor/major, apply patches automatically, and research minor/major bumps before recommending them. Use when refreshing dependencies. Applies patches directly then verifies; gates minor/major on your approval after research. Delegates verification to preflight-checks and visual-regression-tests.
+model: sonnet
 metadata:
     author: brokenrobot.xyz
-    version: '1.2'
+    version: '1.3'
 ---
 
 Refresh the repo's npm dependencies safely. Patches are low-risk and applied directly; minor and major bumps are researched first (by the `dependency-update-researcher` subagent) and applied only after you approve. Deps are **exact-pinned** here (`.npmrc` `save-exact=true`) — every update preserves that.
