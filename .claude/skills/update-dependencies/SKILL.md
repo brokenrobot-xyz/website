@@ -3,12 +3,26 @@ name: update-dependencies
 description: Update npm dependencies in package.json for brokenrobot.xyz — detect what's outdated, bucket into patch/minor/major, apply patches automatically, and research minor/major bumps before recommending them. Use when refreshing dependencies. Applies patches directly then verifies; gates minor/major on your approval after research. Delegates verification to preflight-checks and visual-regression-tests.
 metadata:
     author: brokenrobot.xyz
-    version: '1.1'
+    version: '1.2'
 ---
 
 Refresh the repo's npm dependencies safely. Patches are low-risk and applied directly; minor and major bumps are researched first (by the `dependency-update-researcher` subagent) and applied only after you approve. Deps are **exact-pinned** here (`.npmrc` `save-exact=true`) — every update preserves that.
 
 > Guardrails: preserve exact pinning — always install with `--save-exact`, never introduce `^`/`~`. Never edit unrelated files or downgrade to make a check pass. You **cannot** `git push` or use `gh` (sandbox-denied) — stage and commit locally only; the human pushes.
+
+## Workflow checklist
+
+This is a long, stateful run with an approval gate in the middle. Copy this checklist into your response and tick items off as you complete them so no step is skipped:
+
+```
+Update Progress:
+- [ ] Step 1: Detect (npm outdated) + snapshot audit baseline
+- [ ] Step 2: Categorize into patch / minor / major (show the table)
+- [ ] Step 3: Apply patches → verify (Step 6) → commit
+- [ ] Step 4: Research each minor/major (one subagent per package) → recommendation table → STOP for approval
+- [ ] Step 5: Apply approved → verify (Step 6) → commit (minor and major as separate commits)
+- [ ] Report (nothing pushed)
+```
 
 ## Step 1 — Detect
 
@@ -55,6 +69,8 @@ If verification fails, do **not** commit — see Step 6.
 
 ## Step 4 — Minor & major: research first
 
+Minor and major bumps run as a **plan → approve → execute → verify** gate: research is the plan, the user's approval is the validation, Step 5 executes, Step 6 verifies. Never skip straight to the install.
+
 Do not apply these yet. Spawn one **`dependency-update-researcher`** subagent per minor/major package, in parallel (batch sensibly if there are many). Give each: package name, current version, target (`latest`), and category.
 
 Collect the verdicts and present a consolidated recommendation table — **then stop and await approval**:
@@ -81,7 +97,7 @@ git commit -am "chore(deps): update major dependencies"
 
 ## Step 6 — Verify (per category, before its commit)
 
-Before committing a category, run:
+Run this as a **feedback loop**: run the checks → if a regression appears, fix it (or pin the offending package back) → re-run → only commit the category once it passes (or only pre-existing failures remain). Before committing a category, run:
 
 - The **`preflight-checks`** skill — type-check, lint, format-check, build.
 - **`npm run audit:check`, then diff against the Step 1 baseline.** Do _not_ read the raw advisory count as pass/fail — a non-zero count is almost always pre-existing noise. Classify each advisory:
