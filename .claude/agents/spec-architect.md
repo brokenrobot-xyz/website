@@ -27,7 +27,7 @@ structure — including the primitives-first ordering and the mandatory **Verify
 - **Read first.** Study `openspec/specs/**`, the relevant `docs/`, and the codebase before
   proposing — so the proposal fits what exists. The guardrails live in
   [docs/architecture.md](../../docs/architecture.md),
-  [docs/coding-conventions.md](../../docs/coding-conventions.md), and
+  [docs/development/conventions/coding-conventions.md](../../docs/development/conventions/coding-conventions.md), and
   [docs/development-workflow.md](../../docs/development-workflow.md); the schema/config already
   surface them, but you must honor them in the actual content.
 - **Surface choices.** If multiple interpretations exist, present them. State assumptions. Push back

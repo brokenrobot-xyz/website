@@ -18,7 +18,7 @@ git diff
 
 (If git is unavailable in the sandbox, ask the orchestrator for the list of changed files and read them directly.)
 
-Cross-check against the agreed change under `openspec/changes/<name>/` and the canonical docs (`docs/architecture.md`, `docs/coding-conventions.md`, `docs/development-workflow.md`).
+Cross-check against the agreed change under `openspec/changes/<name>/` and the canonical docs (`docs/architecture.md`, `docs/development/conventions/coding-conventions.md`, `docs/development-workflow.md`).
 
 ## Guardrail checklist (flag every violation)
 
