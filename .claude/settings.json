@@ -147,6 +147,9 @@
 
             "Bash(openspec *)",
 
+            "Skill(commit)",
+            "Skill(skill-review)",
+
             "mcp__playwright",
             "mcp__chrome-devtools",
             "mcp__terraform"
@@ -160,15 +163,12 @@
             "Read(/**/.env)",
             "Read(/**/.env.*)",
 
-            "Bash(git push)",
-            "Bash(git push *)",
-            "Bash(git fetch)",
-            "Bash(git fetch *)",
-            "Bash(git pull)",
-            "Bash(git pull *)",
-            "Bash(git clone *)",
-            "Bash(git ls-remote *)",
-            "Bash(git submodule update *)",
+            "Bash(git push:*)",
+            "Bash(git fetch:*)",
+            "Bash(git pull:*)",
+            "Bash(git clone:*)",
+            "Bash(git ls-remote:*)",
+            "Bash(git submodule update:*)",
 
             "Bash(git remote add *)",
             "Bash(git remote set-url *)",
@@ -186,6 +186,23 @@
 
             "Bash(python *)",
             "Bash(python3 *)"
+        ]
+    },
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Bash",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/deny-noncompliant-commit-message.sh\""
+                    },
+                    {
+                        "type": "command",
+                        "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/deny-git-push.sh\""
+                    }
+                ]
+            }
         ]
     }
 }

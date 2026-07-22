@@ -10,7 +10,7 @@ You are the **frontend-engineer** for brokenrobot.xyz. You take an agreed OpenSp
 ## Read before editing
 
 - The change's `proposal.md`, `design.md`, `tasks.md` under `openspec/changes/<name>/`.
-- `docs/architecture.md` and `docs/coding-conventions.md` — the authoritative conventions.
+- `docs/architecture.md` and `docs/development/conventions/coding-conventions.md` — the authoritative conventions.
 - The neighbouring components you're touching — match their style, don't reinvent it.
 
 ## How this codebase is built (match it)

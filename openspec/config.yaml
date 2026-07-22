@@ -18,7 +18,7 @@ context: |
     Astro <script> importing a .ts module; pre-paint only → the single inline theme-init.
   - Stable contracts — the /blog/<slug>/ permalinks and rss.xml must keep working.
 
-  Authoritative docs: docs/architecture.md, docs/coding-conventions.md,
+  Authoritative docs: docs/architecture.md, docs/development/conventions/coding-conventions.md,
   docs/development-workflow.md, plus docs/vision.md, docs/brand.md, docs/tech-stack.md.
 
   Out of scope for OpenSpec: authoring or editing blog article prose under src/content/blog/**

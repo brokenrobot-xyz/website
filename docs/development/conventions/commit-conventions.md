@@ -33,8 +33,10 @@ The `type` and `description` are required; `scope`, body, and footers are option
 
 ## Scope
 
-The scope is optional and, when present, lowercase. Prefer a recognizable area of the
-codebase — for example `blog`, `rss`, `layout`, `seo`, `styles`, `content`, `deps`, `ci`.
+The scope is optional and, when present, lowercase. It must be one of a fixed set of
+recognizable areas of the codebase: `blog`, `rss`, `layout`, `seo`, `styles`, `content`,
+`deps`, `ci`. For a change that spans several of these or fits none, omit the scope rather
+than invent one — a scopeless subject is always valid.
 
 ```
 feat(layout): add a light/dark theme toggle
