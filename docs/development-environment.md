@@ -77,21 +77,20 @@ Two tools give Claude Code code intelligence in this repo; the full rationale is
     repo also pins `typescript-language-server` as a devDependency, but purely as a version reference —
     the plugin doesn't consume it.)
 
-- **Codegraph MCP server** — needs no manual step; the per-worktree bootstrap below builds its index.
+- **Codegraph MCP server** — needs no manual step; the `SessionStart` hook described below builds its
+  index.
 
 ## Worktrees
 
 This repo is worked on in git worktrees. A fresh worktree checks out only tracked files, so it starts
-with **no `node_modules/` and no `.codegraph/`** (both gitignored). Bring one up to speed with:
+with **no `node_modules/` and no `.codegraph/`** (both gitignored). Claude Code brings one up to speed
+automatically: its `SessionStart` hook — which runs in every session, worktree or not — installs
+dependencies when `node_modules/` is missing, then builds or refreshes the Codegraph index. Outside a
+session, run `npm ci` yourself.
 
-```sh
-npm run worktree:init # npm ci if needed, then build/refresh the Codegraph index
-```
-
-Claude Code also runs this automatically via its `SessionStart` hook. Details, including the
-between-session sync behavior, are in [tooling/code-intelligence.md](tooling/code-intelligence.md);
-why worktrees sit under `.claude/worktrees/` and how the sandbox treats them is in
-[tooling/sandbox.md](tooling/sandbox.md).
+Details, including the between-session sync behavior, are in
+[tooling/code-intelligence.md](tooling/code-intelligence.md); why worktrees sit under
+`.claude/worktrees/` and how the sandbox treats them is in [tooling/sandbox.md](tooling/sandbox.md).
 
 ## Editor
 

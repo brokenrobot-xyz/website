@@ -38,24 +38,27 @@ call instead of grep/read loops. It runs 100% locally — no network, no credent
   and DB are tied to the path that wrote them — so it is **gitignored** and never shared between
   worktrees.
 
-### Per-worktree bootstrap
+### Session start
 
-A fresh git worktree contains only tracked files, so it starts with neither `node_modules/` nor
-`.codegraph/`. The [`SessionStart` hook](../../.claude/settings.json) runs
-[`scripts/worktree-init.sh`](../../scripts/worktree-init.sh) on every session start to keep
-a worktree ready — it's idempotent and cheap on the common path:
+The [`SessionStart` hook](../../.claude/settings.json) runs
+[`.claude/hooks/session-start.sh`](../../.claude/hooks/session-start.sh) at the start of **every**
+Claude Code session, in whatever checkout it opens in — the main clone or a worktree. It's idempotent
+and cheap on the common path; a fresh worktree is simply the case where it has real work to do, since
+it contains only tracked files and so starts with neither `node_modules/` nor `.codegraph/`:
 
-- **No `node_modules`** (brand-new worktree) → runs `npm ci`.
+- **No `node_modules`** (fresh checkout) → runs `npm ci`.
 - **No `.codegraph/`** (first session after install) → runs `codegraph init` to build the index.
-- **Index present** → runs `codegraph sync -q` (~0.2s) to catch up on any between-session drift
-  (e.g. edits or `git switch`/`pull`/`rebase` made while no session's file watcher was running).
+- **Index present** (the usual case) → runs `codegraph sync -q` (~0.2s) to catch up on any
+  between-session drift (e.g. edits or `git switch`/`pull`/`rebase` made while no session's file
+  watcher was running).
 
 While a session is open, `codegraph serve --mcp` runs a file watcher that auto-syncs on save, so the
-bootstrap's job is really the first-run build plus between-session catch-up.
+hook's job is really the first-run build plus between-session catch-up.
 
-Run the same steps by hand any time with `npm run worktree:init`. `npm run codegraph:status` reports
-the index/sync state.
+The hook is Claude Code's entry point only — it reads `CLAUDE_PROJECT_DIR` and has no `npm run`
+equivalent. To do the same work by hand, run `npm ci` and `npm run codegraph:init` yourself;
+`npm run codegraph:status` reports the index/sync state.
 
-> The bootstrap installs dependencies only when `node_modules` is missing — it does **not** detect a
-> changed `package-lock.json` in an already-installed worktree. After pulling a lockfile change, run
-> `npm ci` (or `npm run worktree:init` after removing `node_modules`) yourself.
+> The hook installs dependencies only when `node_modules` is missing — it does **not** detect a
+> changed `package-lock.json` in an already-installed checkout. After pulling a lockfile change, run
+> `npm ci` yourself.

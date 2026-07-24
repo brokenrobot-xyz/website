@@ -206,7 +206,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "bash scripts/worktree-init.sh",
+                        "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-start.sh\"",
                         "timeout": 180
                     }
                 ]
