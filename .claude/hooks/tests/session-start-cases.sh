@@ -87,6 +87,17 @@ contains() {
     fi
 }
 
+lacks() {
+    local label="$1" needle="$2" haystack="$3"
+    if printf '%s' "${haystack}" | grep -qF "${needle}"; then
+        fail=$((fail + 1))
+        printf 'FAIL %s\n     unwanted substring: %s\n     in: %s\n' "${label}" "${needle}" "${haystack}"
+    else
+        pass=$((pass + 1))
+        printf 'ok   %s\n' "${label}"
+    fi
+}
+
 # stdout is what Claude Code consumes; stderr is the human/--debug copy and is not asserted on.
 run() {
     : >"${MARKER}"
@@ -189,6 +200,24 @@ cp "${HOOK}" "${proj}/.claude/hooks/session-start.sh"
 out="$(cd "${root}" && env -u CLAUDE_PROJECT_DIR bash "${proj}/.claude/hooks/session-start.sh" 2>/dev/null)"
 check "a manual run bootstraps the checkout the script lives in" "codegraph status --json
 codegraph init" "$(calls)"
+
+# --- the codegraph MCP server: launched by Claude Code before this hook, so a checkout that arrives
+# --- without node_modules has already lost it, and the install cannot bring it back ---
+
+rm -rf "${proj}/.codegraph" "${proj}/node_modules"
+lockfile 6
+out="$(run)"
+contains "a checkout with no node_modules warns that the MCP tools are gone" "codegraph MCP tools are NOT available" "${out}"
+contains "and the warning reaches Claude" "codegraph MCP tools are NOT available" \
+    "$(printf '%s' "${out}" | jq -r '.hookSpecificOutput.additionalContext')"
+contains "and offers the CLI as the fallback" "node_modules/.bin/codegraph explore" "${out}"
+
+# The false positive worth guarding: this reinstalls too, but the binary was there all along, so the
+# server launched normally and there is nothing to warn about.
+lockfile 7
+out="$(run)"
+contains "a moved lockfile still reinstalls" "installed dependencies (npm ci)" "${out}"
+lacks "but does not warn about the MCP tools" "codegraph MCP tools are NOT available" "${out}"
 
 printf '\n%d passed, %d failed\n' "${pass}" "${fail}"
 [ "${fail}" -eq 0 ]
