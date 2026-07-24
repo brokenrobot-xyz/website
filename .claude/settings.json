@@ -52,6 +52,14 @@
             ],
             "allowLocalBinding": true,
             "allowAllUnixSockets": true
+        },
+        "credentials": {
+            "envVars": [
+                {
+                    "name": "GITHUB_PERSONAL_ACCESS_TOKEN",
+                    "mode": "deny"
+                }
+            ]
         }
     },
     "permissions": {
