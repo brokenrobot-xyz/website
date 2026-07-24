@@ -57,7 +57,7 @@
     },
     "devDependencies": {
         "@axe-core/playwright": "4.11.3",
-        "@colbymchenry/codegraph": "1.4.1",
+        "@colbymchenry/codegraph": "1.5.0",
         "@devcontainers/cli": "0.87.0",
         "@fission-ai/openspec": "1.4.0",
         "@google/design.md": "0.3.0",
