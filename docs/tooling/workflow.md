@@ -101,12 +101,12 @@ Procedure skills the agents (or you) invoke, alongside the `openspec-*` lifecycl
 Project-scoped and committed, so the team shares them:
 
 - **`astro-docs`** (http) — Astro's documentation, for framework questions during propose/implement.
-- **`playwright`** — Microsoft's `@playwright/mcp` (a pinned devDependency), driving **host Chrome**
+- **`playwright`** — Microsoft's `@playwright/mcp` (version pinned in the `npx` command), driving **host Chrome**
   (`--browser=chrome --headless --isolated`). The `frontend-qa-engineer` uses it for the manual-preview Verify
   item (theme flash, console, interactions, 375px); it also serves interactive exploration and
   locating selectors when authoring specs. Host rendering is **non-authoritative** — pixel baselines
   stay in the devcontainer suite. Approve it once in `/mcp`.
-- **`chrome-devtools`** — Google's `chrome-devtools-mcp` (a pinned devDependency), host Chrome headless.
+- **`chrome-devtools`** — Google's `chrome-devtools-mcp` (version pinned in the `npx` command), host Chrome headless.
   Performance traces (Core Web Vitals) and a `lighthouse_audit` (a11y / SEO / best-practices) against the
   local preview — the perf/SEO angle that axe and visual-regression don't cover. Local-preview scores
   are a **relative regression signal**, not prod-authoritative.

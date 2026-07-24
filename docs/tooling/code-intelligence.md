@@ -26,12 +26,18 @@ plugin adds go-to-definition, find-references, and error-checking for `.ts/.tsx/
 
 [Codegraph](https://github.com/colbymchenry/codegraph) (`@colbymchenry/codegraph`) serves a
 pre-indexed SQLite code graph so the agent gets symbols, call paths, and impact analysis in a single
-call instead of grep/read loops. It runs 100% locally — no network, no credentials.
+call instead of grep/read loops. Indexing and queries are 100% local and need no credentials; the
+only network use is `npx` fetching the pinned package the first time a machine runs it.
 
-- **Registered** in [`.mcp.json`](../../.mcp.json) as `node_modules/.bin/codegraph serve --mcp` — the
-  direct bin path, so it always runs the pinned local devDependency and fails fast if it's missing
-  (no `npx` registry fallback that could pull an unpinned version). **Enabled** by adding
-  `"codegraph"` to `enabledMcpjsonServers` in your (gitignored) `.claude/settings.local.json`.
+- **Registered** in [`.mcp.json`](../../.mcp.json) as
+  `npx -y @colbymchenry/codegraph@1.5.0 serve --mcp`, with the version pinned **in the command**.
+  Claude Code launches MCP servers before anything can install dependencies, so a
+  `node_modules/.bin/…` path is simply absent in a fresh worktree and the server never starts for
+  that session; `npx` has no such dependency. The explicit `@version` is what keeps that from
+  costing the pin — a bare `npx <pkg>` starts fine but silently fetches the latest release. With
+  `node_modules` present, `npx` reuses the local devDependency rather than fetching a second copy.
+  **Enabled** by adding `"codegraph"` to `enabledMcpjsonServers` in your (gitignored)
+  `.claude/settings.local.json`.
 - We deliberately do **not** run `codegraph install` — that writes a global `~/.claude.json` entry
   pointing at a global binary, defeating the repo-scoped version pin.
 - The index lives in `.codegraph/` (SQLite + a daemon lock). It is **checkout-specific** — the lock
@@ -63,10 +69,7 @@ equivalent. To do the same work by hand, run `npm ci` and `npm run codegraph:ini
 > changed `package-lock.json` in an already-installed checkout. After pulling a lockfile change, run
 > `npm ci` yourself.
 
-> A checkout that starts **without `node_modules/`** gets no MCP server for that session, even with
-> `codegraph` enabled: Claude Code spawns MCP servers before the hook's `npm ci` has created
-> `node_modules/.bin/codegraph`, so the spawn fails and is not retried. Only the server is lost —
-> the hook still builds the index. So the very first session in a fresh worktree has none, and
-> **restarting Claude Code** is what brings it up. `ls .codegraph/daemon.pid` tells you whether it is
-> running. The CLI is unaffected either way, and its `explore`/`node` commands print the same output
-> as the MCP tools.
+> In a fresh worktree the server is up before the index exists, because Claude Code launches it
+> before this hook can build one. Queries in that window answer with "no index — use Read/Grep/Glob"
+> rather than failing or guessing, and the running server picks the index up on its own once the
+> hook finishes — no restart needed.
