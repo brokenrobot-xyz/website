@@ -169,5 +169,26 @@ out="$(CG_EXIT=1 run)"
 contains "a failed init is reported, not swallowed" "codegraph init failed" "${out}"
 contains "and is reported alongside the install that preceded it" "installed dependencies" "${out}"
 
+# --- environment guards ---
+
+# A PATH holding only what the hook needs to report a failure — deliberately no node and no npm.
+nonode="${root}/nonode"
+mkdir -p "${nonode}"
+for tool in bash git jq cat; do ln -s "$(command -v "${tool}")" "${nonode}/${tool}"; done
+out="$(PATH="${nonode}" run)"
+contains "a missing node is reported" "node is not on PATH" "${out}"
+check "and nothing is attempted without it" "" "$(calls)"
+
+out="$(CLAUDE_PROJECT_DIR="${root}/does-not-exist" run)"
+contains "an unusable project dir is reported, not skipped in silence" "cannot enter" "${out}"
+
+# A manual run has no CLAUDE_PROJECT_DIR, so the hook has to find the checkout it lives in.
+mkdir -p "${proj}/.claude/hooks"
+cp "${HOOK}" "${proj}/.claude/hooks/session-start.sh"
+: >"${MARKER}"
+out="$(cd "${root}" && env -u CLAUDE_PROJECT_DIR bash "${proj}/.claude/hooks/session-start.sh" 2>/dev/null)"
+check "a manual run bootstraps the checkout the script lives in" "codegraph status --json
+codegraph init" "$(calls)"
+
 printf '\n%d passed, %d failed\n' "${pass}" "${fail}"
 [ "${fail}" -eq 0 ]

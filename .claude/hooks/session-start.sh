@@ -13,22 +13,13 @@
 # CLAUDE_PROJECT_DIR is set by the harness.
 set -uo pipefail
 
-# Never fail the session start: every abnormal path below reports and exits 0. The two guards here
-# are only reachable on a manual run — via the hook, an unset CLAUDE_PROJECT_DIR fails in the
-# settings.json command path first — so they report on stderr and nothing else.
-# Checked explicitly because `set -u` would abort on expansion, before any `||` guard runs.
-if [ -z "${CLAUDE_PROJECT_DIR:-}" ]; then
-    echo "[session-start] CLAUDE_PROJECT_DIR unset — run this via the SessionStart hook" >&2
-    exit 0
-fi
-cd "${CLAUDE_PROJECT_DIR}" || exit 0 # checkout root
-
-# Everything below reports through the hook's own output instead: on exit 0 stderr reaches neither
-# the user nor Claude, so a note that only went to stderr would go nowhere. Claude Code consumes
-# that output only once this script exits, which rules out announcing slow work up front — notes
-# are collected as they happen and emitted together on the way out, as systemMessage (for the user)
-# and additionalContext (for Claude, which must not trust an index it has not been told is stale).
-# The stderr copies stay for `--debug` and manual runs.
+# Never fail the session start: every abnormal path below reports and exits 0. Reporting goes
+# through the hook's own output, because on exit 0 stderr reaches neither the user nor Claude — a
+# note that only went to stderr would go nowhere. Claude Code consumes that output only once this
+# script exits, which rules out announcing slow work up front, so notes are collected as they
+# happen and emitted together on the way out: as systemMessage (for the user) and additionalContext
+# (for Claude, which must not trust an index it has not been told is stale). The stderr copies stay
+# for `--debug` and manual runs.
 notes=""
 note() {
     echo "[session-start] $1" >&2
@@ -46,6 +37,22 @@ emit_notes() {
     }'
 }
 trap emit_notes EXIT
+
+# CLAUDE_PROJECT_DIR is set by the harness. Falling back to this script's own location keeps a
+# manual run working; the hook can never reach that fallback, because settings.json interpolates
+# the same variable into the command path and would fail before this script ever runs.
+project_dir="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+cd "${project_dir}" || {
+    note "cannot enter ${project_dir} — nothing was bootstrapped for this session."
+    exit 0
+}
+
+# Both steps below need node: npm ci is a node program, and the codegraph bin is `#!/usr/bin/env
+# node`. A missing npm alone needs no check of its own — `npm ci` failing already reports itself.
+command -v node >/dev/null || {
+    note "node is not on PATH — dependencies cannot be installed and codegraph cannot run. Start the session from a shell where node resolves; this checkout pins its version in .node-version."
+    exit 0
+}
 
 # 1. Dependencies — install only when missing or stale (npm ci is destructive + slow; never every session).
 #    The stamp holds the lockfile's git hash, so a pull or branch switch that moves package-lock.json
