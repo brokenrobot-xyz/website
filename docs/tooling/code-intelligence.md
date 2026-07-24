@@ -62,3 +62,11 @@ equivalent. To do the same work by hand, run `npm ci` and `npm run codegraph:ini
 > The hook installs dependencies only when `node_modules` is missing — it does **not** detect a
 > changed `package-lock.json` in an already-installed checkout. After pulling a lockfile change, run
 > `npm ci` yourself.
+
+> A checkout that starts **without `node_modules/`** gets no MCP server for that session, even with
+> `codegraph` enabled: Claude Code spawns MCP servers before the hook's `npm ci` has created
+> `node_modules/.bin/codegraph`, so the spawn fails and is not retried. Only the server is lost —
+> the hook still builds the index. So the very first session in a fresh worktree has none, and
+> **restarting Claude Code** is what brings it up. `ls .codegraph/daemon.pid` tells you whether it is
+> running. The CLI is unaffected either way, and its `explore`/`node` commands print the same output
+> as the MCP tools.
