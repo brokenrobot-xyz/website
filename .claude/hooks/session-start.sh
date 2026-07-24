@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Idempotent session bootstrap — runs at the start of every Claude Code session, in
+# Idempotent session bootstrap — runs when a Claude Code session starts or resumes, in
 # whatever checkout it opens in (main clone or worktree). Ensures dependencies are
 # installed and the Codegraph index exists and is fresh.
 #
@@ -7,7 +7,10 @@
 # so it has neither node_modules/ nor .codegraph/ (both gitignored). This script brings
 # it up to a working state and, on subsequent runs, just keeps the index in sync — cheaply.
 #
-# Run by Claude Code via the SessionStart hook; CLAUDE_PROJECT_DIR is set by the harness.
+# Run by Claude Code via the SessionStart hook, matched to `startup|resume` in settings.json:
+# clear, compact and fork all continue in a checkout that has already been bootstrapped, and a
+# forked session runs concurrently with its parent — npm ci must not fire under a live session.
+# CLAUDE_PROJECT_DIR is set by the harness.
 set -uo pipefail
 
 # Never fail the session start: every abnormal path below reports and exits 0. The two guards here
