@@ -2,6 +2,7 @@
     "env": {
         "ASTRO_TELEMETRY_DISABLED": "1",
         "CODEGRAPH_TELEMETRY": "0",
+        "DO_NOT_TRACK": "1",
         "HOMEBREW_NO_ANALYTICS": "1",
         "OPENSPEC_TELEMETRY": "0",
         "SHARP_IGNORE_GLOBAL_LIBVIPS": "1"

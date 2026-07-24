@@ -27,14 +27,15 @@ plugin adds go-to-definition, find-references, and error-checking for `.ts/.tsx/
 
 [Codegraph](https://github.com/colbymchenry/codegraph) (`@colbymchenry/codegraph`) serves a
 pre-indexed SQLite code graph so the agent gets symbols, call paths, and impact analysis in a single
-call instead of grep/read loops. Indexing and queries are 100% local and need no credentials. It
-does reach the network in two places, neither of them your code: `npx` fetches the pinned package
-the first time a machine runs it, and codegraph checks for newer releases in the background — kept
-on deliberately, since it is no longer a devDependency and so no longer shows up in `npm outdated`
-(`CODEGRAPH_NO_UPDATE_CHECK=1` turns it off). Its **telemetry is disabled** by
-`CODEGRAPH_TELEMETRY=0` in [`.claude/settings.json`](../../.claude/settings.json), alongside the
-other tools' opt-outs; it is on by default otherwise, and the CLI's saved choice is per-machine
-(`~/.codegraph/telemetry.json`), so the committed env var is what makes it reproducible.
+call instead of grep/read loops. Indexing and queries are 100% local and need no credentials, and the
+only network call left is `npx` fetching the pinned package the first time a machine runs it. Both of
+codegraph's own outbound calls are off, through `CODEGRAPH_TELEMETRY=0` and the cross-tool
+`DO_NOT_TRACK=1` in [`.claude/settings.json`](../../.claude/settings.json), alongside the other
+tools' opt-outs. Two things follow: telemetry is on by default and its CLI opt-out is saved
+per-machine (`~/.codegraph/telemetry.json`), so the committed env vars are what make "off"
+reproducible; and `DO_NOT_TRACK` also silences the background update check, so a new codegraph
+release is something to go looking for — it is not a devDependency either, so `npm outdated` will
+not surface it.
 
 - **Registered** in [`.mcp.json`](../../.mcp.json) as
   `npx -y @colbymchenry/codegraph@1.5.0 serve --mcp`, with the version pinned **in the command**.
