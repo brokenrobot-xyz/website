@@ -22,8 +22,13 @@ export MARKER="${root}/calls"
 mkdir -p "${shim}" "${proj}"
 
 # Stub npm: records the call, then either fails (NPM_CI_EXIT) or lays down a node_modules tree
-# holding a stub codegraph — which records its own calls and honours CG_EXIT. Writing node_modules
-# only on success mirrors the real npm ci, which wipes the tree before repopulating it.
+# holding a stub codegraph. Writing node_modules only on success mirrors the real npm ci, which
+# wipes the tree before repopulating it.
+#
+# The stub codegraph records its own calls and reproduces the real `status --json` contract, which
+# is what the hook probes for index health: exit 1 when the database cannot be read (CG_BROKEN),
+# initialized:false when no .codegraph exists, and reindexRecommended when the index predates the
+# installed codegraph (CG_REINDEX). CG_EXIT fails the build and sync subcommands, not the probe.
 cat >"${shim}/npm" <<'STUB'
 #!/usr/bin/env bash
 echo "npm $*" >>"${MARKER}"
@@ -33,7 +38,21 @@ mkdir -p node_modules/.bin
 cat >node_modules/.bin/codegraph <<'CODEGRAPH'
 #!/usr/bin/env bash
 echo "codegraph $*" >>"${MARKER}"
-[ "$1" = "init" ] && [ "${CG_EXIT:-0}" = "0" ] && mkdir -p .codegraph
+case "$1" in
+  status)
+    [ "${CG_BROKEN:-0}" = "0" ] || { echo "Failed to get status: file is not a database" >&2; exit 1; }
+    if [ -d .codegraph ]; then
+      printf '{"initialized":true,"index":{"reindexRecommended":%s}}\n' "${CG_REINDEX:-false}"
+    else
+      echo '{"initialized":false}'
+    fi
+    exit 0
+    ;;
+  init | index)
+    [ "${CG_EXIT:-0}" = "0" ] && mkdir -p .codegraph
+    exit "${CG_EXIT:-0}"
+    ;;
+esac
 exit "${CG_EXIT:-0}"
 CODEGRAPH
 chmod +x node_modules/.bin/codegraph
@@ -83,15 +102,18 @@ is_json() { printf '%s' "$1" | jq -e . >/dev/null 2>&1 && echo yes || echo no; }
 lockfile 1
 out="$(run)"
 check "cold checkout installs and builds the index" "npm ci
+codegraph status --json
 codegraph init" "$(calls)"
 check "a successful install stamps the lockfile hash" "$(git hash-object "${proj}/package-lock.json")" "$(stamp)"
 
 out="$(run)"
-check "an unchanged lockfile skips npm ci" "codegraph sync -q" "$(calls)"
+check "an unchanged lockfile skips npm ci" "codegraph status --json
+codegraph sync -q" "$(calls)"
 
 lockfile 2
 out="$(run)"
 check "a moved lockfile reinstalls" "npm ci
+codegraph status --json
 codegraph sync -q" "$(calls)"
 
 # --- output contract: silent when healthy, structured when not ---
@@ -118,11 +140,28 @@ check "a failed npm ci leaves the stamp untouched" "$(git hash-object <(printf '
 
 out="$(run)"
 check "the next session retries the install" "npm ci
+codegraph status --json
 codegraph sync -q" "$(calls)"
 
 out="$(CG_EXIT=1 run)"
 check "a failed sync still emits valid JSON" "yes" "$(is_json "${out}")"
 contains "a failed sync warns that the index may be stale" "codegraph sync failed" "${out}"
+
+# --- index health: the probe, not the directory, decides what to run ---
+
+out="$(CG_BROKEN=1 run)"
+check "an unreadable index is rebuilt, not synced" "codegraph status --json
+codegraph index" "$(calls)"
+contains "and the rebuild is explained" "the existing one is unreadable" "${out}"
+
+out="$(CG_REINDEX=true run)"
+check "an index built by an older codegraph is rebuilt" "codegraph status --json
+codegraph index" "$(calls)"
+contains "and that rebuild is explained too" "built by an older codegraph" "${out}"
+
+out="$(CG_BROKEN=1 CG_EXIT=1 run)"
+contains "a failed rebuild is reported" "codegraph index failed" "${out}"
+contains "and says the checkout has no usable index" "NO usable index" "${out}"
 
 rm -rf "${proj}/.codegraph" "${proj}/node_modules"
 lockfile 5
