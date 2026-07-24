@@ -21,14 +21,22 @@ proj="${root}/proj"
 export MARKER="${root}/calls"
 mkdir -p "${shim}" "${proj}"
 
-# Stub npm: records the call, then either fails (NPM_CI_EXIT) or lays down a node_modules tree.
-# Writing it only on success mirrors the real npm ci, which wipes the tree before repopulating it.
-# The tree is otherwise empty — codegraph no longer lives there, it is fetched by npx.
+# Stub npm: records the call, then either fails (NPM_CI_EXIT / NPM_INSTALL_EXIT) or lays down a
+# node_modules tree. `ci` empties the tree *before* it can fail and `install` does not — the
+# difference the hook picks between, so the stub reproduces it rather than treating the two as
+# interchangeable. The tree is otherwise empty: codegraph no longer lives there, it is fetched by npx.
 cat >"${shim}/npm" <<'STUB'
 #!/usr/bin/env bash
 echo "npm $*" >>"${MARKER}"
-[ "${NPM_CI_EXIT:-0}" = "0" ] || exit "${NPM_CI_EXIT}"
-rm -rf node_modules
+case "$1" in
+  ci)
+    rm -rf node_modules
+    [ "${NPM_CI_EXIT:-0}" = "0" ] || exit "${NPM_CI_EXIT}"
+    ;;
+  install)
+    [ "${NPM_INSTALL_EXIT:-0}" = "0" ] || exit "${NPM_INSTALL_EXIT}"
+    ;;
+esac
 mkdir -p node_modules
 STUB
 chmod +x "${shim}/npm"
@@ -119,7 +127,7 @@ codegraph sync -q" "$(calls)"
 
 lockfile 2
 out="$(run)"
-check "a moved lockfile reinstalls" "npm ci
+check "a moved lockfile reinstalls, in place over the existing tree" "npm install
 codegraph status --json
 codegraph sync -q" "$(calls)"
 
@@ -133,22 +141,36 @@ check "work performed is reported as JSON" "yes" "$(is_json "${out}")"
 check "tagged as a SessionStart hook" "SessionStart" "$(printf '%s' "${out}" | jq -r '.hookSpecificOutput.hookEventName')"
 check "user and Claude get the same notes" "same" \
     "$(printf '%s' "${out}" | jq -r 'if .systemMessage == .hookSpecificOutput.additionalContext then "same" else "differ" end')"
-contains "the reinstall is explained" "installed dependencies (npm ci)" "${out}"
+contains "the reinstall is explained" "installed dependencies (npm install)" "${out}"
 
 # --- failure paths ---
+#
+# The installer is chosen by whether there is a tree to replace, so both choices need covering. It is
+# not a stylistic split: npm ci wipes node_modules before extracting, and inside the Claude Code
+# sandbox that wipe cannot finish — a transitive dependency ships a `.vscode/settings.json` the
+# harness will not let anything unlink. Hence install over an existing tree, which also leaves that
+# tree intact when it fails, where a failed ci leaves it half-removed.
 
 lockfile 4
-out="$(NPM_CI_EXIT=1 run)"
-check "a failed npm ci still emits valid JSON" "yes" "$(is_json "${out}")"
-contains "a failed npm ci is reported" "npm ci failed" "${out}"
-contains "a failed npm ci reaches Claude" "npm ci failed" "$(printf '%s' "${out}" | jq -r '.hookSpecificOutput.additionalContext')"
-check "a failed npm ci stops before codegraph" "npm ci" "$(calls)"
-check "a failed npm ci leaves the stamp untouched" "$(git hash-object <(printf '{"v":3}\n'))" "$(stamp)"
+out="$(NPM_INSTALL_EXIT=1 run)"
+check "a failed install still emits valid JSON" "yes" "$(is_json "${out}")"
+contains "a failed install is reported" "npm install failed" "${out}"
+contains "a failed install reaches Claude" "npm install failed" "$(printf '%s' "${out}" | jq -r '.hookSpecificOutput.additionalContext')"
+contains "and the advice steers away from the ci that cannot work" 'not `npm ci`' "${out}"
+check "a failed install stops before codegraph" "npm install" "$(calls)"
+check "a failed install leaves the previous stamp in place" "$(git hash-object <(printf '{"v":3}\n'))" "$(stamp)"
 
 out="$(run)"
-check "the next session retries the install" "npm ci
+check "the next session retries the install" "npm install
 codegraph status --json
 codegraph sync -q" "$(calls)"
+
+# The other branch: nothing to delete, so the stricter installer runs.
+rm -rf "${proj}/node_modules"
+lockfile 5
+out="$(NPM_CI_EXIT=1 run)"
+check "a checkout with no tree reaches for npm ci" "npm ci" "$(calls)"
+contains "and its failure is reported too" "npm ci failed" "${out}"
 
 out="$(CG_EXIT=1 run)"
 check "a failed sync still emits valid JSON" "yes" "$(is_json "${out}")"

@@ -59,15 +59,29 @@ command -v node >/dev/null || {
 #    reinstalls. It is written only on success and lives inside node_modules/, which npm ci wipes before
 #    installing — so an install that dies partway (hook timeout) can never leave a tree that looks complete.
 #    No hash (missing lockfile) means "not up to date": npm ci then reports the real problem below.
+#    Which installer depends on whether there is a tree to replace. `npm ci` is the stricter one and
+#    stays the default, but it wipes node_modules first — and inside the Claude Code sandbox that wipe
+#    cannot finish: a transitive dependency ships a `.vscode/settings.json`, and the harness denies
+#    *unlinking* that path. Creating it during extraction is allowed, which is why a checkout with no
+#    node_modules installs cleanly and one with a tree cannot. So ci builds from nothing, install
+#    reconciles what is already there — the same call a human would make, and non-destructive when it
+#    fails, where a failed ci leaves the tree half-removed.
 lock_hash="$(git hash-object package-lock.json)"
 if [ -z "${lock_hash}" ] || [ "$(cat node_modules/.session-start-stamp 2>/dev/null)" != "${lock_hash}" ]; then
-    echo "[session-start] installing dependencies (npm ci)…" >&2
-    npm ci >&2 || {
-        note "npm ci failed — dependencies are NOT installed. Run it manually; builds, tests and npm scripts will fail until it succeeds."
+    if [ -d node_modules ]; then
+        installer=install
+    else
+        installer=ci
+    fi
+    echo "[session-start] installing dependencies (npm ${installer})…" >&2
+    npm "${installer}" >&2 || {
+        note "npm ${installer} failed — dependencies are NOT installed. Run \`npm install\` manually (not \`npm ci\`, which cannot delete an existing node_modules here); builds, tests and npm scripts will fail until it succeeds."
         exit 0
     }
-    printf '%s\n' "${lock_hash}" >node_modules/.session-start-stamp
-    note "installed dependencies (npm ci) — node_modules was missing or package-lock.json had moved. This is why session start took a while."
+    # Re-read the hash rather than reusing the one probed above: `npm install` is free to rewrite
+    # package-lock.json, and a stamp describing anything but what is installed reinstalls every session.
+    printf '%s\n' "$(git hash-object package-lock.json)" >node_modules/.session-start-stamp
+    note "installed dependencies (npm ${installer}) — node_modules was missing or package-lock.json had moved. This is why session start took a while."
 fi
 
 # Codegraph is not a devDependency: `.mcp.json` npx-launches the MCP server at this same pinned
