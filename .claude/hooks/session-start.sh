@@ -54,15 +54,6 @@ command -v node >/dev/null || {
     exit 0
 }
 
-# Claude Code launches the MCP servers in .mcp.json at session start, before this hook runs. The
-# codegraph one is `node_modules/.bin/codegraph`, so a checkout that arrives without node_modules
-# loses it for the whole session — the install below repairs the path, not the launch that already
-# failed. Recorded here, before that install hides the evidence, and reported at the end. The test is
-# the binary itself and not "did npm ci run", because the install below also fires for a lockfile
-# that merely moved, and in that case the server started fine.
-codegraph_bin_missing=false
-[ -x node_modules/.bin/codegraph ] || codegraph_bin_missing=true
-
 # 1. Dependencies — install only when missing or stale (npm ci is destructive + slow; never every session).
 #    The stamp holds the lockfile's git hash, so a pull or branch switch that moves package-lock.json
 #    reinstalls. It is written only on success and lives inside node_modules/, which npm ci wipes before
@@ -109,11 +100,4 @@ elif [ "${initialized}" = "true" ]; then
     build_index index "rebuilding the Codegraph index (it was built by an older codegraph)"
 else
     build_index index "rebuilding the Codegraph index (the existing one is unreadable)"
-fi
-
-# 3. The MCP server that never launched (see the check above). Reported last so it reads as the
-#    closing state of the session, and worded as the observation rather than the launch order, which
-#    is the harness's to change: what is certain is that the binary was not there to be run.
-if [ "${codegraph_bin_missing}" = "true" ]; then
-    note "the codegraph MCP tools are NOT available this session — node_modules was missing when it started, so Claude Code could not launch the server. Use the CLI instead (node_modules/.bin/codegraph explore|node|callers, same output as the MCP tools), or restart Claude Code to get them back."
 fi
