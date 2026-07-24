@@ -18,14 +18,19 @@ if [ -z "${CLAUDE_PROJECT_DIR:-}" ]; then
 fi
 cd "${CLAUDE_PROJECT_DIR}" || exit 0 # checkout root
 
-# 1. Dependencies — install only when missing (npm ci is destructive + slow; never every session).
-#    The codegraph bin is a devDependency, so its presence is a good "node_modules is populated" proxy.
-if [ ! -x node_modules/.bin/codegraph ]; then
+# 1. Dependencies — install only when missing or stale (npm ci is destructive + slow; never every session).
+#    The stamp holds the lockfile's git hash, so a pull or branch switch that moves package-lock.json
+#    reinstalls. It is written only on success and lives inside node_modules/, which npm ci wipes before
+#    installing — so an install that dies partway (hook timeout) can never leave a tree that looks complete.
+#    No hash (missing lockfile) means "not up to date": npm ci then reports the real problem below.
+lock_hash="$(git hash-object package-lock.json)"
+if [ -z "${lock_hash}" ] || [ "$(cat node_modules/.session-start-stamp 2>/dev/null)" != "${lock_hash}" ]; then
     echo "[session-start] installing dependencies (npm ci)…" >&2
     npm ci >&2 || {
         echo "[session-start] npm ci failed — run it manually" >&2
         exit 0
     }
+    printf '%s\n' "${lock_hash}" >node_modules/.session-start-stamp
 fi
 
 # 2. Codegraph index — build once per checkout, then incremental sync.
