@@ -47,8 +47,8 @@ cd "${project_dir}" || {
     exit 0
 }
 
-# Both steps below need node: npm ci is a node program, and the codegraph bin is `#!/usr/bin/env
-# node`. A missing npm alone needs no check of its own — `npm ci` failing already reports itself.
+# Both steps below need node: npm ci is a node program, and codegraph runs through npx. A missing
+# npm alone needs no check of its own — `npm ci` failing already reports itself.
 command -v node >/dev/null || {
     note "node is not on PATH — dependencies cannot be installed and codegraph cannot run. Start the session from a shell where node resolves; this checkout pins its version in .node-version."
     exit 0
@@ -70,6 +70,13 @@ if [ -z "${lock_hash}" ] || [ "$(cat node_modules/.session-start-stamp 2>/dev/nu
     note "installed dependencies (npm ci) — node_modules was missing or package-lock.json had moved. This is why session start took a while."
 fi
 
+# Codegraph is not a devDependency: `.mcp.json` npx-launches the MCP server at this same pinned
+# version, and running the CLI the same way keeps one source of truth for which build touches the
+# index. npx resolves from its own cache, so this works in a checkout that has never been installed
+# — and costs ~0.5s per call over a local bin, paid once or twice a session. Keep the version here in
+# step with .mcp.json; a mismatch shows up as a reindexRecommended loop rather than silent breakage.
+codegraph() { npx -y "@colbymchenry/codegraph@1.5.0" "$@"; }
+
 # 2. Codegraph index — build once per checkout, then incremental sync.
 #    `status` is the health probe rather than a test for the .codegraph/ directory, which only ever
 #    proved a directory existed: a build killed partway (hook timeout) leaves one behind, and every
@@ -79,20 +86,20 @@ fi
 #    Anything unparseable is treated as unreadable, which is the safe reading of "no usable answer".
 build_index() { # $1 = codegraph subcommand, $2 = what it is doing, as a phrase
     echo "[session-start] $2…" >&2
-    if node_modules/.bin/codegraph "$1" >&2; then
+    if codegraph "$1" >&2; then
         note "finished $2. This is why session start took a while."
     else
         note "codegraph $1 failed — this checkout has NO usable index. Use the normal file-reading tools instead of codegraph."
     fi
 }
 
-status_json="$(node_modules/.bin/codegraph status --json)"
+status_json="$(codegraph status --json)"
 initialized="$(printf '%s' "${status_json}" | jq -r '.initialized' 2>/dev/null)"
 reindex="$(printf '%s' "${status_json}" | jq -r '.index.reindexRecommended' 2>/dev/null)"
 
 if [ "${initialized}" = "true" ] && [ "${reindex}" != "true" ]; then
     # `sync -q` is silent even when it fails, so report it: a stale index is worse unannounced.
-    node_modules/.bin/codegraph sync -q >&2 ||
+    codegraph sync -q >&2 ||
         note "codegraph sync failed — the index may be stale. Verify anything codegraph returns against the files before relying on it."
 elif [ "${initialized}" = "false" ]; then
     build_index init "building the Codegraph index (first run in this checkout)"

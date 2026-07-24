@@ -1,8 +1,9 @@
 # Code intelligence
 
 Two tools give Claude Code code-intelligence in this repo. Both run **on the host** (where the
-interactive session runs, not the devcontainer), are **version-pinned via `package.json`**, and are
-**committed** so the setup is reproducible — but each is _enabled_ locally, mirroring the existing
+interactive session runs, not the devcontainer), are **version-pinned in committed config** — one in
+`package.json`, one in `.mcp.json` — so the setup is reproducible; but each is _enabled_ locally,
+mirroring the existing
 `.mcp.json` + `enabledMcpjsonServers` convention (see [sandbox.md](sandbox.md)).
 
 ## typescript-lsp (a Claude Code plugin)
@@ -34,9 +35,10 @@ only network use is `npx` fetching the pinned package the first time a machine r
   Claude Code launches MCP servers before anything can install dependencies, so a
   `node_modules/.bin/…` path is simply absent in a fresh worktree and the server never starts for
   that session; `npx` has no such dependency. The explicit `@version` is what keeps that from
-  costing the pin — a bare `npx <pkg>` starts fine but silently fetches the latest release. With
-  `node_modules` present, `npx` reuses the local devDependency rather than fetching a second copy.
-  **Enabled** by adding `"codegraph"` to `enabledMcpjsonServers` in your (gitignored)
+  costing the pin — a bare `npx <pkg>` starts fine but silently fetches the latest release. Codegraph
+  is deliberately **not** a devDependency: nothing loads it from `node_modules`, and keeping it out
+  cuts a 293 MB platform binary from every worktree's install in favour of one `npx` cache per
+  machine. **Enabled** by adding `"codegraph"` to `enabledMcpjsonServers` in your (gitignored)
   `.claude/settings.local.json`.
 - We deliberately do **not** run `codegraph install` — that writes a global `~/.claude.json` entry
   pointing at a global binary, defeating the repo-scoped version pin.

@@ -21,22 +21,31 @@ proj="${root}/proj"
 export MARKER="${root}/calls"
 mkdir -p "${shim}" "${proj}"
 
-# Stub npm: records the call, then either fails (NPM_CI_EXIT) or lays down a node_modules tree
-# holding a stub codegraph. Writing node_modules only on success mirrors the real npm ci, which
-# wipes the tree before repopulating it.
-#
-# The stub codegraph records its own calls and reproduces the real `status --json` contract, which
-# is what the hook probes for index health: exit 1 when the database cannot be read (CG_BROKEN),
-# initialized:false when no .codegraph exists, and reindexRecommended when the index predates the
-# installed codegraph (CG_REINDEX). CG_EXIT fails the build and sync subcommands, not the probe.
+# Stub npm: records the call, then either fails (NPM_CI_EXIT) or lays down a node_modules tree.
+# Writing it only on success mirrors the real npm ci, which wipes the tree before repopulating it.
+# The tree is otherwise empty — codegraph no longer lives there, it is fetched by npx.
 cat >"${shim}/npm" <<'STUB'
 #!/usr/bin/env bash
 echo "npm $*" >>"${MARKER}"
 [ "${NPM_CI_EXIT:-0}" = "0" ] || exit "${NPM_CI_EXIT}"
 rm -rf node_modules
-mkdir -p node_modules/.bin
-cat >node_modules/.bin/codegraph <<'CODEGRAPH'
+mkdir -p node_modules
+STUB
+chmod +x "${shim}/npm"
+
+# Stub npx: the hook reaches codegraph as `npx -y <pkg>@<version> <subcommand>`, so this drops those
+# two leading arguments and then stands in for codegraph itself — recording under the bare name the
+# assertions below expect. It reproduces the real `status --json` contract, which is what the hook
+# probes for index health: exit 1 when the database cannot be read (CG_BROKEN), initialized:false
+# when no .codegraph exists, and reindexRecommended when the index predates the installed codegraph
+# (CG_REINDEX). CG_EXIT fails the build and sync subcommands, not the probe.
+#
+# Being on PATH rather than inside node_modules is the point: it is reachable whether or not this
+# checkout has been installed, exactly as the real npx is.
+cat >"${shim}/npx" <<'STUB'
 #!/usr/bin/env bash
+[ "${1:-}" = "-y" ] && shift
+shift # the pinned package spec
 echo "codegraph $*" >>"${MARKER}"
 case "$1" in
   status)
@@ -54,10 +63,8 @@ case "$1" in
     ;;
 esac
 exit "${CG_EXIT:-0}"
-CODEGRAPH
-chmod +x node_modules/.bin/codegraph
 STUB
-chmod +x "${shim}/npm"
+chmod +x "${shim}/npx"
 
 export PATH="${shim}:${PATH}"
 export CLAUDE_PROJECT_DIR="${proj}"
