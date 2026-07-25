@@ -34,6 +34,7 @@ commands as fixes for the user.
     "query": "Is my environment ready to work on the site?",
     "expected_behavior": [
         "Runs `bash .claude/hooks/lib/dev-env-checks.sh` first",
+        "The reply carries the SKILL.md progress checklist, ticked as steps complete",
         "Step 1 all-✓, so it proceeds to Step 2 via the preflight-checks skill",
         "Reports 'environment ready' naming BOTH tiers, and that nothing was changed",
         "Runs no mutating command (universal rule above)"

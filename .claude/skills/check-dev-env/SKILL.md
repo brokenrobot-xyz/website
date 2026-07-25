@@ -22,6 +22,16 @@ so the guide can never drift from the docs.
 > fix is printed for the user to run themselves. The only commands this skill executes are the
 > read-only scan below and, via `preflight-checks`, the verify suite.
 
+Copy this checklist into your reply and tick each item as you go:
+
+```
+Check progress:
+- [ ] 1. Quick scan (read-only)
+- [ ] 2. Deep verify — run, or skip with the reason stated
+- [ ] 3. Build the guide from the doc's Troubleshooting entries
+- [ ] 4. Report — ready or not, the guide, nothing changed
+```
+
 ## Step 1 — Quick scan
 
 From the repo root:
