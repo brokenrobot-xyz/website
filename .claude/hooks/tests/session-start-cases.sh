@@ -266,8 +266,9 @@ contains "an unusable project dir is reported, not skipped in silence" "cannot e
 
 # A manual run has no CLAUDE_PROJECT_DIR, so the hook falls back to the working directory — the
 # debug path documented in the script: run it by hand from the repo root.
-mkdir -p "${proj}/.claude/hooks"
+mkdir -p "${proj}/.claude/hooks/lib"
 cp "${HOOK}" "${proj}/.claude/hooks/session-start.sh"
+cp "${hook_dir}/lib/dev-env-checks.sh" "${proj}/.claude/hooks/lib/dev-env-checks.sh"
 : >"${MARKER}"
 out="$(cd "${proj}" && env -u CLAUDE_PROJECT_DIR bash .claude/hooks/session-start.sh 2>/dev/null)"
 check "a manual run from the repo root bootstraps that checkout" "codegraph status --json

@@ -1,0 +1,267 @@
+#!/usr/bin/env bash
+# Shared dev-environment diagnostics — the detection half of bringing a checkout up to speed.
+#
+# Two consumers, one implementation, so the probes cannot drift apart:
+#   - .claude/hooks/session-start.sh sources this file and ACTS on what it finds — it installs
+#     dependencies and builds the Codegraph index;
+#   - the check-dev-env skill executes it directly (`bash .claude/hooks/lib/dev-env-checks.sh`)
+#     and only GUIDES — executed mode runs every check read-only, prints the ✓/✗ report, and
+#     exits 1 when anything needs attention. It never installs, builds, or edits anything.
+#
+# Drift contract: symptom detection and ✗-line wording live here; the matching remediation lives
+# only in docs/development-environment.md § Troubleshooting, keyed on the ✗ lines' prefixes.
+# Change the two together.
+#
+# Written to be sourced under `set -uo pipefail`: it defines functions and accumulator globals,
+# nothing else, and never exits the caller.
+
+# Single source of truth for which codegraph build the hook runs and the pin the sanity check
+# verifies against .mcp.json and the codegraph:* npm scripts. npx resolves it from its own cache,
+# so this works in a checkout that has never been installed — codegraph is deliberately not a
+# devDependency. Drift between the three committed pins lands in the report instead of surfacing
+# as a reindexRecommended loop.
+CODEGRAPH_VERSION="1.5.0"
+codegraph() { npx -y "@colbymchenry/codegraph@${CODEGRAPH_VERSION}" "$@"; }
+
+# --- Toolchain ----------------------------------------------------------------------------------
+#     Healthy tools share one ✓ line; each problem gets its own ✗ line with the consequence
+#     spelled out. Fills the have_* globals the callers gate their later steps on, so a report
+#     never implies work that never ran.
+have_node=false
+have_npm=false
+have_jq=false
+ok_parts=""
+problems=""
+tool_ok() { ok_parts="${ok_parts}${ok_parts:+, }$1"; }
+tool_bad() { problems="${problems}${problems:+$'\n'}✗ $1"; }
+
+dev_env_check_tools() {
+    have_node=false
+    have_npm=false
+    have_jq=false
+    ok_parts=""
+    problems=""
+
+    if command -v git >/dev/null; then
+        tool_ok "git $(git --version | awk '{print $3}')"
+    else
+        tool_bad "git missing — the lockfile stamp cannot be computed, so dependencies reinstall every session"
+    fi
+
+    local node_pin node_ver
+    node_pin="$(cat .node-version 2>/dev/null)"
+    if command -v node >/dev/null; then
+        have_node=true
+        node_ver="$(node --version)"
+        node_ver="${node_ver#v}"
+        if [ "${node_ver}" = "${node_pin}" ]; then
+            tool_ok "node ${node_ver} (=.node-version)"
+        else
+            tool_bad "node is ${node_ver} but .node-version pins ${node_pin:-unknown} — installs and builds may misbehave; switch versions with your version manager"
+        fi
+    else
+        tool_bad "node missing — dependencies cannot be installed and codegraph cannot run"
+    fi
+
+    if command -v npm >/dev/null; then
+        have_npm=true
+        tool_ok "npm $(npm --version)"
+    else
+        tool_bad "npm missing — dependencies cannot be installed"
+    fi
+
+    if command -v jq >/dev/null; then
+        have_jq=true
+        tool_ok "jq"
+    else
+        tool_bad "jq missing — the session report degrades to plain text and the codegraph health probe cannot be parsed"
+    fi
+
+    if command -v typescript-language-server >/dev/null; then
+        tool_ok "typescript-language-server"
+    else
+        tool_bad "typescript-language-server missing — the typescript-lsp plugin has no server and silently degrades; npm i -g typescript-language-server typescript"
+    fi
+
+    # Codegraph itself is npx-launched at a pinned version, so presence needs no probe — the real
+    # calls exercise it. What can drift is the pin, which lives in three committed places.
+    if [ "${have_jq}" = true ]; then
+        local drift mcp_pin pin
+        drift=""
+        mcp_pin="$(jq -r '.mcpServers.codegraph.args[] | select(startswith("@colbymchenry/codegraph@"))' .mcp.json 2>/dev/null | cut -d@ -f3)"
+        [ "${mcp_pin}" = "${CODEGRAPH_VERSION}" ] || drift=".mcp.json pins ${mcp_pin:-nothing}"
+        for pin in $(jq -r '.scripts | to_entries[] | select(.key | startswith("codegraph:")) | .value' package.json 2>/dev/null |
+            grep -o '@colbymchenry/codegraph@[0-9][0-9.]*' | cut -d@ -f3 | sort -u); do
+            [ "${pin}" = "${CODEGRAPH_VERSION}" ] || drift="${drift}${drift:+; }package.json scripts pin ${pin}"
+        done
+        if [ -z "${drift}" ]; then
+            tool_ok "codegraph pin ${CODEGRAPH_VERSION} consistent"
+        else
+            tool_bad "codegraph pins drifted — this hook runs ${CODEGRAPH_VERSION} but ${drift}; align them, or the MCP server and this hook index with different builds"
+        fi
+    fi
+}
+
+dev_env_tool_report() { # $1 = pointer suffix appended to each ✗ line, e.g. "(see docs/…)"; "" for none
+    local suffix="${1:-}" problem
+    suffix="${suffix:+ ${suffix}}"
+    [ -z "${ok_parts}" ] || printf '✓ tools: %s\n' "${ok_parts}"
+    [ -z "${problems}" ] && return 0
+    while IFS= read -r problem; do
+        printf '%s%s\n' "${problem}" "${suffix}"
+    done <<<"${problems}"
+}
+
+# --- Dependencies -------------------------------------------------------------------------------
+#     True when node_modules matches the committed lockfile. The stamp holds the lockfile's git
+#     hash and lives inside node_modules/, so an install that died partway can never leave a tree
+#     that looks complete. No hash (missing lockfile or git) means "not fresh". Prints nothing.
+dev_env_deps_fresh() {
+    local lock_hash
+    lock_hash="$(git hash-object package-lock.json)"
+    [ -n "${lock_hash}" ] && [ "$(cat node_modules/.session-start-stamp 2>/dev/null)" = "${lock_hash}" ]
+}
+
+# --- Codegraph index ----------------------------------------------------------------------------
+#     `status` is the health probe rather than a test for the .codegraph/ directory, which only
+#     ever proved a directory existed. Its three answers are distinct — exit 1 when the database
+#     cannot be read, initialized:false when there is no index, and reindexRecommended when the
+#     index predates the installed codegraph's extraction version. Anything unparseable is treated
+#     as unreadable, which is the safe reading of "no usable answer". Requires node and jq.
+dev_env_codegraph_state() { # echoes: healthy | uninitialized | reindex | unreadable
+    local status_json initialized reindex
+    status_json="$(codegraph status --json)"
+    initialized="$(printf '%s' "${status_json}" | jq -r '.initialized' 2>/dev/null)"
+    reindex="$(printf '%s' "${status_json}" | jq -r '.index.reindexRecommended' 2>/dev/null)"
+    if [ "${initialized}" = "true" ] && [ "${reindex}" != "true" ]; then
+        echo healthy
+    elif [ "${initialized}" = "false" ]; then
+        echo uninitialized
+    elif [ "${initialized}" = "true" ]; then
+        echo reindex
+    else
+        echo unreadable
+    fi
+}
+
+# --- Claude Code integration (executed mode only — the hook cannot fix these, so it never asks) --
+dev_env_check_claude() { # requires jq; returns 1 on any ✗
+    local ok="" bad="" mgr="" m rc=0
+    if jq -e '.enabledPlugins["typescript-lsp@claude-plugins-official"] == true' .claude/settings.json >/dev/null 2>&1; then
+        ok="typescript-lsp plugin enabled"
+    else
+        bad="✗ typescript-lsp plugin not enabled — Claude Code runs without TypeScript language intelligence"
+    fi
+    if jq -e '.mcpServers.codegraph' .mcp.json >/dev/null 2>&1 &&
+        jq -e '.enabledMcpjsonServers | index("codegraph")' .claude/settings.local.json >/dev/null 2>&1; then
+        ok="${ok}${ok:+, }codegraph MCP enabled"
+    else
+        bad="${bad}${bad:+$'\n'}✗ codegraph MCP not enabled — it must be in .mcp.json and in enabledMcpjsonServers of .claude/settings.local.json"
+    fi
+    # nvm is a shell function, not an executable — command -v cannot see it, its install dir can.
+    for m in fnm asdf volta; do
+        command -v "${m}" >/dev/null && {
+            mgr="${m}"
+            break
+        }
+    done
+    [ -n "${mgr}" ] || { [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ] && mgr="nvm"; }
+    if [ -n "${mgr}" ]; then
+        ok="${ok}${ok:+, }node manager ${mgr}"
+    else
+        bad="${bad}${bad:+$'\n'}✗ no node version manager detected (fnm/nvm/asdf/volta) — keeping node on the .node-version pin is manual"
+    fi
+    [ -z "${ok}" ] || printf '✓ claude code: %s\n' "${ok}"
+    if [ -n "${bad}" ]; then
+        printf '%s\n' "${bad}"
+        rc=1
+    fi
+    return "${rc}"
+}
+
+# --- Containers (executed mode only) — needed solely for the e2e/visual-regression suite. --------
+dev_env_check_containers() { # returns 1 on any ✗
+    local ok="" bad="" rc=0
+    if command -v docker >/dev/null; then
+        if docker info --format '{{.ServerVersion}}' >/dev/null 2>&1; then
+            ok="docker daemon running"
+        else
+            bad="✗ docker daemon not running — start Docker Desktop before using the devcontainer/e2e suite"
+        fi
+    else
+        bad="✗ docker missing — the devcontainer and the e2e/visual-regression suite cannot run; day-to-day host development is unaffected"
+    fi
+    if [ -x node_modules/.bin/devcontainer ] || command -v devcontainer >/dev/null; then
+        ok="${ok}${ok:+, }devcontainer CLI present"
+    else
+        bad="${bad}${bad:+$'\n'}✗ devcontainer CLI missing — it ships as a devDependency, so install dependencies first; only the e2e suite needs it"
+    fi
+    [ -z "${ok}" ] || printf '✓ containers: %s\n' "${ok}"
+    if [ -n "${bad}" ]; then
+        printf '%s\n' "${bad}"
+        rc=1
+    fi
+    return "${rc}"
+}
+
+# --- Executed mode: the read-only audit the check-dev-env skill runs. ---------------------------
+dev_env_main() {
+    cd "${CLAUDE_PROJECT_DIR:-$PWD}" || {
+        printf '✗ cannot enter %s — nothing was checked\n' "${CLAUDE_PROJECT_DIR:-$PWD}"
+        return 1
+    }
+    local rc=0
+
+    dev_env_check_tools
+    dev_env_tool_report ""
+    [ -z "${problems}" ] || rc=1
+
+    if [ "${have_node}" = true ] && [ "${have_npm}" = true ]; then
+        if dev_env_deps_fresh; then
+            echo "✓ dependencies: fresh (lockfile unchanged since the last install)"
+        else
+            echo "✗ dependencies: node_modules missing or stale — builds, tests and npm scripts will misbehave"
+            rc=1
+        fi
+    else
+        echo "✗ dependencies: not checked (node or npm missing)"
+        rc=1
+    fi
+
+    if [ "${have_node}" = true ] && [ "${have_jq}" = true ]; then
+        case "$(dev_env_codegraph_state)" in
+            healthy) echo "✓ codegraph: index present and readable" ;;
+            uninitialized)
+                echo "✗ codegraph: no index in this checkout — code-intelligence queries have nothing to read"
+                rc=1
+                ;;
+            reindex)
+                echo "✗ codegraph: index built by an older codegraph — a rebuild is recommended"
+                rc=1
+                ;;
+            *)
+                echo "✗ codegraph: index unreadable — it cannot be queried"
+                rc=1
+                ;;
+        esac
+    else
+        echo "✗ codegraph: not checked (node or jq missing)"
+        rc=1
+    fi
+
+    if [ "${have_jq}" = true ]; then
+        dev_env_check_claude || rc=1
+    else
+        echo "✗ claude code integration: not checked (jq missing)"
+        rc=1
+    fi
+
+    dev_env_check_containers || rc=1
+
+    return "${rc}"
+}
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    set -uo pipefail
+    dev_env_main
+fi
