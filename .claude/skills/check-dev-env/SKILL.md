@@ -2,13 +2,13 @@
 name: check-dev-env
 description: Checks whether this machine is ready to develop brokenrobot.xyz — toolchain versions against the pins, dependencies, the Codegraph index, Claude Code integration (typescript-lsp plugin, codegraph MCP, node version manager), and Docker/devcontainer availability — and turns any failure into an ordered, hand-holding setup guide with exact commands. Use when setting up a new machine or worktree, when the SessionStart report shows ✗ lines, or when builds or tools misbehave and the environment is suspect. Diagnoses only, never installs or changes anything; pair with preflight-checks for the code-quality half.
 allowed-tools: Read, Bash, Skill
-model: sonnet
+model: claude-sonnet-5
 context: fork
 agent: general-purpose
 background: false
 metadata:
     author: brokenrobot.xyz
-    version: '1.1'
+    version: '1.2'
 ---
 
 Audit this checkout's development environment and, when anything is missing, hand the user an
