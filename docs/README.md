@@ -12,9 +12,9 @@ feel, and how the code is built. Read these before working on the design overhau
 - [development-environment.md](development-environment.md) — set up a machine to work on the site:
   Node/npm versions, install, host vs. devcontainer, the global LSP tools, worktrees, and editor setup.
 - [architecture.md](architecture.md) — code structure, content model, and theming guidance.
-- [coding-conventions.md](coding-conventions.md) — TypeScript, formatting, Astro patterns,
+- [coding-conventions.md](development/conventions/coding-conventions.md) — TypeScript, formatting, Astro patterns,
   and testing rules.
-- [commit-conventions.md](commit-conventions.md) — Conventional Commits and commit message
+- [commit-conventions.md](development/conventions/commit-conventions.md) — Conventional Commits and commit message
   guidance.
 - [development-workflow.md](development-workflow.md) — the way we work: spec-driven planning +
   scaled trunk-based development (and why writing blog articles is out of scope). Tool-agnostic; the

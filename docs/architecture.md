@@ -108,7 +108,7 @@ The light/dark system, as implemented in the foundation:
   `data-theme`, persist, update `aria-pressed`). It is deliberately **not** a Preact island —
   an island renders before it knows the theme, which flashes the wrong icon on load.
 - **Both themes are first-class** — every component, the mascot, and `prose` article styling
-  must read well in light and dark (see [coding-conventions](coding-conventions.md) for
+  must read well in light and dark (see [coding-conventions](development/conventions/coding-conventions.md) for
   snapshot coverage).
 
 > **View Transitions caveat (future).** This works because every navigation is a full page

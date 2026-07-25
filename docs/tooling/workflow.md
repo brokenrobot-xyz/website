@@ -11,7 +11,7 @@ branch = one PR). Each phase maps to a concrete tool:
 | Propose                   | `spec-architect` agent / `/opsx:propose`                                                         |
 | Review the proposal       | **you** read and approve the change folder                                                       |
 | Implement                 | `frontend-engineer` agent / `/opsx:apply`, on a `<type>/<change-name>` branch                    |
-| Verify                    | `frontend-qa-engineer` agent + `running-preflight-checks` skill                                          |
+| Verify                    | `frontend-qa-engineer` agent + `running-preflight-checks` skill                                  |
 | Archive                   | `/opsx:archive` (on the branch, so the PR carries code + spec)                                   |
 | Review the implementation | the pull request: CI runs the gates, `frontend-code-reviewer` surfaces findings, **you** approve |
 | Integrate                 | merge the PR into `main`                                                                         |
@@ -61,7 +61,7 @@ Each change is one short-lived branch and one pull request — the trunk-based h
 
 ## The agents (`.claude/agents/`)
 
-Four role-based subagents, each with focused instructions and tool access. Invoke them with the
+Five role-based subagents, each with focused instructions and tool access. Invoke them with the
 Agent/Task tool, or let the main session delegate.
 
 - **`spec-architect`** (opus) — the architecture-aware proposer. Reads the specs, docs, and codebase
@@ -83,6 +83,10 @@ Agent/Task tool, or let the main session delegate.
 - **`frontend-code-reviewer`** (opus) — a read-only guardrail gate over the diff before commit, grouping
   findings as Blocking / Should-fix / Nits. Flags CSP, theming, interactivity-ladder, and convention
   violations the implementer missed.
+- **`dependency-update-researcher`** (opus) — read-only research on a single npm dependency bump
+  (current → target version): reads the changelog, checks how the repo actually uses the package, and
+  returns a compatibility verdict with the concrete edits the bump would require. Invoked per
+  minor/major bump by the `updating-dependencies` skill; never edits files or runs installs.
 
 ## The skills (`.claude/skills/`)
 
@@ -104,6 +108,16 @@ vendored names. The `reviewing-skills` skill enforces this as checklist item `R6
   Codegraph index, Claude Code integration, Docker/devcontainer) and turn any ✗ into an ordered fix
   guide sourced from development-environment.md's Troubleshooting section. Read-only — it never
   installs or fixes anything.
+- **`committing`** — stage the working tree and author one Conventional-Commits commit conforming to
+  [commit-conventions](../development/conventions/commit-conventions.md), inferring type and scope
+  from the changed paths.
+- **`updating-dependencies`** — refresh npm dependencies: detect what's outdated, bucket into
+  patch/minor/major, apply patches directly, and research minor/major bumps (one
+  `dependency-update-researcher` run per bump) before recommending them. Delegates verification to
+  `running-preflight-checks` and `testing-visual-regression`.
+- **`reviewing-skills`** — review a skill (its SKILL.md, evals, and referenced files) against
+  Anthropic's skill-authoring and prompting best practices plus this repo's conventions, producing a
+  severity-ranked gap analysis and optionally applying approved fixes.
 
 ## MCP servers (`.mcp.json`)
 
@@ -119,6 +133,9 @@ Project-scoped and committed, so the team shares them:
   Performance traces (Core Web Vitals) and a `lighthouse_audit` (a11y / SEO / best-practices) against the
   local preview — the perf/SEO angle that axe and visual-regression don't cover. Local-preview scores
   are a **relative regression signal**, not prod-authoritative.
+- **`codegraph`** — `@colbymchenry/codegraph` (version pinned in the `npx` command), a code-intelligence
+  knowledge graph over the workspace, queried instead of grep/read loops. How it's pinned, enabled, and
+  used across worktrees lives in [code-intelligence.md](code-intelligence.md).
 - **`terraform`** — HashiCorp's official `terraform-mcp-server` (Docker, pinned `:0.5.2`, `--toolsets=registry`).
   Public Terraform Registry docs — AWS/Cloudflare provider and module lookup — for authoring `infra/`. Docs
   lookup only; CI still runs `fmt`/`validate`. Needs Docker running.
@@ -172,7 +189,7 @@ it. One source of truth:
 
 - **`openspec/config.yaml` → `context`** — the site's enduring guardrails, injected into every
   artifact's generation. Their canonical home is the project docs ([architecture](../architecture.md),
-  [coding-conventions](../coding-conventions.md), [vision](../vision.md)); `config.yaml` points the
+  [coding-conventions](../development/conventions/coding-conventions.md), [vision](../vision.md)); `config.yaml` points the
   propose flow at them rather than redefining them.
 - **`openspec/schemas/frontend-change/`** — a project-local schema (forked from `spec-driven`). Its
   `templates/tasks.md` pre-seeds the mandatory **Verify** section, and its `tasks` instruction
