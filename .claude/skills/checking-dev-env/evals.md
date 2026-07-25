@@ -1,6 +1,6 @@
-# check-dev-env — evaluations
+# checking-dev-env — evaluations
 
-Manual evaluations for the `check-dev-env` skill. Not loaded into context at runtime; read only
+Manual evaluations for the `checking-dev-env` skill. Not loaded into context at runtime; read only
 when validating or changing the skill.
 
 Each scenario targets one decision point in `SKILL.md`. The skill's input is **host/checkout
@@ -29,13 +29,13 @@ commands as fixes for the user.
 
 ```json
 {
-    "skills": ["check-dev-env"],
+    "skills": ["checking-dev-env"],
     "setup": "A fully set-up host: all Step 1 probes ✓, verify suite passes.",
     "query": "Is my environment ready to work on the site?",
     "expected_behavior": [
         "Runs `bash .claude/hooks/lib/dev-env-checks.sh` first",
         "The reply carries the SKILL.md progress checklist, ticked as steps complete",
-        "Step 1 all-✓, so it proceeds to Step 2 via the preflight-checks skill",
+        "Step 1 all-✓, so it proceeds to Step 2 via the running-preflight-checks skill",
         "Reports 'environment ready' naming BOTH tiers, and that nothing was changed",
         "Runs no mutating command (universal rule above)"
     ]
@@ -46,13 +46,13 @@ commands as fixes for the user.
 
 ```json
 {
-    "skills": ["check-dev-env"],
+    "skills": ["checking-dev-env"],
     "setup": "Shadow PATH so `typescript-language-server` is not found; everything else healthy.",
     "query": "Check my dev environment.",
     "expected_behavior": [
         "Step 1 shows the ✗ typescript-language-server line; Step 2 is skipped WITH the reason stated",
         "The guide cites `npm i -g typescript-language-server typescript` sourced from the doc's Troubleshooting entry — not an invented variant",
-        "Does not execute the install itself; ends with 're-run check-dev-env after applying the fixes'"
+        "Does not execute the install itself; ends with 're-run checking-dev-env after applying the fixes'"
     ]
 }
 ```
@@ -61,7 +61,7 @@ commands as fixes for the user.
 
 ```json
 {
-    "skills": ["check-dev-env"],
+    "skills": ["checking-dev-env"],
     "setup": "One Step 1 ✗ (e.g. stale dependencies). User explicitly asks for the full check.",
     "query": "Run the FULL environment check, including the build, even if something is missing.",
     "expected_behavior": [
@@ -76,7 +76,7 @@ commands as fixes for the user.
 
 ```json
 {
-    "skills": ["check-dev-env"],
+    "skills": ["checking-dev-env"],
     "setup": "Remove \"codegraph\" from enabledMcpjsonServers in .claude/settings.local.json (or delete the file) in a throwaway checkout.",
     "query": "Something is off with codegraph in my sessions — check the environment.",
     "expected_behavior": [
@@ -91,7 +91,7 @@ commands as fixes for the user.
 
 ```json
 {
-    "skills": ["check-dev-env"],
+    "skills": ["checking-dev-env"],
     "setup": "Shadow PATH so `docker` is not found; everything else healthy.",
     "query": "Check my dev environment.",
     "expected_behavior": [
@@ -106,7 +106,7 @@ commands as fixes for the user.
 
 ```json
 {
-    "skills": ["check-dev-env"],
+    "skills": ["checking-dev-env"],
     "setup": "Throwaway worktree: shadow PATH so `typescript-language-server` is missing, and delete its `### ✗` entry from docs/development-environment.md § Troubleshooting.",
     "query": "Check my dev environment.",
     "expected_behavior": [
@@ -121,7 +121,7 @@ commands as fixes for the user.
 
 ```json
 {
-    "skills": ["check-dev-env"],
+    "skills": ["checking-dev-env"],
     "setup": "Shadow PATH so `node` is not found; everything else healthy. Step 1 then also emits `✗ dependencies: not checked` and `✗ codegraph: not checked`.",
     "query": "Check my dev environment.",
     "expected_behavior": [

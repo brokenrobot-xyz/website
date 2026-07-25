@@ -162,9 +162,9 @@
 
             "Bash(bash .claude/hooks/lib/dev-env-checks.sh)",
 
-            "Skill(check-dev-env)",
-            "Skill(commit)",
-            "Skill(skill-review)",
+            "Skill(checking-dev-env)",
+            "Skill(committing)",
+            "Skill(reviewing-skills)",
 
             "mcp__playwright",
             "mcp__chrome-devtools",

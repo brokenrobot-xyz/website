@@ -1,4 +1,4 @@
-# Skill-review checklist
+# Reviewing-skills checklist
 
 The baked half of the reviewer's hybrid criteria. `SKILL.md` Step 2 tries to refresh the
 Anthropic docs live (WebFetch the URLs below); when the network is unavailable it falls back to
@@ -179,3 +179,6 @@ Sources: `CLAUDE.md`; `docs/development/conventions/`.
   silently.
 - **R5 — commit hygiene.** If the skill authors commits, it conforms to `commit-conventions.md`
   (Conventional Commits, allowed scopes, no attribution trailers).
+- **R6 — naming convention.** Skill names use gerund form (verb-ing + object, e.g.
+  `reviewing-skills`, `checking-dev-env`) per docs/tooling/workflow.md § The skills. Generated
+  skills (`openspec-*`, `opsx:*`) are exempt.

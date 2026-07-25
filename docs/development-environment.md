@@ -125,7 +125,7 @@ In Claude Code, `/plugin` should list **typescript-lsp** as enabled, and `/mcp` 
 ## Troubleshooting
 
 The symptoms below are the ✗ lines emitted by the Claude Code `SessionStart` report and by the
-`check-dev-env` skill — both run the same probes,
+`checking-dev-env` skill — both run the same probes,
 [`.claude/hooks/lib/dev-env-checks.sh`](../.claude/hooks/lib/dev-env-checks.sh). Per this doc's
 charter each entry links the fix rather than restating it; the skill turns matching entries into
 an ordered setup guide. (Detection wording lives in the lib; keep these headings in step with it.)
@@ -194,5 +194,5 @@ inaccessible — re-run from the repo root.
 
 ### Verify-suite failures (`type:check`, `lint:check`, `format:check`, `build`)
 
-Those are code problems, not environment ones — this section ends where the `preflight-checks`
+Those are code problems, not environment ones — this section ends where the `running-preflight-checks`
 skill (or [`package.json`](../package.json)'s scripts run by hand) takes over.

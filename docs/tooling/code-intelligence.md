@@ -67,7 +67,7 @@ once the script exits, so the report arrives at the end rather than streaming):
 1. **Tool sanity check** (report-only): presence of `git`, `node`, `npm`, `jq` and the global
    `typescript-language-server`; `node` is validated against `.node-version`, and the codegraph
    version pin is cross-checked between the lib, `.mcp.json` and the `codegraph:*` npm scripts.
-   Problems point at the `check-dev-env` skill, whose fix guide is built from
+   Problems point at the `checking-dev-env` skill, whose fix guide is built from
    [development-environment.md](../development-environment.md#troubleshooting)'s Troubleshooting
    entries — the hook diagnoses, it does not install tools.
 2. **Dependencies**: `npm install`, but only when `node_modules/` is missing or
@@ -89,7 +89,7 @@ hook's job is really the first-run build plus between-session catch-up.
 The hook is Claude Code's entry point only — it reads `CLAUDE_PROJECT_DIR` and has no `npm run`
 equivalent. Its probes, though, live in
 [`.claude/hooks/lib/dev-env-checks.sh`](../../.claude/hooks/lib/dev-env-checks.sh), shared with the
-`check-dev-env` skill and runnable by hand (`bash .claude/hooks/lib/dev-env-checks.sh` — read-only,
+`checking-dev-env` skill and runnable by hand (`bash .claude/hooks/lib/dev-env-checks.sh` — read-only,
 exits non-zero on any ✗). The mutating steps stay manual: run `npm install` and
 `npm run codegraph:init` yourself; `npm run codegraph:status` reports the index/sync state.
 

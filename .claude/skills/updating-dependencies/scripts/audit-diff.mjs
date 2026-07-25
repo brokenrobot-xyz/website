@@ -1,12 +1,12 @@
 // Snapshots and diffs npm audit advisories so a dependency update is judged only on the
 // advisories it introduces, not on the whole tree's pre-existing baseline.
 //
-// Used by the update-dependencies skill: `snapshot` runs before any package changes and records
+// Used by the updating-dependencies skill: `snapshot` runs before any package changes and records
 // the advisory IDs present at HEAD; `diff` runs at each verification pass and classifies the
 // current advisories against that baseline. Only `new` advisories block a commit.
 //
-//   node .claude/skills/update-dependencies/scripts/audit-diff.mjs snapshot [baseline.json]
-//   node .claude/skills/update-dependencies/scripts/audit-diff.mjs diff [baseline.json]
+//   node .claude/skills/updating-dependencies/scripts/audit-diff.mjs snapshot [baseline.json]
+//   node .claude/skills/updating-dependencies/scripts/audit-diff.mjs diff [baseline.json]
 //
 // `diff` prints { new, resolved, preExisting } as JSON and exits 1 when `new` is non-empty,
 // 0 otherwise. The baseline defaults to a fixed path in the OS temp dir so the two invocations

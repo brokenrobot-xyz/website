@@ -1,5 +1,5 @@
 ---
-name: commit
+name: committing
 description: Stages working-tree changes and authors one Conventional-Commits commit conforming to docs/development/conventions/commit-conventions.md, inferring type and scope from the changed paths. Use whenever the user asks to commit work in this repo.
 allowed-tools: Read, Bash
 model: claude-sonnet-5

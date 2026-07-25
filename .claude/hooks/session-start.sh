@@ -44,7 +44,7 @@ emit_report() {
 trap emit_report EXIT
 
 # The probes — tool sanity, dependency freshness, index health — live in a lib next to this script,
-# shared with the check-dev-env skill: same detection, two consumers, where this hook acts on the
+# shared with the checking-dev-env skill: same detection, two consumers, where this hook acts on the
 # findings and the skill only guides. A missing sibling means a broken checkout; re-implementing
 # the checks inline as a fallback would be exactly the drift the extraction removes.
 # Pure-bash dirname: this must resolve even on a PATH too broken to hold coreutils, because the
@@ -71,7 +71,7 @@ cd "${project_dir}" || {
 #     session report. Missing tools also gate the later steps, so the report never implies work
 #     that never ran.
 dev_env_check_tools
-while IFS= read -r line; do add "${line}"; done < <(dev_env_tool_report "(run the check-dev-env skill for a fix guide)")
+while IFS= read -r line; do add "${line}"; done < <(dev_env_tool_report "(run the checking-dev-env skill for a fix guide)")
 
 # --- 2. Dependencies — install only when missing or stale (npm install is slow; never every
 #     session). The stamp holds the lockfile's git hash, so a pull or branch switch that moves

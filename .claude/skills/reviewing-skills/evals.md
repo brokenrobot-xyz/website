@@ -1,6 +1,6 @@
-# skill-review — evaluations
+# reviewing-skills — evaluations
 
-Manual evaluations for the `skill-review` skill. Not loaded into context at runtime;
+Manual evaluations for the `reviewing-skills` skill. Not loaded into context at runtime;
 read only when validating or changing the skill.
 
 Each scenario targets one decision point in `SKILL.md`. The skill's input is **another skill's
@@ -23,7 +23,7 @@ Opus 4.8 / Fable 5 sources; 11 covers the pre-interview brief.
 
 ```json
 {
-  "skills": ["skill-review"],
+  "skills": ["reviewing-skills"],
   "setup": "A target skill whose description is written in the imperative ('Stage the files and…') rather than third person.",
   "query": "Review the <target> skill.",
   "expected_behavior": [
@@ -39,7 +39,7 @@ Opus 4.8 / Fable 5 sources; 11 covers the pre-interview brief.
 
 ```json
 {
-  "skills": ["skill-review"],
+  "skills": ["reviewing-skills"],
   "setup": "A target skill that restates a rule (e.g. a line-length limit) that does NOT appear in the authoritative doc it cites.",
   "query": "Audit this skill and apply nothing yet.",
   "expected_behavior": [
@@ -55,7 +55,7 @@ Opus 4.8 / Fable 5 sources; 11 covers the pre-interview brief.
 
 ```json
 {
-  "skills": ["skill-review"],
+  "skills": ["reviewing-skills"],
   "setup": "A target skill with a SKILL.md but no evals.md (or fewer than three scenarios).",
   "query": "Review this skill.",
   "expected_behavior": [
@@ -70,7 +70,7 @@ Opus 4.8 / Fable 5 sources; 11 covers the pre-interview brief.
 
 ```json
 {
-  "skills": ["skill-review"],
+  "skills": ["reviewing-skills"],
   "setup": "A target skill that references three other files.",
   "query": "Review this skill.",
   "expected_behavior": [
@@ -86,7 +86,7 @@ Opus 4.8 / Fable 5 sources; 11 covers the pre-interview brief.
 
 ```json
 {
-  "skills": ["skill-review"],
+  "skills": ["reviewing-skills"],
   "setup": "A target skill with an approved High finding whose fix changes runtime behavior (e.g. adding an abstain-instead-of-fabricate rule).",
   "query": "Review it and apply the fixes I approve.",
   "expected_behavior": [
@@ -102,7 +102,7 @@ Opus 4.8 / Fable 5 sources; 11 covers the pre-interview brief.
 
 ```json
 {
-  "skills": ["skill-review"],
+  "skills": ["reviewing-skills"],
   "setup": "A well-authored target skill that already conforms to the checklist.",
   "query": "Review this skill.",
   "expected_behavior": [
@@ -117,7 +117,7 @@ Opus 4.8 / Fable 5 sources; 11 covers the pre-interview brief.
 
 ```json
 {
-  "skills": ["skill-review"],
+  "skills": ["reviewing-skills"],
   "setup": "A target skill whose SKILL.md tells the model to 'explain your reasoning step by step in your response' or otherwise echo its internal thinking as output text.",
   "query": "Review this skill.",
   "expected_behavior": [
@@ -133,7 +133,7 @@ Opus 4.8 / Fable 5 sources; 11 covers the pre-interview brief.
 
 ```json
 {
-  "skills": ["skill-review"],
+  "skills": ["reviewing-skills"],
   "setup": "A target skill pinned to `claude-sonnet-5` that is otherwise sound. Its prompt does not, and need not, address Opus-4.8 or Fable-5-specific behaviors (e.g. subagent spawning, long-turn timeouts).",
   "query": "Review this skill.",
   "expected_behavior": [
@@ -149,7 +149,7 @@ Opus 4.8 / Fable 5 sources; 11 covers the pre-interview brief.
 
 ```json
 {
-  "skills": ["skill-review"],
+  "skills": ["reviewing-skills"],
   "setup": "A target skill with one clear High issue plus several borderline, low-confidence candidate issues.",
   "query": "Review this skill — only flag what actually matters.",
   "expected_behavior": [
@@ -165,7 +165,7 @@ Opus 4.8 / Fable 5 sources; 11 covers the pre-interview brief.
 
 ```json
 {
-  "skills": ["skill-review"],
+  "skills": ["reviewing-skills"],
   "setup": "Network available. A live source doc contains guidance (or a new model-prompting guide in the § Sources family) that the baked checklist's `last-synced` version does not yet reflect.",
   "query": "Review this skill.",
   "expected_behavior": [
@@ -181,7 +181,7 @@ Opus 4.8 / Fable 5 sources; 11 covers the pre-interview brief.
 
 ```json
 {
-  "skills": ["skill-review"],
+  "skills": ["reviewing-skills"],
   "setup": "Any sound target skill; the user has given no scoping preferences yet.",
   "query": "Review the <target> skill.",
   "expected_behavior": [

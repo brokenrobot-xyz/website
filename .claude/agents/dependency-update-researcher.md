@@ -1,6 +1,6 @@
 ---
 name: dependency-update-researcher
-description: Read-only research agent for a single npm dependency bump on brokenrobot.xyz. Given one package and its current → target version, it reads the changelog, checks how the repo actually uses the package, and returns a compatibility verdict with concrete required edits. Use from the update-dependencies skill for each minor/major bump. Does not edit files or run installs — it only researches and reports.
+description: Read-only research agent for a single npm dependency bump on brokenrobot.xyz. Given one package and its current → target version, it reads the changelog, checks how the repo actually uses the package, and returns a compatibility verdict with concrete required edits. Use from the updating-dependencies skill for each minor/major bump. Does not edit files or run installs — it only researches and reports.
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch, mcp__codegraph
 model: opus
 ---
@@ -30,7 +30,7 @@ Coverage:
 
 ## Verdict
 
-Your output is consumed by the `update-dependencies` skill, which consolidates every package's verdict into one table. Return **exactly** these fields, labels verbatim and in this order — lead with the one-line summary:
+Your output is consumed by the `updating-dependencies` skill, which consolidates every package's verdict into one table. Return **exactly** these fields, labels verbatim and in this order — lead with the one-line summary:
 
 **VERDICT: `compatible` | `needs-changes` | `risky`** — one-clause reason.
 

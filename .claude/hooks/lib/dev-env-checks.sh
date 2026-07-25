@@ -4,7 +4,7 @@
 # Two consumers, one implementation, so the probes cannot drift apart:
 #   - .claude/hooks/session-start.sh sources this file and ACTS on what it finds — it installs
 #     dependencies and builds the Codegraph index;
-#   - the check-dev-env skill executes it directly (`bash .claude/hooks/lib/dev-env-checks.sh`)
+#   - the checking-dev-env skill executes it directly (`bash .claude/hooks/lib/dev-env-checks.sh`)
 #     and only GUIDES — executed mode runs every check read-only, prints the ✓/✗ report, and
 #     exits 1 when anything needs attention. It never installs, builds, or edits anything.
 #
@@ -205,7 +205,7 @@ dev_env_check_containers() { # returns 1 on any ✗
     return "${rc}"
 }
 
-# --- Executed mode: the read-only audit the check-dev-env skill runs. ---------------------------
+# --- Executed mode: the read-only audit the checking-dev-env skill runs. ---------------------------
 dev_env_main() {
     cd "${CLAUDE_PROJECT_DIR:-$PWD}" || {
         printf '✗ cannot enter %s — nothing was checked\n' "${CLAUDE_PROJECT_DIR:-$PWD}"

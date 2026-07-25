@@ -1,5 +1,5 @@
 ---
-name: skill-review
+name: reviewing-skills
 description: Reviews a Claude Code skill — its SKILL.md, evals, and referenced files — against Anthropic's skill-authoring and prompting best practices plus this repo's conventions, producing a severity-ranked gap analysis and optionally applying approved fixes. Use when the user asks to review, audit, or improve a skill in this repo.
 allowed-tools: Read, Edit, Write, Bash, Grep, Glob, WebFetch
 model: opus

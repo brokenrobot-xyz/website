@@ -1,6 +1,6 @@
 ---
-name: check-dev-env
-description: Checks whether this machine is ready to develop brokenrobot.xyz — toolchain versions against the pins, dependencies, the Codegraph index, Claude Code integration (typescript-lsp plugin, codegraph MCP, node version manager), and Docker/devcontainer availability — and turns any failure into an ordered, hand-holding setup guide with exact commands. Use when setting up a new machine or worktree, when the SessionStart report shows ✗ lines, or when builds or tools misbehave and the environment is suspect. Diagnoses only, never installs or changes anything; pair with preflight-checks for the code-quality half.
+name: checking-dev-env
+description: Checks whether this machine is ready to develop brokenrobot.xyz — toolchain versions against the pins, dependencies, the Codegraph index, Claude Code integration (typescript-lsp plugin, codegraph MCP, node version manager), and Docker/devcontainer availability — and turns any failure into an ordered, hand-holding setup guide with exact commands. Use when setting up a new machine or worktree, when the SessionStart report shows ✗ lines, or when builds or tools misbehave and the environment is suspect. Diagnoses only, never installs or changes anything; pair with running-preflight-checks for the code-quality half.
 allowed-tools: Read, Bash, Skill
 model: claude-sonnet-5
 context: fork
@@ -20,7 +20,7 @@ so the guide can never drift from the docs.
 > Guardrails: **diagnose and guide, never fix.** Do not run `npm install` / `npm ci`,
 > `npm i -g …`, `codegraph init|index|sync`, `npm run dc:up`, or edit any file or setting — every
 > fix is printed for the user to run themselves. The only commands this skill executes are the
-> read-only scan below and, via `preflight-checks`, the verify suite.
+> read-only scan below and, via `running-preflight-checks`, the verify suite.
 
 Copy this checklist into your reply and tick each item as you go:
 
@@ -50,7 +50,7 @@ Run the verify suite when Step 1 was all-✓, or when the user explicitly asked 
 Otherwise skip it and say so — a build on a broken toolchain fails for the wrong reasons. Don't
 rerun `npm run codegraph:status` here; Step 1's codegraph probe already is that check.
 
-Delegate to the `preflight-checks` skill: it is the repo's quality gate (type-check, lint,
+Delegate to the `running-preflight-checks` skill: it is the repo's quality gate (type-check, lint,
 format-check, build) and already knows how to read its failures. On an explicit full check over a
 red Step 1, run it anyway but report environment failures and gate failures separately — a gate
 failure on a broken environment is expected noise, not a finding.
@@ -74,6 +74,6 @@ State, in this order:
 - **Ready or not.** All ✓ and the verify suite green → "environment ready", naming both tiers.
   Never claim ready from Step 1 alone — if the suite was skipped or declined, say so and why.
 - **The guide**, when anything failed: one numbered item per ✗ — the symptom line verbatim, the
-  fix from the doc, and how to re-verify that item — ending with "re-run `check-dev-env` after
+  fix from the doc, and how to re-verify that item — ending with "re-run `checking-dev-env` after
   applying the fixes".
 - **That nothing was changed** — this skill only read and reported.

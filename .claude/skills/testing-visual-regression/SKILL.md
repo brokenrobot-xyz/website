@@ -1,5 +1,5 @@
 ---
-name: visual-regression-tests
+name: testing-visual-regression
 description: Run and update Playwright visual-regression + axe accessibility checks for brokenrobot.xyz in both light and dark themes. Use at a change's Verify step, when UI snapshots need refreshing after an intentional visual change, or when an a11y check needs to run. Runs inside the devcontainer so rendering matches the committed CI baselines.
 metadata:
     author: brokenrobot.xyz

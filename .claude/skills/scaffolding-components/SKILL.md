@@ -1,5 +1,5 @@
 ---
-name: component-scaffold
+name: scaffolding-components
 description: Scaffold a new Astro component (or Preact island) for brokenrobot.xyz to the repo's conventions — feature-folder placement, typed props, scoped token-driven styles, both-theme readiness, and the correct interactivity choice. Use when adding a new UI component so it matches the existing tree instead of drifting.
 metadata:
     author: brokenrobot.xyz
@@ -85,6 +85,6 @@ export function Thing({ label }: Props) {
 
 ## 4 — Don't forget
 
-- **Both themes:** sanity-check the component reads well in light and dark (token usage, not hard-coded values). New UI needs both-theme snapshot + a11y coverage — see the `visual-regression-tests` skill.
+- **Both themes:** sanity-check the component reads well in light and dark (token usage, not hard-coded values). New UI needs both-theme snapshot + a11y coverage — see the `testing-visual-regression` skill.
 - Keep it **surgical** — scaffold only what the task needs; no speculative props or configurability.
-- Run the `preflight-checks` skill (or `type:check` / `lint:check` / `format:fix`) before handing off.
+- Run the `running-preflight-checks` skill (or `type:check` / `lint:check` / `format:fix`) before handing off.

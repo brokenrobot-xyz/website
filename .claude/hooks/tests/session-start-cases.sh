@@ -248,7 +248,7 @@ printf '%s\n' "${node_ver}" >"${proj}/.node-version"
 mcp_json "9.9.9"
 out="$(run)"
 contains "a drifted codegraph pin is reported" "codegraph pins drifted" "${out}"
-contains "and problems point at the check-dev-env skill" "(run the check-dev-env skill for a fix guide)" "${out}"
+contains "and problems point at the checking-dev-env skill" "(run the checking-dev-env skill for a fix guide)" "${out}"
 mcp_json "${CG_PIN}"
 
 # --- environment guards ---

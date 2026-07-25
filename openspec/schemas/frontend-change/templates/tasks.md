@@ -14,7 +14,7 @@
 
 ## N. Verify
 
-- [ ] Visual + a11y snapshots pass in **both themes** for every touched view (visual-regression-tests skill)
-- [ ] `type:check`, `lint:check`, `format:check` all pass (preflight-checks skill)
+- [ ] Visual + a11y snapshots pass in **both themes** for every touched view (testing-visual-regression skill)
+- [ ] `type:check`, `lint:check`, `format:check` all pass (running-preflight-checks skill)
 - [ ] `build` succeeds — no third-party requests, no CSP violations
 - [ ] Manual preview: no theme flash, interactions work, console clean, responsive at 375px

@@ -1,6 +1,6 @@
 ---
-name: update-dependencies
-description: Update npm dependencies in package.json for brokenrobot.xyz — detect what's outdated, bucket into patch/minor/major, apply patches automatically, and research minor/major bumps before recommending them. Use when refreshing dependencies. Applies patches directly then verifies; gates minor/major on your approval after research. Delegates verification to preflight-checks and visual-regression-tests.
+name: updating-dependencies
+description: Update npm dependencies in package.json for brokenrobot.xyz — detect what's outdated, bucket into patch/minor/major, apply patches automatically, and research minor/major bumps before recommending them. Use when refreshing dependencies. Applies patches directly then verifies; gates minor/major on your approval after research. Delegates verification to running-preflight-checks and testing-visual-regression.
 model: sonnet
 metadata:
     author: brokenrobot.xyz
@@ -41,7 +41,7 @@ npm outdated --json
 **Snapshot the security baseline now, before changing anything.** `npm audit` reports the _whole_ tree's advisories, most of which pre-date this update and are not its fault. Record the baseline so verification can attribute only _new_ advisories to the bump:
 
 ```bash
-node .claude/skills/update-dependencies/scripts/audit-diff.mjs snapshot
+node .claude/skills/updating-dependencies/scripts/audit-diff.mjs snapshot
 ```
 
 This writes the advisory IDs present at HEAD to a file (in the OS temp dir); the `diff` mode in the Verification procedure reads it back — no need to carry the IDs yourself.
@@ -103,18 +103,18 @@ git commit -m "chore(deps): update major dependencies"   # 5b
 
 Run this as a **feedback loop**: run the checks → if a regression appears, fix it (or pin the offending package back) → re-run → only commit the category once it passes (or only pre-existing failures remain). Before committing a category, run:
 
-- The **`preflight-checks`** skill — type-check, lint, format-check, build.
+- The **`running-preflight-checks`** skill — type-check, lint, format-check, build.
 - **The audit diff against the Step 1 baseline** — do _not_ read the raw advisory count as pass/fail; a non-zero count is almost always pre-existing noise:
 
     ```bash
-    node .claude/skills/update-dependencies/scripts/audit-diff.mjs diff
+    node .claude/skills/updating-dependencies/scripts/audit-diff.mjs diff
     ```
 
     It prints `new` / `resolved` / `preExisting` and exits non-zero only when `new` is non-empty:
     - **`new`** → **introduced by this update**. The only audit result that **blocks the commit**. Report the advisory ID, severity, and which updated package pulled it in.
     - **`resolved`** → a security win the update delivered. Note it in the report.
     - **`preExisting`** → **not this update's fault; does not block.** Report as informational baseline noise, not a verification failure.
-- The **`visual-regression-tests`** skill **only if** the applied set touches a rendering-affecting package: `astro`, `@astrojs/*`, `preact`, `tailwindcss`, `@tailwindcss/*`, `@fontsource/*`, `@astrojs/mdx`/mdx, `autoprefixer`, `postcss*`. (Runs in the devcontainer — heavier; skip with a note otherwise.)
+- The **`testing-visual-regression`** skill **only if** the applied set touches a rendering-affecting package: `astro`, `@astrojs/*`, `preact`, `tailwindcss`, `@tailwindcss/*`, `@fontsource/*`, `@astrojs/mdx`/mdx, `autoprefixer`, `postcss*`. (Runs in the devcontainer — heavier; skip with a note otherwise.)
 
 Block a category's commit only on a **regression this update caused** — a failing preflight step or a **new** audit advisory. Pre-existing failures (a baseline advisory, or a check already red at HEAD) must **not** block the commit; report them separately as pre-existing. When a real regression blocks a category, report the failing step and offending package so it can be pinned back or migrated, and keep the passing categories separate.
 

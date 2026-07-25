@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Behavior cases for the executed mode of lib/dev-env-checks.sh — the read-only audit the
-# check-dev-env skill runs.
+# checking-dev-env skill runs.
 #
 # The detection logic itself is already exercised through the session-start suite; what this suite
 # pins down is the executed-mode contract: all-✓ exits 0, any ✗ exits 1, the skill-only checks

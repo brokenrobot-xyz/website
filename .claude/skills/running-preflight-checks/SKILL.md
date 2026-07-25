@@ -1,12 +1,12 @@
 ---
-name: preflight-checks
-description: Run the brokenrobot.xyz quality gate — type-check, lint, format-check, and build — and summarize failures. Use before committing a change or handing it to review, to catch type/lint/format/build errors in one pass. This is the non-visual half of Verify; pair it with visual-regression-tests.
+name: running-preflight-checks
+description: Run the brokenrobot.xyz quality gate — type-check, lint, format-check, and build — and summarize failures. Use before committing a change or handing it to review, to catch type/lint/format/build errors in one pass. This is the non-visual half of Verify; pair it with testing-visual-regression.
 metadata:
     author: brokenrobot.xyz
     version: '1.0'
 ---
 
-Run the full non-visual quality gate and report a clean summary. This is the static half of a change's **Verify** step (the visual + a11y half is the `visual-regression-tests` skill).
+Run the full non-visual quality gate and report a clean summary. This is the static half of a change's **Verify** step (the visual + a11y half is the `testing-visual-regression` skill).
 
 ## The gate
 
@@ -33,4 +33,4 @@ npm run build          # astro build — static output
 
 Summarize each step as pass/fail with the first real error per failing step (file:line + message). If everything passes, say so plainly. Don't reformat or edit unrelated files to make a step go green — fix only what the change introduced, and flag pre-existing noise separately.
 
-> Scope note: this gate does not cover visual regression or accessibility. A change isn't verified until `visual-regression-tests` has also run (in both themes where the dark Playwright projects exist).
+> Scope note: this gate does not cover visual regression or accessibility. A change isn't verified until `testing-visual-regression` has also run (in both themes where the dark Playwright projects exist).
