@@ -166,6 +166,7 @@
             "Skill(checking-dev-env)",
             "Skill(committing)",
             "Skill(reviewing-skills)",
+            "Skill(updating-dependencies)",
 
             "mcp__playwright",
             "mcp__chrome-devtools",
