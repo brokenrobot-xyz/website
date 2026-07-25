@@ -185,6 +185,13 @@ Only the e2e/visual-regression suite needs these — see
 [Host vs. devcontainer](#host-vs-devcontainer). Install and start Docker Desktop; the
 devcontainer CLI ships as a devDependency, so a plain `npm ci` provides it.
 
+### ✗ dependencies: not checked · ✗ codegraph: not checked · ✗ claude code integration: not checked · ✗ cannot enter …
+
+Cascades, not separate problems: a missing prerequisite (node, npm, or jq — named in the line's
+parentheses) kept that probe from running at all. Fix the root-cause ✗ in the entries above and
+these clear on the next run. The `cannot enter` line means the checkout path itself was
+inaccessible — re-run from the repo root.
+
 ### Verify-suite failures (`type:check`, `lint:check`, `format:check`, `build`)
 
 Those are code problems, not environment ones — this section ends where the `preflight-checks`

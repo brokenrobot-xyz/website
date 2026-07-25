@@ -8,9 +8,10 @@
 #     and only GUIDES — executed mode runs every check read-only, prints the ✓/✗ report, and
 #     exits 1 when anything needs attention. It never installs, builds, or edits anything.
 #
-# Drift contract: symptom detection and ✗-line wording live here; the matching remediation lives
-# only in docs/development-environment.md § Troubleshooting, keyed on the ✗ lines' prefixes.
-# Change the two together.
+# Drift contract: symptom detection and ✗-line wording live here; the canonical remediation lives
+# in docs/development-environment.md § Troubleshooting, keyed on the ✗ lines' prefixes. A ✗ line
+# may inline a one-line copy of its fix for hook-only readers — keep any such copy, and the two
+# files, in step.
 #
 # Written to be sourced under `set -uo pipefail`: it defines functions and accumulator globals,
 # nothing else, and never exits the caller.

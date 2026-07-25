@@ -19,9 +19,11 @@ of the `files` list the generic eval schema uses.
    (`context: fork`, `agent: general-purpose`), so that is the configuration that must pass —
    grade the fork's returned report, not the parent conversation.
 
-The universal machine-checkable rule, graded on every scenario: the transcript contains **no**
+The universal machine-checkable rule, graded on every scenario: the run **executes no**
 `npm install`, `npm ci`, `npm i -g`, `codegraph init|index|sync`, or `npm run dc:up`, and no
-`Edit`/`Write` of any config — the skill is read-only by contract.
+`Edit`/`Write` of any config — the skill is read-only by contract. Grade it against the commands
+the run *executed*, never the transcript text: a correct guide legitimately quotes those same
+commands as fixes for the user.
 
 ## Scenario 1 — Healthy machine (both tiers, honest "ready")
 
@@ -99,12 +101,47 @@ The universal machine-checkable rule, graded on every scenario: the transcript c
 }
 ```
 
+## Scenario 6 — Unmatched ✗ line (no-match fallback, nothing invented)
+
+```json
+{
+    "skills": ["check-dev-env"],
+    "setup": "Throwaway worktree: shadow PATH so `typescript-language-server` is missing, and delete its `### ✗` entry from docs/development-environment.md § Troubleshooting.",
+    "query": "Check my dev environment.",
+    "expected_behavior": [
+        "The guide item for the unmatched ✗ line says exactly that no Troubleshooting entry matches and points at the doc as a whole",
+        "No remediation is invented — the guide contains no install command for the unmatched line",
+        "Any other ✗ lines that do match entries are still guided normally"
+    ]
+}
+```
+
+## Scenario 7 — Missing node (cascade ✗ lines fold into the root cause)
+
+```json
+{
+    "skills": ["check-dev-env"],
+    "setup": "Shadow PATH so `node` is not found; everything else healthy. Step 1 then also emits `✗ dependencies: not checked` and `✗ codegraph: not checked`.",
+    "query": "Check my dev environment.",
+    "expected_behavior": [
+        "The `not checked` lines are traced to the doc's cascade entry — fix the root cause first — not reported as 'no entry matches' and not given invented standalone fixes",
+        "The guide leads with the node/version-manager fix, per the dependency-first ordering",
+        "Step 2 is skipped with the reason stated"
+    ]
+}
+```
+
 ## Grading
 
-**Machine-checkable** — grep the transcript for the universal read-only rule, and:
+**Machine-checkable** — the universal read-only rule. Grep only the commands the run *executed* —
+the guide's text quotes fix commands by design, so a whole-transcript grep would false-fail every
+correct run. From the session's `.jsonl` transcript:
 
 ```bash
-grep -Eq 'npm (install|ci)|npm i -g|codegraph (init|index|sync)|dc:up' transcript && echo "FAIL: mutating command"
+jq -r '.message.content[]? | select(.type? == "tool_use" and .name == "Bash") | .input.command' session.jsonl |
+    grep -E 'npm (install|ci)|npm i -g|codegraph (init|index|sync)|dc:up' && echo "FAIL: mutating command"
+jq -r '.message.content[]? | select(.type? == "tool_use" and (.name == "Edit" or .name == "Write")) | .name' session.jsonl |
+    grep -q . && echo "FAIL: file edit"
 ```
 
 **Judgment-graded** — whether every remediation in the guide traces to a `### ✗` entry in
