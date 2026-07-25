@@ -24,6 +24,9 @@ directly on the host** — every test run goes through `npm run test:e2e:check` 
 `npx playwright test` or `node_modules/.bin/playwright test` is a FAIL. Grade it against the
 commands the run *executed*, not transcript text.
 
+Also universal: the reply contains the copied `Visual-check progress:` checklist with items
+ticked as completed.
+
 ## Scenario 1 — Clean run, honest theme reporting
 
 ```json

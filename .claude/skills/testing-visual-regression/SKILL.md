@@ -10,6 +10,17 @@ metadata:
 
 Run the site's visual-regression and accessibility coverage in **both themes**, and refresh baselines when a visual change is intentional. This is the automated half of every change's **Verify** step.
 
+Copy this checklist into your reply and tick each item as you go:
+
+```
+Visual-check progress:
+- [ ] 1. Devcontainer up (never the host)
+- [ ] 2. Determine theme coverage
+- [ ] 3. Run the checks
+- [ ] 4. Update baselines (only if intentional)
+- [ ] 5. Report
+```
+
 ## Ground truth
 
 - Config: `playwright.config.ts`. Specs: `tests/`. Snapshot tolerance `maxDiffPixelRatio: 0.01`; shared `tests/screenshot.css`.
