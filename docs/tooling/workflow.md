@@ -95,6 +95,10 @@ Procedure skills the agents (or you) invoke, alongside the `openspec-*` lifecycl
   (placement, typed props, scoped token-driven styles, the right interactivity tier).
 - **`preflight-checks`** — run the non-visual gate (`type:check` + `lint:check` + `format:check` +
   `build`) and summarize failures.
+- **`check-dev-env`** — audit host readiness (toolchain against the pins, dependencies, the
+  Codegraph index, Claude Code integration, Docker/devcontainer) and turn any ✗ into an ordered fix
+  guide sourced from development-environment.md's Troubleshooting section. Read-only — it never
+  installs or fixes anything.
 
 ## MCP servers (`.mcp.json`)
 

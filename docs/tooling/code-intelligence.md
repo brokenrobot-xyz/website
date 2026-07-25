@@ -66,9 +66,10 @@ once the script exits, so the report arrives at the end rather than streaming):
 
 1. **Tool sanity check** (report-only): presence of `git`, `node`, `npm`, `jq` and the global
    `typescript-language-server`; `node` is validated against `.node-version`, and the codegraph
-   version pin is cross-checked between the hook, `.mcp.json` and the `codegraph:*` npm scripts.
-   Problems point at [development-environment.md](../development-environment.md) — the hook
-   diagnoses, it does not install tools.
+   version pin is cross-checked between the lib, `.mcp.json` and the `codegraph:*` npm scripts.
+   Problems point at the `check-dev-env` skill, whose fix guide is built from
+   [development-environment.md](../development-environment.md#troubleshooting)'s Troubleshooting
+   entries — the hook diagnoses, it does not install tools.
 2. **Dependencies**: `npm install`, but only when `node_modules/` is missing or
    `package-lock.json` has changed since the last successful install — a stamp inside
    `node_modules/` holds the lockfile's git hash, so a partial or wiped install self-invalidates.
@@ -86,8 +87,11 @@ While a session is open, `codegraph serve --mcp` runs a file watcher that auto-s
 hook's job is really the first-run build plus between-session catch-up.
 
 The hook is Claude Code's entry point only — it reads `CLAUDE_PROJECT_DIR` and has no `npm run`
-equivalent. To do the same work by hand, run `npm install` and `npm run codegraph:init` yourself;
-`npm run codegraph:status` reports the index/sync state.
+equivalent. Its probes, though, live in
+[`.claude/hooks/lib/dev-env-checks.sh`](../../.claude/hooks/lib/dev-env-checks.sh), shared with the
+`check-dev-env` skill and runnable by hand (`bash .claude/hooks/lib/dev-env-checks.sh` — read-only,
+exits non-zero on any ✗). The mutating steps stay manual: run `npm install` and
+`npm run codegraph:init` yourself; `npm run codegraph:status` reports the index/sync state.
 
 > In a fresh worktree the server is up before the index exists, because Claude Code launches it
 > before this hook can build one. Queries in that window answer with "no index — use Read/Grep/Glob"
