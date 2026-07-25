@@ -1,15 +1,15 @@
 ---
 name: updating-dependencies
-description: Update npm dependencies in package.json for brokenrobot.xyz — detect what's outdated, bucket into patch/minor/major, apply patches automatically, and research minor/major bumps before recommending them. Use when refreshing dependencies. Applies patches directly then verifies; gates minor/major on your approval after research. Delegates verification to running-preflight-checks and testing-visual-regression.
+description: Updates npm dependencies in package.json for brokenrobot.xyz — detects what's outdated, buckets into patch/minor/major, applies patches automatically, and researches minor/major bumps before recommending them. Use when refreshing dependencies. Applies patches directly then verifies; gates minor/major on user approval after research. Delegates verification to running-preflight-checks and testing-visual-regression.
 model: sonnet
 metadata:
     author: brokenrobot.xyz
-    version: '1.4'
+    version: '1.5'
 ---
 
 Refresh the repo's npm dependencies safely. Patches are low-risk and applied directly; minor and major bumps are researched first (by the `dependency-update-researcher` subagent) and applied only after you approve. Deps are **exact-pinned** here (`.npmrc` `save-exact=true`) — every update preserves that.
 
-> Guardrails: preserve exact pinning — always install with `--save-exact`, never introduce `^`/`~`. Never edit unrelated files or downgrade to make a check pass. You **cannot** `git push` or use `gh` (sandbox-denied) — stage and commit locally only; the human pushes.
+> Guardrails: preserve exact pinning — always install with `--save-exact`, never introduce `^`/`~`. Never edit unrelated files or downgrade to make a check pass. You **cannot** `git push` or use `gh` (sandbox-denied, per [docs/tooling/sandbox.md](../../../docs/tooling/sandbox.md)) — stage and commit locally only; the human pushes.
 
 ## Workflow checklist
 
@@ -48,7 +48,7 @@ This writes the advisory IDs present at HEAD to a file (in the OS temp dir); the
 
 ## Step 2 — Categorize
 
-Bucket each package by the semver diff of `current` → `latest` into **patch**, **minor**, or **major**. Because deps are exact-pinned, `wanted` equals `current`; always target `latest`. Present the three buckets as a table before touching anything:
+Bucket each package by the semver diff of `current` → `latest` into **patch**, **minor**, or **major**. Because deps are exact-pinned, `wanted` equals `current`; always target `latest`. Treat any bump of a `0.x` package as at least **minor** (0.x releases may break on any digit), so it gets researched rather than auto-applied. Present the three buckets as a table before touching anything:
 
 | Package | Current → Latest | Category | Dep type |
 | --- | --- | --- | --- |

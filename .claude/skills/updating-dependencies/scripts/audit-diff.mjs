@@ -9,18 +9,24 @@
 //   node .claude/skills/updating-dependencies/scripts/audit-diff.mjs diff [baseline.json]
 //
 // `diff` prints { new, resolved, preExisting } as JSON and exits 1 when `new` is non-empty,
-// 0 otherwise. The baseline defaults to a fixed path in the OS temp dir so the two invocations
-// find each other without coordination. Both modes run the same audit command (the JSON form of
+// 0 otherwise. The baseline defaults to a path in the OS temp dir keyed to the working
+// directory, so the two invocations find each other without coordination while concurrent runs
+// in different worktrees stay isolated. Both modes run the same audit command (the JSON form of
 // `npm run audit:check`) so the comparison is like-for-like.
 
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const AUDIT_ARGS = ['audit', '--package-lock-only', '--omit=dev', '--json'];
 
-const [mode, baselinePath = join(tmpdir(), 'npm-audit-baseline.json')] = process.argv.slice(2);
+// Key the baseline to the repo/worktree the run is in (both modes run from the repo root).
+const cwdKey = createHash('sha256').update(process.cwd()).digest('hex').slice(0, 12);
+
+const [mode, baselinePath = join(tmpdir(), `npm-audit-baseline-${cwdKey}.json`)] =
+    process.argv.slice(2);
 
 function currentAdvisories() {
     let out;
@@ -53,7 +59,17 @@ if (mode === 'snapshot') {
     writeFileSync(baselinePath, `${JSON.stringify(ids, null, 4)}\n`);
     console.log(`Baseline: ${ids.length} advisories -> ${baselinePath}`);
 } else if (mode === 'diff') {
-    const baseline = new Set(JSON.parse(readFileSync(baselinePath, 'utf8')));
+    let baselineIds;
+    try {
+        baselineIds = JSON.parse(readFileSync(baselinePath, 'utf8'));
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            console.error(`No baseline found at ${baselinePath} — run \`snapshot\` first (Step 1).`);
+            process.exit(2);
+        }
+        throw error;
+    }
+    const baseline = new Set(baselineIds);
     const current = currentAdvisories();
     const added = [...current.values()].filter((advisory) => !baseline.has(advisory.id));
     const resolved = [...baseline].filter((id) => !current.has(id)).sort();
