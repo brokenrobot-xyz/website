@@ -1,12 +1,25 @@
 ---
 name: scaffolding-components
-description: Scaffold a new Astro component (or Preact island) for brokenrobot.xyz to the repo's conventions — feature-folder placement, typed props, scoped token-driven styles, both-theme readiness, and the correct interactivity choice. Use when adding a new UI component so it matches the existing tree instead of drifting.
+description: Scaffolds a new Astro component (or Preact island) for brokenrobot.xyz to the repo's conventions — feature-folder placement, typed props, scoped token-driven styles, both-theme readiness, and the correct interactivity choice. Use when adding a new UI component so it matches the existing tree instead of drifting.
+model: claude-sonnet-5
 metadata:
     author: brokenrobot.xyz
     version: '1.0'
 ---
 
 Create a new component that matches the existing codebase exactly, so reviews don't bounce on convention drift. Decide the **interactivity tier first**, then scaffold.
+
+Everything below is distilled from [docs/development/conventions/coding-conventions.md](../../../docs/development/conventions/coding-conventions.md) — on conflict, that doc wins.
+
+Copy this checklist into your reply and tick each item as you go:
+
+```
+Scaffold progress:
+- [ ] 0. Choose the interactivity tier
+- [ ] 1. Pick placement & name (list src/components/)
+- [ ] 2/3. Scaffold the skeleton for the tier
+- [ ] 4. Both-theme check + preflight
+```
 
 ## 0 — Choose the tier (lightest tool that works)
 
@@ -17,7 +30,7 @@ Create a new component that matches the existing codebase exactly, so reviews do
 
 ## 1 — Placement & naming
 
-- Group by feature: `src/components/<feature>/<Name>.astro` (PascalCase file). Feature folders are kebab-case (`blog-posts/`, `layout/`, `links/`, `mascot/`, `theme/`).
+- Group by feature: `src/components/<feature>/<Name>.astro` (PascalCase file). Feature folders are kebab-case (e.g. `blog-posts/`) — list `src/components/` for the current set.
 - Reuse existing folders where the component belongs; only create a new feature folder if none fits.
 
 ## 2 — Astro component skeleton
