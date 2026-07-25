@@ -15,6 +15,9 @@ of the `files` list the generic eval schema uses.
    the fix itself. That is the before/after evidence that the skill earns its keep.
 2. **Then with the skill.** Score the run against `expected_behavior` as a rubric (there is no
    built-in runner — this is a manual / self-scored checklist).
+3. **Model & context.** The skill is pinned to `sonnet` and runs as a foreground fork
+   (`context: fork`, `agent: general-purpose`), so that is the configuration that must pass —
+   grade the fork's returned report, not the parent conversation.
 
 The universal machine-checkable rule, graded on every scenario: the transcript contains **no**
 `npm install`, `npm ci`, `npm i -g`, `codegraph init|index|sync`, or `npm run dc:up`, and no
