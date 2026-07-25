@@ -85,8 +85,10 @@ Two tools give Claude Code code intelligence in this repo; the full rationale is
 This repo is worked on in git worktrees. A fresh worktree checks out only tracked files, so it starts
 with **no `node_modules/` and no `.codegraph/`** (both gitignored). Claude Code brings one up to speed
 automatically: its `SessionStart` hook — which runs in every session, worktree or not — installs
-dependencies when `node_modules/` is missing, then builds or refreshes the Codegraph index. Outside a
-session, run `npm ci` yourself.
+dependencies when `node_modules/` is missing or `package-lock.json` has changed, then builds or
+refreshes the Codegraph index (with a caveat for nested worktrees — see the note in
+[tooling/code-intelligence.md](tooling/code-intelligence.md)). Outside a session, run `npm install`
+yourself.
 
 Details, including the between-session sync behavior, are in
 [tooling/code-intelligence.md](tooling/code-intelligence.md); why worktrees sit under

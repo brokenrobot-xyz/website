@@ -57,28 +57,49 @@ not surface it.
 
 The [`SessionStart` hook](../../.claude/settings.json) runs
 [`.claude/hooks/session-start.sh`](../../.claude/hooks/session-start.sh) at the start of **every**
-Claude Code session, in whatever checkout it opens in — the main clone or a worktree. It's idempotent
-and cheap on the common path; a fresh worktree is simply the case where it has real work to do, since
-it contains only tracked files and so starts with neither `node_modules/` nor `.codegraph/`:
+Claude Code session (startup and resume), in whatever checkout it opens in — the main clone or a
+worktree. It's idempotent and cheap on the common path; a fresh worktree is simply the case where it
+has real work to do, since it contains only tracked files and so starts with neither `node_modules/`
+nor `.codegraph/`. It runs three steps and ends every session with a short step report — successes
+and failures alike — delivered to both the user and the model (Claude Code reads hook output only
+once the script exits, so the report arrives at the end rather than streaming):
 
-- **No `node_modules`** (fresh checkout) → runs `npm ci`.
-- **No `.codegraph/`** (first session after install) → runs `codegraph init` to build the index.
-- **Index present** (the usual case) → runs `codegraph sync -q` (~0.2s) to catch up on any
-  between-session drift (e.g. edits or `git switch`/`pull`/`rebase` made while no session's file
-  watcher was running).
+1. **Tool sanity check** (report-only): presence of `git`, `node`, `npm`, `jq` and the global
+   `typescript-language-server`; `node` is validated against `.node-version`, and the codegraph
+   version pin is cross-checked between the hook, `.mcp.json` and the `codegraph:*` npm scripts.
+   Problems point at [development-environment.md](../development-environment.md) — the hook
+   diagnoses, it does not install tools.
+2. **Dependencies**: `npm install`, but only when `node_modules/` is missing or
+   `package-lock.json` has changed since the last successful install — a stamp inside
+   `node_modules/` holds the lockfile's git hash, so a partial or wiped install self-invalidates.
+   It's `npm install` rather than `npm ci` because the sandbox denies deleting one path inside
+   `node_modules`, which `npm ci`'s wipe trips over; with the lockfile intact both resolve to the
+   same tree. The same denial surfaces during install as a
+   `npm warn tar TAR_ENTRY_ERROR EPERM … .vscode/settings.json` — benign: npm skips that one file
+   and the install succeeds.
+3. **Codegraph index**: `codegraph status --json` as the health probe — healthy ⇒ `sync -q`
+   (~0.2s) to catch between-session drift (e.g. edits or `git switch`/`pull`/`rebase` made while
+   no session's file watcher was running); uninitialized ⇒ `init`; built by an older codegraph or
+   unreadable ⇒ `index` rebuild.
 
 While a session is open, `codegraph serve --mcp` runs a file watcher that auto-syncs on save, so the
 hook's job is really the first-run build plus between-session catch-up.
 
 The hook is Claude Code's entry point only — it reads `CLAUDE_PROJECT_DIR` and has no `npm run`
-equivalent. To do the same work by hand, run `npm ci` and `npm run codegraph:init` yourself;
+equivalent. To do the same work by hand, run `npm install` and `npm run codegraph:init` yourself;
 `npm run codegraph:status` reports the index/sync state.
-
-> The hook installs dependencies only when `node_modules` is missing — it does **not** detect a
-> changed `package-lock.json` in an already-installed checkout. After pulling a lockfile change, run
-> `npm ci` yourself.
 
 > In a fresh worktree the server is up before the index exists, because Claude Code launches it
 > before this hook can build one. Queries in that window answer with "no index — use Read/Grep/Glob"
 > rather than failing or guessing, and the running server picks the index up on its own once the
 > hook finishes — no restart needed.
+
+> A worktree **nested inside the main checkout** — which is where Claude Code puts them,
+> `.claude/worktrees/<name>/` (see [sandbox.md](sandbox.md)) — currently gets **no index of its
+> own**: codegraph's project detection walks up from the worktree, anchors on the main checkout's
+> `.codegraph/`, and while any session's MCP server holds that database, both the health probe and a
+> rebuild fail with "database file is in use". The hook handles it as designed — it reports "NO
+> usable index — use the normal file-reading tools" and continues; dependencies still install. The
+> failure is specific to nesting: a checkout with no `.codegraph/` in any ancestor probes
+> `initialized:false` and inits normally. Observed with codegraph 1.5.0 (July 2026); whether a
+> nested worktree indexes correctly with no parent session running is unverified.
