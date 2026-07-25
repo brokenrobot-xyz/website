@@ -121,3 +121,71 @@ npm run codegraph:status             # "Index is up to date"
 
 In Claude Code, `/plugin` should list **typescript-lsp** as enabled, and `/mcp` should show
 **codegraph** connected.
+
+## Troubleshooting
+
+The symptoms below are the ✗ lines emitted by the Claude Code `SessionStart` report and by the
+`check-dev-env` skill — both run the same probes,
+[`.claude/hooks/lib/dev-env-checks.sh`](../.claude/hooks/lib/dev-env-checks.sh). Per this doc's
+charter each entry links the fix rather than restating it; the skill turns matching entries into
+an ordered setup guide. (Detection wording lives in the lib; keep these headings in step with it.)
+
+### ✗ git missing · ✗ jq missing
+
+Install with Homebrew: `brew install git jq`.
+
+### ✗ node missing · ✗ node is … but .node-version pins … · ✗ no node version manager detected
+
+Install a version manager and the pinned Node — see
+[Node version management](#node-version-management).
+
+### ✗ npm missing
+
+npm ships with Node; fixing the Node install above fixes this too. If npm is present but too old,
+`npm install -g npm` brings it to the `engines` floor.
+
+### ✗ dependencies: node_modules missing or stale · ✗ npm install failed
+
+Run `npm ci` from the checkout — see [Install](#install). Inside a Claude Code session the
+`SessionStart` hook installs on the next session start by itself.
+
+### ✗ typescript-language-server missing
+
+One global install per machine: `npm i -g typescript-language-server typescript` — the why is in
+[Code-intelligence tools](#code-intelligence-tools-claude-code).
+
+### ✗ typescript-lsp plugin not enabled
+
+The plugin is committed in [`.claude/settings.json`](../.claude/settings.json) under
+`enabledPlugins`, so a ✗ means this checkout's settings diverged — restore
+`"typescript-lsp@claude-plugins-official": true` there, or re-enable it via `/plugin` in a session.
+
+### ✗ codegraph MCP not enabled
+
+[`.mcp.json`](../.mcp.json) registers the server (committed); enabling it is per-machine — add
+`"codegraph"` to `enabledMcpjsonServers` in `.claude/settings.local.json`. Background in
+[tooling/code-intelligence.md](tooling/code-intelligence.md).
+
+### ✗ codegraph pins drifted
+
+The version is pinned in three committed places — `CODEGRAPH_VERSION` in
+[`.claude/hooks/lib/dev-env-checks.sh`](../.claude/hooks/lib/dev-env-checks.sh), the `codegraph`
+server in [`.mcp.json`](../.mcp.json), and the `codegraph:*` scripts in
+[`package.json`](../package.json) — align them to one version.
+
+### ✗ codegraph: no index · index unreadable · built by an older codegraph
+
+Run `npm run codegraph:init` in the checkout, or start a Claude Code session and let the
+`SessionStart` hook rebuild it. Caveats (nested worktrees, the fresh-worktree race) are in
+[tooling/code-intelligence.md](tooling/code-intelligence.md).
+
+### ✗ docker missing · ✗ docker daemon not running · ✗ devcontainer CLI missing
+
+Only the e2e/visual-regression suite needs these — see
+[Host vs. devcontainer](#host-vs-devcontainer). Install and start Docker Desktop; the
+devcontainer CLI ships as a devDependency, so a plain `npm ci` provides it.
+
+### Verify-suite failures (`type:check`, `lint:check`, `format:check`, `build`)
+
+Those are code problems, not environment ones — this section ends where the `preflight-checks`
+skill (or [`package.json`](../package.json)'s scripts run by hand) takes over.

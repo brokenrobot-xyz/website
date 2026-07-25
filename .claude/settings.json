@@ -160,6 +160,9 @@
 
             "Bash(openspec *)",
 
+            "Bash(bash .claude/hooks/lib/dev-env-checks.sh)",
+
+            "Skill(check-dev-env)",
             "Skill(commit)",
             "Skill(skill-review)",
 

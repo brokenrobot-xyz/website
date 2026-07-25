@@ -71,7 +71,7 @@ cd "${project_dir}" || {
 #     session report. Missing tools also gate the later steps, so the report never implies work
 #     that never ran.
 dev_env_check_tools
-while IFS= read -r line; do add "${line}"; done < <(dev_env_tool_report "(see docs/development-environment.md)")
+while IFS= read -r line; do add "${line}"; done < <(dev_env_tool_report "(run the check-dev-env skill for a fix guide)")
 
 # --- 2. Dependencies — install only when missing or stale (npm install is slow; never every
 #     session). The stamp holds the lockfile's git hash, so a pull or branch switch that moves

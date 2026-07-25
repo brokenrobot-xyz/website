@@ -97,7 +97,7 @@ dev_env_check_tools() {
         if [ -z "${drift}" ]; then
             tool_ok "codegraph pin ${CODEGRAPH_VERSION} consistent"
         else
-            tool_bad "codegraph pins drifted — this hook runs ${CODEGRAPH_VERSION} but ${drift}; align them, or the MCP server and this hook index with different builds"
+            tool_bad "codegraph pins drifted — this lib pins ${CODEGRAPH_VERSION} but ${drift}; align them, or the MCP server and the session hook index with different builds"
         fi
     fi
 }
