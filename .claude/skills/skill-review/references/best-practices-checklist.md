@@ -25,6 +25,7 @@ this file and notes the staleness in the report.
 |---|---|---|
 | A | Agent & skill best practices | https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices |
 | B | Prompting Claude Sonnet 5 | https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5 |
+| B | Prompting Claude Opus 5 | https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5 |
 | B | Prompting Claude Opus 4.8 | https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-4-8 |
 | B | Prompting Claude Fable 5 | https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5 |
 | C | Claude prompting best practices | https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices |
@@ -86,6 +87,12 @@ shouldn't depend on quirks of exactly one model.
 - **B3 — tool nudges.** If the skill relies on tool use with thinking off, it nudges explicitly.
 
 **Sonnet 5:** literal instruction following (state scope — see `C8`); verbosity self-calibrates.
+
+**Opus 5:** self-verifies and self-corrects unprompted — explicit "verify/double-check" steps
+cause over-verification, so a skill should only script verification that the model wouldn't do
+itself (external validators, evals); delegates to subagents readily — cap or scope delegation if
+the skill fans out; narration and written deliverables run long — calibrate length in the prompt
+where it matters (effort controls thinking, not response length).
 
 **Opus 4.8:** favors reasoning over tool calls — nudge explicitly if the skill depends on tool
 use; spawns **fewer subagents** by default — steer explicitly if the skill fans out; `xhigh`/`high`
