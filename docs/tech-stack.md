@@ -15,9 +15,14 @@ design overhaul.
   (like the theme toggle) uses a bundled Astro `<script>` instead of an island, and the
   pre-paint theme-init is a tiny inline script (see below).
 - **Content is Markdown/MDX**, authored as one folder per post under `src/content/blog/` and
-  loaded through Astro's content collections (see [architecture](architecture.md)). A small
-  remark plugin adds reading-time to each post.
-- **Styling is Tailwind CSS** (via PostCSS) plus the typography plugin for long-form `prose`.
+  loaded through Astro's content collections (see [architecture](architecture.md)). Rendering
+  goes through **Sätteri**, Astro's native pipeline and the default since Astro 7; a small
+  Sätteri plugin adds reading-time to each post.
+- **Code blocks are highlighted with Prism**, not Shiki, because Prism colours tokens with CSS
+  classes rather than inline `style` attributes — a hash-based CSP cannot admit the latter (see
+  [architecture](architecture.md)).
+- **Styling is Tailwind CSS** (via the `@tailwindcss/vite` plugin) plus the typography plugin
+  for long-form `prose`. There is no PostCSS step.
 - **TypeScript runs in the strictest mode** — the type system is a first-class guardrail (see
   [coding-conventions](development/conventions/coding-conventions.md)).
 - **Fonts are self-hosted** (Space Grotesk for display/UI, Newsreader for article prose, Space
@@ -55,9 +60,10 @@ design overhaul.
   island; simple DOM wiring → an Astro `<script>` importing a `.ts` module (the theme toggle).
 - **Theme set before paint by one inline script.** The pre-paint theme resolution (read
   preference → set `data-theme`) cannot be deferred to a module/island — it would flash. It
-  stays a tiny inline script, CSP-safe via the already-allowed `script-src 'unsafe-inline'`,
-  with no inline `on*` handlers. The toggle's icon is then chosen by CSS from `data-theme`, so
-  it's correct on the first frame. See [architecture](architecture.md).
+  stays a tiny inline script, CSP-safe because Astro emits a hash for it — inline scripts are
+  **not** blanket-allowed — and it uses no inline `on*` handlers. The toggle's icon is then
+  chosen by CSS from `data-theme`, so it's correct on the first frame. See
+  [architecture](architecture.md).
 - **Fonts stay self-hosted** (`font-src 'self'`, no third-party font CDNs), with preloading and
   `font-display: swap`; only the weights actually used are shipped.
 - **Stylesheets are inlined**, so keep CSS lean; design tokens belong in `src/styles/base.css`
