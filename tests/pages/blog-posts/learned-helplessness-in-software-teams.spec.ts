@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from '@playwright/test';
 
+import { settleImages } from '../../settleImages';
+
 test.describe('Post: Learned helplessness in software teams: Symptoms, causes, and the path to empowerment', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('./blog/learned-helplessness-in-software-teams');
@@ -19,6 +21,8 @@ test.describe('Post: Learned helplessness in software teams: Symptoms, causes, a
     });
 
     test('should match the screenshot', async ({ page }) => {
+        await settleImages(page);
+
         await expect(page).toHaveScreenshot({ fullPage: true });
     });
 });

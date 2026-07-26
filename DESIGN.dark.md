@@ -15,6 +15,12 @@ colors:
     code-bg: '#0f0e0b'
     code-text: '#ece6da'
     code-line: '#262320'
+    syntax-comment: '#978d7d'
+    syntax-keyword: '#f5b544'
+    syntax-string: '#9ec37a'
+    syntax-symbol: '#7db4d8'
+    syntax-number: '#e0a45e'
+    syntax-punctuation: '#a89e8d'
 typography:
     display:
         fontFamily: 'Space Grotesk'
@@ -38,6 +44,24 @@ components:
     code-block:
         backgroundColor: '{colors.code-bg}'
         textColor: '{colors.code-text}'
+    code-comment:
+        backgroundColor: '{colors.code-bg}'
+        textColor: '{colors.syntax-comment}'
+    code-keyword:
+        backgroundColor: '{colors.code-bg}'
+        textColor: '{colors.syntax-keyword}'
+    code-string:
+        backgroundColor: '{colors.code-bg}'
+        textColor: '{colors.syntax-string}'
+    code-symbol:
+        backgroundColor: '{colors.code-bg}'
+        textColor: '{colors.syntax-symbol}'
+    code-number:
+        backgroundColor: '{colors.code-bg}'
+        textColor: '{colors.syntax-number}'
+    code-punctuation:
+        backgroundColor: '{colors.code-bg}'
+        textColor: '{colors.syntax-punctuation}'
 ---
 
 ## Overview

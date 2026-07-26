@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from '@playwright/test';
 
+import { settleImages } from '../../settleImages';
+
 test.describe('Post: Advanced static website hosting with Amazon S3 and CloudFront', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('./blog/advanced-static-website-hosting-with-amazon-s3-and-cloudfront');
@@ -17,6 +19,8 @@ test.describe('Post: Advanced static website hosting with Amazon S3 and CloudFro
     });
 
     test('should match the screenshot', async ({ page }) => {
+        await settleImages(page);
+
         await expect(page).toHaveScreenshot({ fullPage: true });
     });
 });

@@ -43,6 +43,34 @@ Use `npm ci` (not `npm install`) for a clean, lockfile-exact install. The common
 `npm run type:check`, `npm run lint:check`, `npm run format:check`, `npm run build` — see
 [`package.json`](../package.json) for the full list.
 
+### The dev server in the background
+
+Since Astro 7, `astro dev` **detaches automatically when it detects an AI coding agent**, so it
+does not block the agent's terminal. Started that way it is managed through subcommands rather
+than Ctrl-C:
+
+```sh
+npx astro dev status  # URL, PID, uptime
+npx astro dev logs -f # stream the log (also at .astro/dev.log)
+npx astro dev stop    # SIGTERM, escalating to SIGKILL after 5s
+```
+
+A lock file at `.astro/dev.json` (gitignored) records the URL, port and PID, and stops a second
+server being started for the same project. Related flags: `--background` to detach explicitly,
+`--force` to replace a running server, and `--ignore-lock` to start one _alongside_ an existing
+server — the latter is untracked, so `stop`/`status`/`logs` will not see it. Set
+`ASTRO_DEV_BACKGROUND=0` to opt out and run in the foreground.
+
+The dev server also exposes `/_astro/status`, returning `{"ok":true}` — a better readiness check
+than sleeping. It exists only in dev, never in a build.
+
+Running a dev server per worktree is fine (each has its own `.astro/`, so the locks are
+independent), but they all default to port 4321 — give each one `--port`.
+
+> **Caveat when an agent starts the server on the host.** See
+> [sandbox](tooling/sandbox.md#the-dev-server-lock-file) — the lock file is not written under the
+> Claude Code sandbox, which leaves the server unmanageable by `astro dev stop`.
+
 ## Host vs. devcontainer
 
 Do day-to-day development — and run your Claude Code session — **on the host**. The

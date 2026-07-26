@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from '@playwright/test';
 
+import { settleImages } from '../../settleImages';
+
 test.describe('Post: The renaissance of written coding conventions: Because AI reads manuals, too', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('./blog/the-renaissance-of-written-coding-conventions');
@@ -17,6 +19,8 @@ test.describe('Post: The renaissance of written coding conventions: Because AI r
     });
 
     test('should match the screenshot', async ({ page }) => {
+        await settleImages(page);
+
         await expect(page).toHaveScreenshot({ fullPage: true });
     });
 });

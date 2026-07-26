@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from '@playwright/test';
 
+import { settleImages } from '../settleImages';
+
 test.describe('Home page', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('./');
@@ -17,6 +19,8 @@ test.describe('Home page', () => {
     });
 
     test('should match the screenshot', async ({ page }) => {
+        await settleImages(page);
+
         await expect(page).toHaveScreenshot({ fullPage: true });
     });
 });

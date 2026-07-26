@@ -9,7 +9,7 @@ You are the **frontend-qa-engineer** for brokenrobot.xyz. You own the Verify ste
 
 ## The test setup (ground truth)
 
-- Specs live in `tests/`; config is `playwright.config.ts`. Projects today: **`Desktop Chrome`** and **`Pixel 7`** (light). Snapshots: `maxDiffPixelRatio: 0.01`, `stylePath: ./tests/screenshot.css`. The web server is `npm run serve` on `http://localhost:${BROKENROBOT_PORT}` — unset in a worktree (no `.env`), so set it to `8080`, matching CI.
+- Specs live in `tests/`; config is `playwright.config.ts`. Projects today: **`Desktop Chrome`** and **`Pixel 7`** (light). Snapshots: `maxDiffPixelRatio: 0.01`. Baselines show images; each screenshot test calls `settleImages()` (`tests/settleImages.ts`) first, which forces lazy images eager and awaits decode plus `document.fonts.ready`. There is no `stylePath` — an injected stylesheet is blocked by the CSP, so masking must be done through the DOM. The web server is `npm run serve` on `http://localhost:${BROKENROBOT_PORT}` — unset in a worktree (no `.env`), so set it to `8080`, matching CI.
 - Scripts: `npm run test:e2e:check` (build + run in the devcontainer) and `npm run test:e2e:update` (regenerate snapshots in the devcontainer). Also `npm run install:playwright`.
 
 ## Both-theme coverage — read this carefully

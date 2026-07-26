@@ -96,3 +96,33 @@
 .prose a:hover {
     text-decoration-color: var(--accent);
 }
+
+/* Syntax highlighting (Prism). Prism colours tokens with classes rather than inline
+   `style` attributes, so the Content-Security-Policy needs no `unsafe-inline` for styles.
+   The block's background and base text come from --code-bg / --code-text via Tailwind
+   Typography above, and the --syntax-* roles come from tokens.generated.css, so code
+   follows the theme. */
+.prose .token.comment {
+    color: var(--syntax-comment);
+    font-style: italic;
+}
+
+.prose :is(.token.punctuation, .token.operator) {
+    color: var(--syntax-punctuation);
+}
+
+.prose :is(.token.keyword, .token.tag) {
+    color: var(--syntax-keyword);
+}
+
+.prose :is(.token.string, .token.template-string, .token.attr-value) {
+    color: var(--syntax-string);
+}
+
+.prose :is(.token.function, .token.attr-name, .token.property) {
+    color: var(--syntax-symbol);
+}
+
+.prose :is(.token.number, .token.boolean) {
+    color: var(--syntax-number);
+}

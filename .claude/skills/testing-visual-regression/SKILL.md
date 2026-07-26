@@ -23,7 +23,8 @@ Visual-check progress:
 
 ## Ground truth
 
-- Config: `playwright.config.ts`. Specs: `tests/`. Snapshot tolerance `maxDiffPixelRatio: 0.01`; shared `tests/screenshot.css`.
+- Config: `playwright.config.ts`. Specs: `tests/`. Snapshot tolerance `maxDiffPixelRatio: 0.01`.
+- Baselines **show** images. Each screenshot test awaits `settleImages(page)` (`tests/settleImages.ts`) before capturing: it forces `loading="lazy"` images eager, awaits `decode()`, then `document.fonts.ready`. Do not reintroduce a `stylePath` stylesheet to hide elements — the CSP blocks injected styles, so it fails silently and every image-bearing baseline drifts.
 - Web server: `npm run serve` (astro preview of `dist/`) on `http://localhost:${BROKENROBOT_PORT}` — it serves the built `dist/`, so a build must precede it (the `test:e2e:*` scripts in Step 3 do this for you). **`BROKENROBOT_PORT` must be set** — a git worktree has no `.env` (it's gitignored), so the commands below default it to `8080`, matching CI.
 - Scripts: `npm run test:e2e:check` (run), `npm run test:e2e:update` (regenerate snapshots).
 - A11y: `@axe-core/playwright` runs inside the specs — a failure is a real bug, not a baseline to bless.
