@@ -8,7 +8,9 @@ const codeBlockFocusPlugin = defineHastPlugin({
     element: {
         filter: ['pre'],
         visit: (node, context) => {
-            context.setProperty(node, 'tabIndex', 0);
+            // Lowercase on purpose: Sätteri serializes the key verbatim into the HTML
+            // attribute, so the hast-conventional `tabIndex` would emit `tabIndex="0"`.
+            context.setProperty(node, 'tabindex', 0);
         }
     }
 });
