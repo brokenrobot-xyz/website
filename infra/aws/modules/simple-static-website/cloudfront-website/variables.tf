@@ -25,7 +25,7 @@ variable "aws_cloudfront_function_viewer_request_arn" {
 }
 
 # Edge half of a two-layer Content-Security-Policy. Astro emits a <meta> policy into every page
-# carrying per-build script/style hashes; this header carries what a <meta> element cannot —
+# carrying per-page script/style content hashes; this header carries what a <meta> element cannot —
 # frame-ancestors — and also covers non-HTML responses and error pages. Browsers enforce both, so a
 # resource must satisfy each. Keep this in sync with `nginx.conf` and `server.headers` in
 # `astro.config.ts` (the latter is what `astro preview`, and so the Playwright suite, serves).

@@ -60,7 +60,8 @@ design overhaul.
   island; simple DOM wiring → an Astro `<script>` importing a `.ts` module (the theme toggle).
 - **Theme set before paint by one inline script.** The pre-paint theme resolution (read
   preference → set `data-theme`) cannot be deferred to a module/island — it would flash. It
-  stays a tiny inline script, CSP-safe because Astro emits a hash for it — inline scripts are
+  stays a tiny inline script, CSP-safe because `BaseLayout` registers its hash into the page's
+  policy (Astro does not hash author-written inline scripts itself) — inline scripts are
   **not** blanket-allowed — and it uses no inline `on*` handlers. The toggle's icon is then
   chosen by CSS from `data-theme`, so it's correct on the first frame. See
   [architecture](architecture.md).

@@ -29,8 +29,8 @@ Authoring or editing a **blog article** is _not_ planned as a change. Article co
 `src/content/blog/**` and is written directly, then committed with the custom `post` type (see
 [commit-conventions](development/conventions/commit-conventions.md)). There is no spec for prose.
 
-The blog _infrastructure_ — rendering components, the content schema, remark plugins, the RSS feed —
-is ordinary feature work and **is** in scope.
+The blog _infrastructure_ — rendering components, the content schema, Markdown pipeline plugins, the
+RSS feed — is ordinary feature work and **is** in scope.
 
 ## The workflow
 

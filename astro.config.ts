@@ -18,7 +18,7 @@ export default defineConfig({
         plugins: [tailwindcss()]
     },
     security: {
-        // Astro emits script-src/style-src (with per-build hashes) and font-src itself. The rest are
+        // Astro emits script-src/style-src (with per-page content hashes) and font-src itself. The rest are
         // listed here so the policy in the built HTML is complete on its own, and travels with the
         // artifact to any host. `frame-ancestors` is deliberately absent: it is ignored in a <meta>
         // element, so it lives only in the edge header (see nginx.conf).
