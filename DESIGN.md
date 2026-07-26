@@ -15,6 +15,12 @@ colors:
     code-bg: '#211e19'
     code-text: '#ece6da'
     code-line: '#33302a'
+    syntax-comment: '#978d7d'
+    syntax-keyword: '#f5b544'
+    syntax-string: '#9ec37a'
+    syntax-symbol: '#7db4d8'
+    syntax-number: '#e0a45e'
+    syntax-punctuation: '#a89e8d'
 typography:
     display:
         fontFamily: 'Space Grotesk'
@@ -64,6 +70,13 @@ Semantic roles, not raw swatches — components read a role, never a hex.
   focus) rather than as a text background.
 - `accent-ink` — a darker amber for text/links that need contrast on paper.
 - `code-bg` / `code-text` / `code-line` — code blocks and their line separators.
+- `syntax-*` — the six syntax-highlighting roles painted on `code-bg`: `comment` (warm grey,
+  italic), `keyword` (amber, tying code to the brand hue), `string` (green), `symbol` (blue —
+  functions, properties, attribute names), `number` and `punctuation`. Both themes share one
+  palette, because `code-bg` is dark in each. Prism applies them by class; a highlighter that
+  emits inline `style` attributes instead would break the Content-Security-Policy (see
+  `security.csp` in `astro.config.ts`). Like `code-line`, these are colour-only roles with no
+  component pairing, so the linter's "never referenced by any component" note is expected.
 - `primary` — a tooling alias for `accent`; not emitted as a CSS variable.
 
 ## Typography

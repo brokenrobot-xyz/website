@@ -100,17 +100,8 @@
 /* Syntax highlighting (Prism). Prism colours tokens with classes rather than inline
    `style` attributes, so the Content-Security-Policy needs no `unsafe-inline` for styles.
    The block's background and base text come from --code-bg / --code-text via Tailwind
-   Typography above, so code follows the theme. PROTOTYPE: if adopted, these five syntax
-   colours belong in DESIGN.md / DESIGN.dark.md alongside the other tokens. */
-.prose pre[class*='language-'] {
-    --syntax-comment: #978d7d;
-    --syntax-keyword: #f5b544;
-    --syntax-string: #9ec37a;
-    --syntax-symbol: #7db4d8;
-    --syntax-number: #e0a45e;
-    --syntax-punctuation: #a89e8d;
-}
-
+   Typography above, and the --syntax-* roles come from tokens.generated.css, so code
+   follows the theme. */
 .prose .token.comment {
     color: var(--syntax-comment);
     font-style: italic;
