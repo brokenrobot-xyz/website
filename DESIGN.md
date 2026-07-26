@@ -44,6 +44,24 @@ components:
     code-block:
         backgroundColor: '{colors.code-bg}'
         textColor: '{colors.code-text}'
+    code-comment:
+        backgroundColor: '{colors.code-bg}'
+        textColor: '{colors.syntax-comment}'
+    code-keyword:
+        backgroundColor: '{colors.code-bg}'
+        textColor: '{colors.syntax-keyword}'
+    code-string:
+        backgroundColor: '{colors.code-bg}'
+        textColor: '{colors.syntax-string}'
+    code-symbol:
+        backgroundColor: '{colors.code-bg}'
+        textColor: '{colors.syntax-symbol}'
+    code-number:
+        backgroundColor: '{colors.code-bg}'
+        textColor: '{colors.syntax-number}'
+    code-punctuation:
+        backgroundColor: '{colors.code-bg}'
+        textColor: '{colors.syntax-punctuation}'
 ---
 
 ## Overview
@@ -75,8 +93,8 @@ Semantic roles, not raw swatches — components read a role, never a hex.
   functions, properties, attribute names), `number` and `punctuation`. Both themes share one
   palette, because `code-bg` is dark in each. Prism applies them by class; a highlighter that
   emits inline `style` attributes instead would break the Content-Security-Policy (see
-  `security.csp` in `astro.config.ts`). Like `code-line`, these are colour-only roles with no
-  component pairing, so the linter's "never referenced by any component" note is expected.
+  `security.csp` in `astro.config.ts`). Each is paired with `code-bg` as a `code-*` component so
+  the linter contrast-checks it in both themes.
 - `primary` — a tooling alias for `accent`; not emitted as a CSS variable.
 
 ## Typography
@@ -103,8 +121,12 @@ No dedicated radius token scale; corners use Tailwind's rounding utilities.
 ## Components
 
 Real text pairings the linter contrast-checks: `page` and `surface` (body text on paper), `muted-text`
-(secondary text on bg), `link` (accent-ink on bg), and `code-block`. `accent` is intentionally not a
-text-background component — it is decorative.
+(secondary text on bg), `link` (accent-ink on bg), `code-block`, and the six `code-*` syntax pairings
+(`code-comment`, `code-keyword`, `code-string`, `code-symbol`, `code-number`, `code-punctuation`) —
+each syntax colour on `code-bg`, so a palette tweak that hurts legibility shows up in
+`npm run designmd:check`. Note the linter reports a contrast failure as a **warning** and still exits
+0, so it informs rather than gates. `accent` is intentionally not a text-background component — it is
+decorative.
 
 ## Do's and Don'ts
 

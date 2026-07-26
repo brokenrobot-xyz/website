@@ -44,6 +44,24 @@ components:
     code-block:
         backgroundColor: '{colors.code-bg}'
         textColor: '{colors.code-text}'
+    code-comment:
+        backgroundColor: '{colors.code-bg}'
+        textColor: '{colors.syntax-comment}'
+    code-keyword:
+        backgroundColor: '{colors.code-bg}'
+        textColor: '{colors.syntax-keyword}'
+    code-string:
+        backgroundColor: '{colors.code-bg}'
+        textColor: '{colors.syntax-string}'
+    code-symbol:
+        backgroundColor: '{colors.code-bg}'
+        textColor: '{colors.syntax-symbol}'
+    code-number:
+        backgroundColor: '{colors.code-bg}'
+        textColor: '{colors.syntax-number}'
+    code-punctuation:
+        backgroundColor: '{colors.code-bg}'
+        textColor: '{colors.syntax-punctuation}'
 ---
 
 ## Overview
