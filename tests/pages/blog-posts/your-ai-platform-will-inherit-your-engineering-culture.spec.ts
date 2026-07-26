@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from '@playwright/test';
 
+import { settleImages } from '../../settleImages';
+
 test.describe('Post: Your AI Platform Will Inherit Your Engineering Culture', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('./blog/your-ai-platform-will-inherit-your-engineering-culture');
@@ -17,6 +19,8 @@ test.describe('Post: Your AI Platform Will Inherit Your Engineering Culture', ()
     });
 
     test('should match the screenshot', async ({ page }) => {
+        await settleImages(page);
+
         await expect(page).toHaveScreenshot({ fullPage: true });
     });
 });

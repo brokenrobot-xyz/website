@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from '@playwright/test';
 
+import { settleImages } from '../../settleImages';
+
 test.describe('Post: The human side of code reviews in large teams', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('./blog/the-human-side-of-code-reviews-in-large-teams');
@@ -17,6 +19,8 @@ test.describe('Post: The human side of code reviews in large teams', () => {
     });
 
     test('should match the screenshot', async ({ page }) => {
+        await settleImages(page);
+
         await expect(page).toHaveScreenshot({ fullPage: true });
     });
 });

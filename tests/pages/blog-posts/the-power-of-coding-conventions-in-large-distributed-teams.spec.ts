@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from '@playwright/test';
 
+import { settleImages } from '../../settleImages';
+
 test.describe('Post: The power of coding conventions in large, distributed teams', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('./blog/the-power-of-coding-conventions-in-large-distributed-teams');
@@ -17,6 +19,8 @@ test.describe('Post: The power of coding conventions in large, distributed teams
     });
 
     test('should match the screenshot', async ({ page }) => {
+        await settleImages(page);
+
         await expect(page).toHaveScreenshot({ fullPage: true });
     });
 });
