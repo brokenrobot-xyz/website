@@ -134,6 +134,31 @@ the agent does. This is also _why_ opening non-secret reads (above) costs little
   queries the public Terraform Registry. Like all MCP servers they're launched by Claude Desktop, not the
   bash sandbox.
 
+## The dev server lock file
+
+Astro 7 detaches `astro dev` automatically when it detects an AI coding agent, and manages the
+result through `astro dev status` / `logs` / `stop`, backed by a lock file at `.astro/dev.json`
+(see [development-environment](../development-environment.md#the-dev-server-in-the-background)).
+
+**Under the bash sandbox on the host, that lock file is not written.** The server starts and
+serves correctly — `/_astro/status` answers, `.astro/dev.log` is written — but `astro dev status`
+reports "No dev server is running", so `stop` cannot reach it. The sandbox also denies signalling
+the process, so an agent cannot `kill` it either: the server survives until stopped from a real
+terminal.
+
+This is the sandbox, not Astro. The same auto-detect path (`CLAUDECODE=1`, no `--background`
+flag) writes the lock file and works end to end inside the devcontainer, as does an explicit
+`--background`. The precise mechanism is unknown — writes to `.astro/` are clearly not blocked
+wholesale, since `dev.log` lands there.
+
+Practical consequences for an agent working on the host:
+
+- Prefer **`npm run serve`** (`astro preview`) when you just need the built site — it is what the
+  Playwright suite uses, and it runs in the foreground under the agent's control.
+- If you do start `astro dev`, **record the PID from its startup line**; it is the only handle you
+  will get. Hand it to the user to `kill` rather than assuming `astro dev stop` will work.
+- Inside the devcontainer the lifecycle commands behave normally.
+
 ## Possible future hardening
 
 Neither is needed today; both are recorded so the trade-offs are explicit.
