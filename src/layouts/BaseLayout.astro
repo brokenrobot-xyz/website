@@ -1,6 +1,8 @@
 ---
 import '@styles/base.css';
 
+import { createHash } from 'node:crypto';
+
 import { Font } from 'astro:assets';
 
 import Header from '@components/layout/Header.astro';
@@ -16,7 +18,7 @@ type Props = {
 const { pageTitle, pageDescription } = Astro.props;
 
 // Resolve the theme before first paint to avoid a flash of the wrong theme.
-// Kept as an inline string so it runs synchronously in <head> (CSP allows inline scripts).
+// Kept as an inline string so it runs synchronously in <head>.
 const themeInitScript = `(function () {
   try {
     var stored = localStorage.getItem('theme');
@@ -27,6 +29,10 @@ const themeInitScript = `(function () {
     document.documentElement.dataset.theme = 'light';
   }
 })();`;
+
+// Astro only hashes scripts it processes itself, never author `is:inline` scripts, so register
+// this one's hash explicitly — hashing the same string that is rendered keeps the two in sync.
+Astro.csp?.insertScriptHash(`sha256-${createHash('sha256').update(themeInitScript).digest('base64')}`);
 ---
 
 <!doctype html>
