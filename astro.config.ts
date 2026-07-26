@@ -1,16 +1,21 @@
+import { satteri } from '@astrojs/markdown-satteri';
 import mdx from '@astrojs/mdx';
 import preact from '@astrojs/preact';
 import sitemap from '@astrojs/sitemap';
+import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, fontProviders } from 'astro/config';
 import { config } from 'dotenv';
 
-import { remarkReadingTimePlugin } from './src/utils/remarkReadingTimePlugin';
+import { readingTimePlugin } from './src/utils/readingTimePlugin';
 
 config();
 
 export default defineConfig({
     site: 'https://www.brokenrobot.xyz',
     integrations: [preact(), mdx(), sitemap()],
+    vite: {
+        plugins: [tailwindcss()]
+    },
     compressHTML: true,
     build: {
         inlineStylesheets: 'always'
@@ -139,7 +144,7 @@ export default defineConfig({
         }
     ],
     markdown: {
-        remarkPlugins: [remarkReadingTimePlugin]
+        processor: satteri({ mdastPlugins: [readingTimePlugin] })
     },
     server: {
         port: process.env.BROKENROBOT_PORT === undefined ? 4321 : parseInt(process.env.BROKENROBOT_PORT, 10),
