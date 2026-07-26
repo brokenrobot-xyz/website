@@ -13,7 +13,8 @@ declare module 'satteri' {
 // Sätteri visits nodes by type and has no document-level hook, so the text is
 // accumulated in the per-document data bag and the frontmatter is rewritten on
 // each visit. The last write wins, and it is read only after the whole document
-// has been compiled.
+// has been compiled. (`context.textContent(root)` is not used instead: it omits
+// fenced-code values, which the reading time has always counted.)
 const appendText = (context: MdastVisitorContext, value: string): void => {
     const state = (context.data.readingTime ??= { text: '' });
 
@@ -31,7 +32,11 @@ const readingTimePlugin = defineMdastPlugin({
     text: (node, context) => appendText(context, node.value),
     inlineCode: (node, context) => appendText(context, node.value),
     code: (node, context) => appendText(context, node.value),
-    html: (node, context) => appendText(context, node.value)
+    html: (node, context) => appendText(context, node.value),
+    // Image alt text counts toward the reading time, as it did under
+    // `mdast-util-to-string` in the remark-based predecessor.
+    image: (node, context) => appendText(context, node.alt ?? ''),
+    imageReference: (node, context) => appendText(context, node.alt ?? '')
 });
 
 export { readingTimePlugin };
