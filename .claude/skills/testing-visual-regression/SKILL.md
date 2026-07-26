@@ -1,12 +1,25 @@
 ---
-name: visual-regression-tests
-description: Run and update Playwright visual-regression + axe accessibility checks for brokenrobot.xyz in both light and dark themes. Use at a change's Verify step, when UI snapshots need refreshing after an intentional visual change, or when an a11y check needs to run. Runs inside the devcontainer so rendering matches the committed CI baselines.
+name: testing-visual-regression
+description: Runs and updates Playwright visual-regression + axe accessibility checks for brokenrobot.xyz in both light and dark themes. Use at a change's Verify step, when UI snapshots need refreshing after an intentional visual change, or when an a11y check needs to run. Runs inside the devcontainer so rendering matches the committed CI baselines.
+model: claude-sonnet-5
+allowed-tools: Read, Bash
 metadata:
     author: brokenrobot.xyz
     version: '2.0'
 ---
 
 Run the site's visual-regression and accessibility coverage in **both themes**, and refresh baselines when a visual change is intentional. This is the automated half of every change's **Verify** step.
+
+Copy this checklist into your reply and tick each item as you go:
+
+```
+Visual-check progress:
+- [ ] 1. Devcontainer up (never the host)
+- [ ] 2. Determine theme coverage
+- [ ] 3. Run the checks
+- [ ] 4. Update baselines (only if intentional)
+- [ ] 5. Report
+```
 
 ## Ground truth
 

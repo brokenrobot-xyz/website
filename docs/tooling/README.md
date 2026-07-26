@@ -9,12 +9,15 @@ built. These docs cover _how we work on it_.
   and the schema/config that bakes the guardrails into the propose flow.
 - [sandbox.md](sandbox.md) — the Claude Code sandbox & permission model: what the agent may read,
   write, run, and reach on the network, and why.
+- [code-intelligence.md](code-intelligence.md) — the code-intelligence tools (typescript-lsp plugin
+  and the Codegraph MCP server): how they're pinned, enabled, and used across worktrees.
 
 ## The pieces (in `.claude/`)
 
 The committed tooling configuration lives under [`.claude/`](../../.claude): `agents/` and
 `skills/` (the workflow — see [workflow.md](workflow.md)), `commands/` (the `opsx` slash commands),
-and `settings.json` (the sandbox & permissions — see [sandbox.md](sandbox.md)).
+`hooks/` (the SessionStart environment report and the commit-message/push gates), and
+`settings.json` (the sandbox & permissions — see [sandbox.md](sandbox.md)).
 
 The _what_ this implements — the way we work, independent of any tool — is the application doc
 [../development-workflow.md](../development-workflow.md). `workflow.md` is the _how_.

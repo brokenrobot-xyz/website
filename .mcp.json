@@ -6,11 +6,15 @@
         },
         "playwright": {
             "command": "npx",
-            "args": ["@playwright/mcp", "--browser=chrome", "--headless", "--isolated"]
+            "args": ["-y", "@playwright/mcp@0.0.78", "--browser=chrome", "--headless", "--isolated"]
         },
         "chrome-devtools": {
             "command": "npx",
-            "args": ["chrome-devtools-mcp", "--headless", "--isolated"]
+            "args": ["-y", "chrome-devtools-mcp@1.6.0", "--headless", "--isolated"]
+        },
+        "codegraph": {
+            "command": "npx",
+            "args": ["-y", "@colbymchenry/codegraph@1.5.0", "serve", "--mcp"]
         },
         "terraform": {
             "command": "docker",

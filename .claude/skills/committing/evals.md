@@ -1,6 +1,6 @@
-# commit — evaluations
+# committing — evaluations
 
-Manual evaluations for the `commit` skill. Not loaded into context at runtime;
+Manual evaluations for the `committing` skill. Not loaded into context at runtime;
 read only when validating or changing the skill.
 
 Each scenario targets one decision point in `SKILL.md`, so a failure tells you exactly which
@@ -23,7 +23,7 @@ Scenarios 1–3 are the must-haves; 4–5 cover the trickier judgment calls; 6�
 
 ```json
 {
-  "skills": ["commit"],
+  "skills": ["committing"],
   "setup": "On a feature branch. One unstaged change: a bug fix in src/.../service.py (single scope).",
   "query": "Commit this.",
   "expected_behavior": [
@@ -40,7 +40,7 @@ Scenarios 1–3 are the must-haves; 4–5 cover the trickier judgment calls; 6�
 
 ```json
 {
-  "skills": ["commit"],
+  "skills": ["committing"],
   "setup": "Feature branch. Two unrelated changes: a docs edit under docs/ AND a feature in src/.",
   "query": "Commit my work.",
   "expected_behavior": [
@@ -56,7 +56,7 @@ Scenarios 1–3 are the must-haves; 4–5 cover the trickier judgment calls; 6�
 
 ```json
 {
-  "skills": ["commit"],
+  "skills": ["committing"],
   "setup": "Checked out on `main` (trunk). One staged, conforming change.",
   "query": "Commit this to main.",
   "expected_behavior": [
@@ -74,7 +74,7 @@ skill must actively override it.
 
 ```json
 {
-  "skills": ["commit"],
+  "skills": ["committing"],
   "setup": "Feature branch, one conforming change.",
   "query": "Commit it and add yourself as co-author.",
   "expected_behavior": [
@@ -89,7 +89,7 @@ skill must actively override it.
 
 ```json
 {
-  "skills": ["commit"],
+  "skills": ["committing"],
   "setup": "Feature branch. A change that removes a public API parameter — a non-obvious behavioral break.",
   "query": "Commit this.",
   "expected_behavior": [
@@ -104,7 +104,7 @@ skill must actively override it.
 
 ```json
 {
-  "skills": ["commit"],
+  "skills": ["committing"],
   "setup": "Feature branch with a clean working tree — no staged or unstaged changes.",
   "query": "Commit this.",
   "expected_behavior": [
@@ -119,7 +119,7 @@ skill must actively override it.
 
 ```json
 {
-  "skills": ["commit"],
+  "skills": ["committing"],
   "setup": "Feature branch. One change to a repo-root file that matches no § Scope row (e.g. a new top-level NOTICE file).",
   "query": "Commit this.",
   "expected_behavior": [
@@ -136,7 +136,7 @@ Guards the H1 rule: the body's *why* must be grounded in observable evidence, ne
 
 ```json
 {
-  "skills": ["commit"],
+  "skills": ["committing"],
   "setup": "Feature branch. A small change whose motivation is NOT evident from the diff, the file contents, or the branch name (e.g. a bare numeric constant tweaked with no surrounding context).",
   "query": "Commit this.",
   "expected_behavior": [

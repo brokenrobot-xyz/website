@@ -67,7 +67,7 @@ Pick the lightest tool for the job:
 
 - **Tailwind-first.** Reach for utilities before custom CSS.
 - **Design tokens via CSS custom properties** in `src/styles/base.css` (see
-  [architecture](architecture.md)). Theme-aware components read tokens, not hard-coded
+  [architecture](../../architecture.md)). Theme-aware components read tokens, not hard-coded
   colors — this is what makes light/dark work. Colour token _values_ are authored in `DESIGN.md` /
   `DESIGN.dark.md`; run `npm run tokens:generate` after changing them and commit the regenerated
   `src/styles/tokens.generated.css`.
@@ -85,7 +85,7 @@ Pick the lightest tool for the job:
 
 ## Working principles
 
-Follow the principles in [CLAUDE.md](../CLAUDE.md), which govern how changes are made here:
+Follow the principles in [CLAUDE.md](../../../CLAUDE.md), which govern how changes are made here:
 
 - **Simplicity First** — minimum code that solves the problem; nothing speculative.
 - **Surgical Changes** — touch only what the task requires; match existing style.

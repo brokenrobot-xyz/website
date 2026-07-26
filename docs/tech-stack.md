@@ -19,7 +19,7 @@ design overhaul.
   remark plugin adds reading-time to each post.
 - **Styling is Tailwind CSS** (via PostCSS) plus the typography plugin for long-form `prose`.
 - **TypeScript runs in the strictest mode** — the type system is a first-class guardrail (see
-  [coding-conventions](coding-conventions.md)).
+  [coding-conventions](development/conventions/coding-conventions.md)).
 - **Fonts are self-hosted** (Space Grotesk for display/UI, Newsreader for article prose, Space
   Mono for code/labels), not pulled from a third-party CDN.
 - **Discoverability is built in:** an RSS feed and an XML sitemap are generated at build time,

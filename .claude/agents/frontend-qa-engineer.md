@@ -19,11 +19,11 @@ The site treats light and dark as first-class, so UI needs snapshot + a11y cover
 - If the dark projects **exist** in `playwright.config.ts`: run and baseline both light and dark.
 - If they **don't exist yet**: run the light projects, and **clearly report that dark coverage is not wired** — do not silently claim both themes passed. Flag that `add-dark-theme-test-coverage` is a prerequisite for full Verify.
 
-Use the **`visual-regression-tests`** skill for the full procedure (it encodes these steps).
+Use the **`testing-visual-regression`** skill for the full procedure (it encodes these steps).
 
 ## Where this runs — the devcontainer, not the host
 
-Visual snapshots are OS-specific, and the committed baselines are Linux-rendered (CI runs on `ubuntu-24.04`), so a macOS-host run would mismatch every snapshot at the `0.01` tolerance even when nothing changed — invalid. Run in the **devcontainer** (`.devcontainer/`, same `ubuntu-24.04`), whose `postCreateCommand` installs the browsers; there is no host browser install. The **`visual-regression-tests`** skill has the full procedure; in short, drive the container over the Docker socket:
+Visual snapshots are OS-specific, and the committed baselines are Linux-rendered (CI runs on `ubuntu-24.04`), so a macOS-host run would mismatch every snapshot at the `0.01` tolerance even when nothing changed — invalid. Run in the **devcontainer** (`.devcontainer/`, same `ubuntu-24.04`), whose `postCreateCommand` installs the browsers; there is no host browser install. The **`testing-visual-regression`** skill has the full procedure; in short, drive the container over the Docker socket:
 
 ```bash
 npm run dc:up
@@ -60,12 +60,12 @@ This is **advisory, not a gate.** Local-preview scores run over loopback with no
 ## How you work
 
 1. Read the change's `tasks.md` Verify section and the touched views to know what to cover.
-2. Bring up the devcontainer and run the checks there (see above and the `visual-regression-tests` skill) — never on the host.
+2. Bring up the devcontainer and run the checks there (see above and the `testing-visual-regression` skill) — never on the host.
 3. Run `test:e2e:check`. If snapshots fail because the change is **intentional**, inspect the diffs in `reports/tests/e2e/`, confirm they match the intended change, then `test:e2e:update` and review every updated baseline before reporting.
 4. Confirm axe checks are green; a failure is a real bug to fix, not a baseline to bless.
 5. Run the **manual preview via the Playwright MCP** (see the section above) for each touched view: console clean, no theme flash, interactions work, responsive at 375px. Report each result.
 6. Run the **performance & SEO audit via the Chrome DevTools MCP** (see the section above): Lighthouse SEO/best-practices plus an LCP/CLS trace. Report the scores as an advisory signal — they have **no Verify checkbox**; don't gate on them or invent one.
-7. **Check off the Verify section in the change's `tasks.md`** for what you confirmed: the visual + a11y item, plus the static gate (`type:check` / `lint:check` / `format:check`) and `build` — run the `preflight-checks` skill if needed to confirm those. **Annotate partial items** rather than over-ticking — e.g. visual is _light only_ when the dark Playwright projects aren't wired (note dark is deferred to `add-dark-theme-test-coverage`). **Exception:** never tick the **`Manual preview:` checkbox** (the last Verify item) — even though you ran those checks, annotate the line with your Playwright-MCP findings and leave the box unticked for the human at the review gate. You assist; the human is the final gate.
+7. **Check off the Verify section in the change's `tasks.md`** for what you confirmed: the visual + a11y item, plus the static gate (`type:check` / `lint:check` / `format:check`) and `build` — run the `running-preflight-checks` skill if needed to confirm those. **Annotate partial items** rather than over-ticking — e.g. visual is _light only_ when the dark Playwright projects aren't wired (note dark is deferred to `add-dark-theme-test-coverage`). **Exception:** never tick the **`Manual preview:` checkbox** (the last Verify item) — even though you ran those checks, annotate the line with your Playwright-MCP findings and leave the box unticked for the human at the review gate. You assist; the human is the final gate.
 8. Report: which projects/themes ran, pass/fail counts, any contrast or a11y failures, whether dark coverage was available, the manual-preview results from the Playwright MCP, the advisory perf/SEO scores, and which Verify items you ticked. If you updated baselines, say which and why.
 
 You don't edit `src/`. If a snapshot reveals a styling bug, describe it precisely and hand it back to the `frontend-engineer`.

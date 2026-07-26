@@ -27,7 +27,7 @@ front.
 
 Authoring or editing a **blog article** is _not_ planned as a change. Article content lives under
 `src/content/blog/**` and is written directly, then committed with the custom `post` type (see
-[commit-conventions](commit-conventions.md)). There is no spec for prose.
+[commit-conventions](development/conventions/commit-conventions.md)). There is no spec for prose.
 
 The blog _infrastructure_ — rendering components, the content schema, remark plugins, the RSS feed —
 is ordinary feature work and **is** in scope.
@@ -90,7 +90,7 @@ honour them. The authoritative sources are:
 
 - [architecture](architecture.md) — code structure, content model, and theming (CSS custom
   properties on `<html>`, both light and dark first-class).
-- [coding-conventions](coding-conventions.md) — TypeScript, Astro patterns, and the testing rules.
+- [coding-conventions](development/conventions/coding-conventions.md) — TypeScript, Astro patterns, and the testing rules.
 - [tech-stack](tech-stack.md) and [vision](vision.md) — the static-only, ad-free, **CSP-strict**
   shape of the site (no third-party scripts, no inline `on*` handlers) and the principles behind it.
 

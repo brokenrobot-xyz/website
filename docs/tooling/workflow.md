@@ -11,7 +11,7 @@ branch = one PR). Each phase maps to a concrete tool:
 | Propose                   | `spec-architect` agent / `/opsx:propose`                                                         |
 | Review the proposal       | **you** read and approve the change folder                                                       |
 | Implement                 | `frontend-engineer` agent / `/opsx:apply`, on a `<type>/<change-name>` branch                    |
-| Verify                    | `frontend-qa-engineer` agent + `preflight-checks` skill                                          |
+| Verify                    | `frontend-qa-engineer` agent + `running-preflight-checks` skill                                  |
 | Archive                   | `/opsx:archive` (on the branch, so the PR carries code + spec)                                   |
 | Review the implementation | the pull request: CI runs the gates, `frontend-code-reviewer` surfaces findings, **you** approve |
 | Integrate                 | merge the PR into `main`                                                                         |
@@ -53,7 +53,7 @@ Each change is one short-lived branch and one pull request — the trunk-based h
   updated spec together — they land atomically.
 - **The PR runs CI** ([`pipeline.yml`](../../.github/workflows/pipeline.yml)): `format` / `lint` /
   `type` / `specs:check` in the verify job, the build, and the e2e suite — the same gates the
-  `preflight-checks` and `visual-regression-tests` skills run locally.
+  `running-preflight-checks` and `testing-visual-regression` skills run locally.
 - **Merge to `main` deploys.** No release branches; the deploy jobs ship to production on every merge
   — see [tech-stack](../tech-stack.md) for the targets.
 - **The release gate** (the third human gate) is meant to be a required approval on the `Production`
@@ -61,7 +61,7 @@ Each change is one short-lived branch and one pull request — the trunk-based h
 
 ## The agents (`.claude/agents/`)
 
-Four role-based subagents, each with focused instructions and tool access. Invoke them with the
+Five role-based subagents, each with focused instructions and tool access. Invoke them with the
 Agent/Task tool, or let the main session delegate.
 
 - **`spec-architect`** (opus) — the architecture-aware proposer. Reads the specs, docs, and codebase
@@ -83,33 +83,59 @@ Agent/Task tool, or let the main session delegate.
 - **`frontend-code-reviewer`** (opus) — a read-only guardrail gate over the diff before commit, grouping
   findings as Blocking / Should-fix / Nits. Flags CSP, theming, interactivity-ladder, and convention
   violations the implementer missed.
+- **`dependency-update-researcher`** (opus) — read-only research on a single npm dependency bump
+  (current → target version): reads the changelog, checks how the repo actually uses the package, and
+  returns a compatibility verdict with the concrete edits the bump would require. Invoked per
+  minor/major bump by the `updating-dependencies` skill; never edits files or runs installs.
 
 ## The skills (`.claude/skills/`)
 
-Procedure skills the agents (or you) invoke, alongside the `openspec-*` lifecycle skills:
+Procedure skills the agents (or you) invoke, alongside the `openspec-*` lifecycle skills.
 
-- **`visual-regression-tests`** — run/update Playwright visual + a11y in light **and** dark (in the
+**Naming convention:** skill names use **gerund form** — verb-ing plus object, e.g.
+`checking-dev-env`, `running-preflight-checks` — per Anthropic's skill-authoring guidance
+(preferred form; lowercase/hyphens only). Generated skills (`openspec-*`, `opsx:*`) keep their
+vendored names. The `reviewing-skills` skill enforces this as checklist item `R6`.
+
+- **`testing-visual-regression`** — run/update Playwright visual + a11y in light **and** dark (in the
   devcontainer), with the baseline-review steps. Knows the both-theme dependency on the dark
   Playwright projects.
-- **`component-scaffold`** — scaffold a new Astro component or Preact island to convention
+- **`scaffolding-components`** — scaffold a new Astro component or Preact island to convention
   (placement, typed props, scoped token-driven styles, the right interactivity tier).
-- **`preflight-checks`** — run the non-visual gate (`type:check` + `lint:check` + `format:check` +
+- **`running-preflight-checks`** — run the non-visual gate (`type:check` + `lint:check` + `format:check` +
   `build`) and summarize failures.
+- **`checking-dev-env`** — audit host readiness (toolchain against the pins, dependencies, the
+  Codegraph index, Claude Code integration, Docker/devcontainer) and turn any ✗ into an ordered fix
+  guide sourced from development-environment.md's Troubleshooting section. Read-only — it never
+  installs or fixes anything.
+- **`committing`** — stage the working tree and author one Conventional-Commits commit conforming to
+  [commit-conventions](../development/conventions/commit-conventions.md), inferring type and scope
+  from the changed paths.
+- **`updating-dependencies`** — refresh npm dependencies: detect what's outdated, bucket into
+  patch/minor/major, apply patches directly, and research minor/major bumps (one
+  `dependency-update-researcher` run per bump) before recommending them. Delegates verification to
+  `running-preflight-checks` and `testing-visual-regression`.
+- **`reviewing-skills`** — review a skill (its SKILL.md, evals, and referenced files) against
+  Anthropic's skill-authoring and prompting best practices plus this repo's conventions, producing a
+  severity-ranked gap analysis and optionally applying approved fixes.
 
 ## MCP servers (`.mcp.json`)
 
 Project-scoped and committed, so the team shares them:
 
 - **`astro-docs`** (http) — Astro's documentation, for framework questions during propose/implement.
-- **`playwright`** — Microsoft's `@playwright/mcp` (a pinned devDependency), driving **host Chrome**
+- **`playwright`** — Microsoft's `@playwright/mcp` (version pinned in the `npx` command), driving **host Chrome**
   (`--browser=chrome --headless --isolated`). The `frontend-qa-engineer` uses it for the manual-preview Verify
   item (theme flash, console, interactions, 375px); it also serves interactive exploration and
   locating selectors when authoring specs. Host rendering is **non-authoritative** — pixel baselines
   stay in the devcontainer suite. Approve it once in `/mcp`.
-- **`chrome-devtools`** — Google's `chrome-devtools-mcp` (a pinned devDependency), host Chrome headless.
+- **`chrome-devtools`** — Google's `chrome-devtools-mcp` (version pinned in the `npx` command), host Chrome headless.
   Performance traces (Core Web Vitals) and a `lighthouse_audit` (a11y / SEO / best-practices) against the
   local preview — the perf/SEO angle that axe and visual-regression don't cover. Local-preview scores
   are a **relative regression signal**, not prod-authoritative.
+- **`codegraph`** — `@colbymchenry/codegraph` (version pinned in the `npx` command), a code-intelligence
+  knowledge graph over the workspace, queried instead of grep/read loops. How it's pinned, enabled, and
+  used across worktrees lives in [code-intelligence.md](code-intelligence.md).
 - **`terraform`** — HashiCorp's official `terraform-mcp-server` (Docker, pinned `:0.5.2`, `--toolsets=registry`).
   Public Terraform Registry docs — AWS/Cloudflare provider and module lookup — for authoring `infra/`. Docs
   lookup only; CI still runs `fmt`/`validate`. Needs Docker running.
@@ -163,7 +189,7 @@ it. One source of truth:
 
 - **`openspec/config.yaml` → `context`** — the site's enduring guardrails, injected into every
   artifact's generation. Their canonical home is the project docs ([architecture](../architecture.md),
-  [coding-conventions](../coding-conventions.md), [vision](../vision.md)); `config.yaml` points the
+  [coding-conventions](../development/conventions/coding-conventions.md), [vision](../vision.md)); `config.yaml` points the
   propose flow at them rather than redefining them.
 - **`openspec/schemas/frontend-change/`** — a project-local schema (forked from `spec-driven`). Its
   `templates/tasks.md` pre-seeds the mandatory **Verify** section, and its `tasks` instruction
@@ -177,8 +203,8 @@ instruction + context). The seeded Verify section is:
 ```markdown
 ## N. Verify
 
-- [ ] Visual + a11y snapshots pass in **both themes** for every touched view (visual-regression-tests)
-- [ ] `type:check`, `lint:check`, `format:check` all pass (preflight-checks)
+- [ ] Visual + a11y snapshots pass in **both themes** for every touched view (testing-visual-regression)
+- [ ] `type:check`, `lint:check`, `format:check` all pass (running-preflight-checks)
 - [ ] `build` succeeds — no third-party requests, no CSP violations
 - [ ] Manual preview: no theme flash, interactions work, console clean, responsive at 375px
 ```

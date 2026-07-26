@@ -144,7 +144,7 @@ A throwaway trial to validate the round-trip before any commitment:
    `:root` and `html[data-theme='dark']` blocks (expect a value-for-value match).
 4. `diff` an intentional token change (e.g. tweak `--accent`) → confirm it reports the modification.
 5. Judgement call from the PoC: promote DESIGN.md to source-of-truth (add the thin generator + wire `lint`
-   into `preflight-checks`) **only if** the round-trip is clean; otherwise keep it as an authoritative
+   into `running-preflight-checks`) **only if** the round-trip is clean; otherwise keep it as an authoritative
    _companion_ doc, with `base.css` still hand-authored.
 
 > Sandbox note: `npx @google/design.md` may trigger an npm-install network prompt in this environment.

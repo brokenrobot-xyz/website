@@ -106,6 +106,14 @@ the agent does. This is also _why_ opening non-secret reads (above) costs little
 - A fresh worktree has no `node_modules`. Installing works once the npm cache is reachable; `~/.npm`
   is in both the read (via the open policy) and `allowWrite` lists, so `npm ci` / `npx` work
   normally.
+- **`npm ci` cannot replace an existing `node_modules` here.** It wipes the tree before extracting,
+  and the harness denies _unlinking_ `.vscode/settings.json` — a path a transitive dependency ships
+  inside its own tarball. Creating it during extraction is fine, so a checkout with no
+  `node_modules` installs cleanly and one with a tree fails partway, leaving it half-removed. The
+  deny is Claude Code's own (it guards editor config as a persistence vector), not something
+  `.claude/settings.json` declares, so it cannot be relaxed from this repo. The `SessionStart` hook
+  therefore runs `npm ci` only when there is no tree and `npm install` to reconcile one that exists;
+  by hand, reach for `npm install` after a lockfile change.
 - These frictions are **local-only**. A normal checkout (CI, plain `git clone`) is not nested under
   a denied home, so `npm run format:check` / `type:check` / `lint:check` / `build` all run there
   without any of this — which is why none of the fixes live in application config.
@@ -115,7 +123,7 @@ the agent does. This is also _why_ opening non-secret reads (above) costs little
   feature/registry fetches — image layers and in-container installs go through the Docker daemon,
   outside the sandbox), and `~/.docker/buildx` is writable for buildx state. A worktree has no
   `.env` (which normally sets `BROKENROBOT_PORT`), so set it to `8080` (matching CI) when running the suite. See the
-  `visual-regression-tests` skill.
+  `testing-visual-regression` skill.
 - **The Playwright MCP** (`@playwright/mcp`, in `.mcp.json`) runs on the **host** with system Chrome
   (`--browser=chrome --headless --isolated`, so no Chromium download) and browses the local preview at
   `http://localhost:${BROKENROBOT_PORT}` — both already allowed. It backs the manual-preview Verify
