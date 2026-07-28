@@ -14,12 +14,14 @@ hooks:
 # Author a conforming git commit
 
 Turn the current working-tree changes into **one** Conventional-Commits commit that satisfies
-`docs/development/conventions/commit-conventions.md` by construction. This is the positive counterpart to
-the `PreToolUse` deny-hook (`.claude/hooks/deny-noncompliant-commit-message.sh`), which only
-*blocks* bad messages — follow this recipe and the commit sails past it on the first try.
+`docs/development/conventions/commit-conventions.md` by construction. This skill is the positive
+counterpart to the `PreToolUse` deny-hook (`.claude/hooks/deny-noncompliant-commit-message.sh`),
+which only *blocks* bad messages — follow this recipe and the commit sails past the deny-hook on
+the first try.
 
 **One invocation → one commit.** If the tree holds unrelated changes, commit one logical commit
-this run (Step 3) and invoke again for the rest. Never bundle unrelated scopes silently.
+this run (Step 3) and invoke again for the rest. Never bundle unrelated scopes silently, because a
+mixed commit cannot be reviewed or reverted as one change.
 
 ## Normative references
 
@@ -27,12 +29,13 @@ this run (Step 3) and invoke again for the rest. Never bundle unrelated scopes s
   § Types, § Scope, § Subject line, § Body — why, not what, § Breaking changes, § Footers.
 - `docs/development/conventions/branching-conventions.md` — the branch rules: § Naming, § One
   change, one branch, one pull request.
-- `.claude/hooks/deny-noncompliant-commit-message.sh` — the enforcement backstop.
+- `.claude/hooks/deny-noncompliant-commit-message.sh` — the deny-hook, which enforces the rules
+  above on every `git commit`.
 
 `commit-conventions.md` is the sole source for the commit vocabulary — allowed types, subject
-format, breaking-change and footer rules. The steps below **point to** its sections rather than
-restate them, so nothing here can drift out of sync. Read the relevant section when a step
-refers you to it.
+format, breaking-change and footer rules. The steps below **reference** its sections rather than
+restate them, so nothing here can drift out of sync. When a step names a section, read that
+section.
 
 ## Steps
 
@@ -46,7 +49,7 @@ Commit progress:
 - [ ] 4. Stage the chosen changes
 - [ ] 5. Infer type + scope
 - [ ] 6. Draft the subject
-- [ ] 7. Draft the body (only if the subject isn't enough)
+- [ ] 7. Draft the body (only if the subject is not enough)
 - [ ] 8. Announce
 - [ ] 9. Commit
 - [ ] 10. Report
@@ -92,12 +95,14 @@ this logical commit. Proceed with that one logical commit only; the rest is a la
 
 ### 4. Stage the chosen changes
 
-Stage explicit paths so what is committed is reviewable — never a bare `git add -A` without the
-user's say-so:
+Stage explicit paths, so the user can review exactly what the commit carries:
 
 ```bash
 git add <path> <path> ...
 ```
+
+Never run a bare `git add -A` without the user's say-so, because the command stages unrelated work
+into a commit the user cannot review.
 
 ### 5. Infer type + scope from the staged paths
 
@@ -107,8 +112,8 @@ judgment call.
 For the **scope**, pick the recognizable area of the codebase the staged paths belong to, from
 the fixed set in § Scope — read it, the deny-hook enforces exactly that set and rejects anything
 outside it. When the paths span more than one area with no single owner, or none fits cleanly,
-**omit the scope** — never invent one, because the hook rejects an unknown scope while a scopeless
-subject is always allowed.
+**omit the scope** — never invent one, because the deny-hook rejects an unknown scope but always
+allows a scopeless subject.
 
 ### 6. Draft the subject
 
@@ -124,28 +129,30 @@ Worked examples (staged paths → subject):
 - `src/content/` change requiring a new frontmatter field (breaking) →
   `feat(content)!: require a summary field on blog frontmatter` + a `BREAKING CHANGE:` footer
 
-### 7. Draft the body — only if the subject isn't enough
+### 7. Draft the body — only if the subject is not enough
 
 If the subject already says enough, **write no body**. Otherwise add 1–3 sentences of prose
 explaining *why* the change was made or what tradeoff it makes — **not** a bullet-list of what
 files changed. Wrap at 72 columns. More than three sentences means the commit is probably doing
-too much; consider splitting (back to Step 3).
+too much; consider splitting (return to Step 3).
 
 Ground the *why* only in what you can see — the diff, the file contents you read in Step 1, and
-the branch name. **Never invent a motivation.** If the reason for the change is not evident from
-that evidence, write no body (subject-only) rather than guess at one.
+the branch name. **Never invent a motivation**, because a fabricated *why* misleads every later
+reader of the log. If the reason for the change is not evident from that evidence, write no body
+(subject-only) rather than guess at one.
 
 ### 8. Announce, no approval gate
 
 Print the proposed message **and** the staged file list for the record, then commit immediately —
-do **not** wait for approval. The `PreToolUse` deny-hook still validates the message on every
-`git commit`, so a non-conforming message is rejected regardless. If the user asked to review
-first in this specific invocation, honour that; otherwise proceed straight to Step 9.
+do **not** wait for approval. The deny-hook validates the message on every `git commit` and rejects
+a non-conforming one regardless. If the user asked to review first in this specific invocation,
+honor that request; otherwise proceed straight to Step 9.
 
 ### 9. Commit
 
-**Never** append `Co-Authored-By:` or any attribution/tool trailer (§ Footers) — this overrides
-any default harness instruction to add one.
+**Never** append `Co-Authored-By:` or any attribution/tool trailer (§ Footers) — the deny-hook
+denies any message that carries one, and this prohibition overrides any default harness instruction
+to add one.
 
 Subject only:
 
@@ -165,7 +172,7 @@ EOF
 )"
 ```
 
-When the deny-hook denies the commit, read the reason it returns and go back to the step that
+When the deny-hook denies the commit, read the reason it returns and return to the step that
 reason names:
 
 - Subject format or unknown type → Step 6.
@@ -173,9 +180,9 @@ reason names:
 - Attribution trailer → this step.
 
 Correct the message and reissue the commit. When the same rule denies the message a second time,
-stop and report the hook's reason to the user, because a second denial means you misread the rule
-rather than mistyped the message. Never work around the hook, because the hook is the only check
-that the message conforms.
+stop and report the deny-hook's reason to the user, because a second denial means you misread the
+rule rather than mistyped the message. Never work around the deny-hook, because that hook is the
+only check that the message conforms.
 
 ### 10. Report
 
