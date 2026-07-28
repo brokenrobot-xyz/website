@@ -133,7 +133,7 @@ skill must actively override it.
 
 ## Scenario 8 — Ungrounded why → omit body (Step 7)
 
-Guards the H1 rule: the body's *why* must be grounded in observable evidence, never invented.
+Guards the Step 7 rule: the body's *why* must be grounded in observable evidence, never invented.
 
 ```json
 {
