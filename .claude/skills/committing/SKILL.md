@@ -59,6 +59,10 @@ git diff
 git diff --staged
 ```
 
+When `git status --short` prints nothing, the working tree is clean. Report the clean tree to the
+user and stop — do not stage anything, invent a change, or create an empty commit, because an
+empty commit records history that no change justifies.
+
 Read the changed files (`Read`) as needed to understand **why** the change was made — that is
 what a body, if any, must capture. Note what is already staged versus unstaged.
 
@@ -156,6 +160,18 @@ columns.
 EOF
 )"
 ```
+
+When the deny-hook denies the commit, read the reason it returns and go back to the step that
+reason names:
+
+- Subject format or unknown type → Step 6.
+- Unknown scope → Step 5.
+- Attribution trailer → this step.
+
+Correct the message and reissue the commit. When the same rule denies the message a second time,
+stop and report the hook's reason to the user, because a second denial means you misread the rule
+rather than mistyped the message. Never work around the hook, because the hook is the only check
+that the message conforms.
 
 ### 10. Report
 
