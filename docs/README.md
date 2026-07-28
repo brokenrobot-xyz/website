@@ -16,6 +16,8 @@ feel, and how the code is built. Read these before working on the design overhau
   and testing rules.
 - [commit-conventions.md](development/conventions/commit-conventions.md) — Conventional Commits and commit message
   guidance.
+- [branching-conventions.md](development/conventions/branching-conventions.md) — branch naming, worktrees, the
+  human-only push gate, squash-merging, and what CI does with branches.
 - [development-workflow.md](development-workflow.md) — the way we work: spec-driven planning +
   scaled trunk-based development (and why writing blog articles is out of scope). Tool-agnostic; the
   mechanics live in [tooling/workflow.md](tooling/workflow.md).

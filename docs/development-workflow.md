@@ -61,7 +61,8 @@ accept the release. Everything between is execution you oversee.
 
 ## Trunk-based integration
 
-The integration half keeps a few invariants:
+The integration half keeps a few invariants — the _why_ behind the branch rules in
+[branching-conventions](development/conventions/branching-conventions.md):
 
 - **Small batches.** One change is one short-lived branch — opened, reviewed, and merged quickly, so
   branches never drift far from the trunk.

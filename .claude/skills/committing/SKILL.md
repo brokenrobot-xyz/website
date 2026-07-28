@@ -25,7 +25,8 @@ this run (Step 3) and invoke again for the rest. Never bundle unrelated scopes s
 
 - `docs/development/conventions/commit-conventions.md` — the single source of truth: § Format,
   § Types, § Scope, § Subject line, § Body — why, not what, § Breaking changes, § Footers.
-- `docs/development-workflow.md` — the branch/trunk conventions (short-lived branches off `main`).
+- `docs/development/conventions/branching-conventions.md` — the branch rules: § Naming, § One
+  change, one branch, one pull request.
 - `.claude/hooks/deny-noncompliant-commit-message.sh` — the enforcement backstop.
 
 `commit-conventions.md` is the sole source for the commit vocabulary — allowed types, subject
@@ -77,9 +78,12 @@ references.
 git rev-parse --abbrev-ref HEAD
 ```
 
-If the branch is `main` (trunk), warn the user: `development-workflow.md` says work happens on a
+If the branch is `main` (trunk), warn the user: `branching-conventions.md` says work happens on a
 short-lived `<type>/<change-name>` branch off `main`. Ask whether to commit directly to trunk or
 branch first — do **not** hard-block, the user may have a reason.
+
+On a `<type>/<change-name>` branch, the branch prefix is the type the change's commits use. Treat
+that prefix as evidence for Step 5, not as the answer — the staged paths still decide.
 
 ### 3. Single-commit guard
 

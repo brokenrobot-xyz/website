@@ -81,6 +81,7 @@ Read these before working on the design overhaul — they are the shared source 
 - [docs/architecture.md](docs/architecture.md) — code structure, content model, and theming guidance.
 - [docs/development/conventions/coding-conventions.md](docs/development/conventions/coding-conventions.md) — TypeScript, formatting, Astro patterns, and testing rules.
 - [docs/development/conventions/commit-conventions.md](docs/development/conventions/commit-conventions.md) — Conventional Commits and commit message guidance.
+- [docs/development/conventions/branching-conventions.md](docs/development/conventions/branching-conventions.md) — branch naming, worktrees, the human-only push gate, and squash-merging.
 - [docs/development-workflow.md](docs/development-workflow.md) — the way we work: spec-driven planning + scaled trunk-based development (the tool-agnostic _what_); writing blog articles is out of scope.
 
 Those cover the **application**. For how this repo is worked on with Claude Code — the agent/skill workflow and the sandbox (why git in worktrees and Docker behave as they do) — see [docs/tooling/](docs/tooling/README.md), in particular [docs/tooling/sandbox.md](docs/tooling/sandbox.md).

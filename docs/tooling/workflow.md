@@ -44,11 +44,11 @@ openspec/
 
 ## Branches, integration, and deploy
 
-Each change is one short-lived branch and one pull request — the trunk-based half of the workflow:
+Each change is one short-lived branch and one pull request — the trunk-based half of the workflow.
+The branch rules themselves (naming, worktrees, the push gate, squash-merging, branch deletion) are
+in [branching-conventions](../development/conventions/branching-conventions.md); what the tooling
+does with them:
 
-- **Branch naming** — `<type>/<change-name>`: a Conventional-Commits type plus the OpenSpec change
-  name, e.g. `feat/tags-index`, `fix/rss-urls`. The branch name, the OpenSpec change name, and the
-  Conventional-Commits type all line up.
 - **Archive on the branch**, before opening the PR, so the pull request carries the code and the
   updated spec together — they land atomically.
 - **The PR runs CI** ([`pipeline.yml`](../../.github/workflows/pipeline.yml)): `format` / `lint` /
