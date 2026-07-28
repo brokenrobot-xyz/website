@@ -73,7 +73,7 @@ a ranked list of what to fix.
 - C. General prompting — clarity, examples, task chaining
 - D. Hallucination guardrails — grounding, verification, "I don't know"
 - E. Output consistency — formats and templates
-- F. Injection & jailbreak defenses — content-as-data, least privilege
+- F. Injection & jailbreak defenses — content-as-data, least privilege, indirect injection
 - G. Prompt-leak defenses — proportionate to any secrets it holds
 - H. Success criteria & evals — coverage, edge cases, measurability
 - R. Repo conventions — simplicity, surgical edits, single source of truth

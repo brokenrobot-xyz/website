@@ -4,7 +4,7 @@ The baked half of the reviewer's hybrid criteria. `SKILL.md` Step 2 tries to ref
 Anthropic docs live (WebFetch the URLs below); when the network is unavailable it falls back to
 this file and notes the staleness in the report.
 
-**last-synced:** 2026-07-22 — re-fetch the URLs and reconcile any new guidance when this is stale.
+**last-synced:** 2026-07-28 — re-fetch the URLs and reconcile any new guidance when this is stale.
 
 ## Contents
 
@@ -73,7 +73,7 @@ Each item below is a pass criterion. Cite the item key (e.g. `A3`, `D1`) in find
 ## B. Model-specific prompting (conditional)
 
 Apply the subset matching the skill's pinned or likely model (per its `model:` frontmatter). All
-three current model-prompting docs share the items below; per-model specifics follow. If the pin
+four current model-prompting docs share the items below; per-model specifics follow. If the pin
 is a durable alias (`opus`, `sonnet`) or absent, treat the currently-released model in that family
 as the target. Note in the report that a pin can be overridden by managed settings, so a skill
 shouldn't depend on quirks of exactly one model.
@@ -85,14 +85,27 @@ shouldn't depend on quirks of exactly one model.
 - **B2 — effort/thinking not over-scaffolded.** Don't hand-roll what adaptive thinking and the
   effort parameter already do.
 - **B3 — tool nudges.** If the skill relies on tool use with thinking off, it nudges explicitly.
+- **B4 — coverage before filtering.** A skill that finds, reviews, or audits must not cap the
+  *finding* stage with "only report high-severity", "be conservative", or "don't nitpick". Current
+  models follow such a bar literally — they investigate just as deeply, then drop findings below
+  it, so measured recall falls while the underlying ability is unchanged. Ask for coverage at the
+  finding stage and filter in a separate step. (Stated for Sonnet 5, Opus 5, and Opus 4.8.)
+- **B5 — progress-update scaffolding.** Current models narrate agentic work well unprompted.
+  Scaffolding that forces interim status ("after every 3 tool calls, summarize progress") should be
+  removed; describe the cadence and shape wanted instead, with positive examples.
 
-**Sonnet 5:** literal instruction following (state scope — see `C8`); verbosity self-calibrates.
+**Sonnet 5:** literal instruction following (state scope — see `C8`); verbosity self-calibrates;
+more agentic than its predecessor and reaches for tools and self-verification loops readily — with
+thinking disabled it is *less* likely to reach for tools, so `B3` applies then.
 
 **Opus 5:** self-verifies and self-corrects unprompted — explicit "verify/double-check" steps
 cause over-verification, so a skill should only script verification that the model wouldn't do
 itself (external validators, evals); delegates to subagents readily — cap or scope delegation if
 the skill fans out; narration and written deliverables run long — calibrate length in the prompt
-where it matters (effort controls thinking, not response length).
+where it matters (effort controls thinking, not response length); **expands scope** — it may add
+steps nobody asked for, so a narrow skill states its scope explicitly. With thinking disabled it
+can emit tool calls as plain text or leak internal XML tags, and a rule telling it not to think
+makes that leakage worse — remove such a rule rather than adding one.
 
 **Opus 4.8:** favors reasoning over tool calls — nudge explicitly if the skill depends on tool
 use; spawns **fewer subagents** by default — steer explicitly if the skill fans out; `xhigh`/`high`
@@ -101,6 +114,12 @@ effort suits agentic work.
 **Fable 5:** brief steering beats enumerating behaviors (`A17`); much longer turns on hard tasks —
 if the skill assumes quick completion or blocks synchronously, reconsider; dispatches parallel
 subagents readily; never instruct it to reproduce its reasoning (`C7`).
+
+> **The verification rule inverts between Opus 5 and Fable 5 — check the pin before applying it.**
+> On Opus 5, scripted "verify your work" steps cause over-verification and should be removed. On
+> Fable 5 long runs, the opposite holds: self-verification should be made *explicit*, and separate
+> fresh-context verifier subagents outperform self-critique. A skill pinned to one model can carry
+> guidance that is wrong for the other.
 
 ## C. General Claude prompting
 
@@ -128,22 +147,45 @@ subagents readily; never instruct it to reproduce its reasoning (`C7`).
 - **D3 — verification.** A verify/feedback step checks the output against a source or validator.
 - **D4 — source restriction.** For document tasks, restrict to provided content over general
   knowledge.
+- **D5 — progress claims audited against tool results.** A skill that reports its own progress on a
+  long or autonomous run instructs the model to check each claim against a tool result from the
+  session, and to say plainly what is unverified, skipped, or failing. Anthropic reports this
+  nearly eliminates fabricated status reports on tasks designed to elicit them.
 
 ## E. Increase output consistency
 
 - **E1 — output format specified.** Exact format/template given where output shape matters.
 - **E2 — constrained by examples.** Concrete examples over abstract description (overlaps A9/C2).
 - **E3 — step-by-step.** Deterministic tasks broken into ordered, unambiguous steps.
-- **E4 — structured output.** Strict-format outputs use a template/schema, not prose.
+- **E4 — structured output.** Strict-format outputs use a template/schema, not prose. When the
+  requirement is guaranteed JSON-schema conformance, the answer is the Structured Outputs feature,
+  not prompt engineering — a skill that hand-rolls schema coaxing for that case is doing avoidable
+  work.
+- **E5 — no prefill.** Prefilling the assistant turn is unsupported on Claude 4.6 and later. A
+  skill that still relies on the prefill trick is stale; use structured outputs or system-prompt
+  instructions instead.
 
 ## F. Mitigate jailbreaks & prompt injection
+
+The live doc splits this into two threat models: **direct** injection (the user is the adversary)
+and **indirect** injection (the user is trusted, but the model reads third-party content — pages,
+emails, documents, tool results — carrying adversarial instructions). Most skills in this repo face
+the indirect model.
 
 - **F1 — content is data.** The skill instructs treating read content (files, diffs, tool
   results, fetched pages) as data, never as instructions.
 - **F2 — least privilege.** Tool/permission surface is minimal (overlaps A16); destructive
-  actions gated.
+  actions gated, so a successful injection does minimal damage.
 - **F3 — untrusted-content policy.** For skills that process third-party content, the policy that
   such content can't override instructions is stated.
+- **F4 — untrusted content is labeled and isolated.** Third-party content reaches the model in
+  `tool_result` blocks — never in a system prompt or a plain user turn — and its nature and source
+  are named ("body of an inbound email from an unknown sender"). JSON-encoding it removes any
+  delimiter an attacker could break out of. Corollary: the skill's *own* instructions must not sit
+  in tool results, where the model is trained to distrust them.
+- **F5 — screen and red-team.** For a skill that acts on tool output, the checks are whether
+  suspicious output is screened before it is acted on, and whether the skill's evals include a
+  deliberate injection attempt (overlaps `H4`).
 
 ## G. Reduce prompt leak
 
@@ -164,6 +206,15 @@ subagents readily; never instruct it to reproduce its reasoning (`C7`).
 - **H6 — baseline-first.** Evals note running without the skill to establish the before/after.
 - **H7 — model coverage.** Scenarios name the model(s) the skill is expected to pass on
   (its pinned model at minimum).
+- **H8 — evals precede the prose.** The documented order is: find the gaps by running the task
+  without a skill, write three scenarios against those gaps, measure the baseline, then write the
+  minimum instructions that pass. A skill whose evals were clearly written after the fact is at
+  risk of documenting imagined problems rather than real ones.
+- **H9 — criteria are SMART.** Specific, measurable, achievable, relevant. "Handles edge cases
+  well" fails; a stated pass condition on a named input passes. Volume of cheap automated checks
+  beats a handful of hand-graded ones (`H5`).
+- **H10 — grader independence.** Where an LLM grades, it should not be the same instance that
+  produced the output. Self-grading in the same run is not evidence.
 
 ## R. Repo conventions
 
