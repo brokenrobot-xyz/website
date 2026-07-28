@@ -28,7 +28,8 @@ Universal machine-checkable rules, graded on every scenario:
 Scenarios 1–4 are the must-haves (one per severity behavior); 5–6 cover the apply phase and the
 false-positive guard; 7–10 cover the model-specific and self-maintenance behaviors added with the
 Opus 4.8 / Fable 5 sources; 11 covers the pre-interview brief; 12–14 cover the one-skill scope
-limit, the injection defense, and prose scoring against the full conventions doc.
+limit, the injection defense, and prose scoring against the full conventions doc; 15–16 cover the
+`C10` confirmation rule and `C9` tool-nudge calibration.
 
 ## Scenario 1 — Detects a description POV violation (A2)
 
@@ -151,7 +152,8 @@ limit, the injection defense, and prose scoring against the full conventions doc
     "Reads the target's `model:` frontmatter and applies only the Sonnet-5 subset of group B",
     "Does NOT flag missing Opus-4.8 / Fable-5-specific guidance as gaps",
     "Notes that a model pin can be overridden by managed settings, so the skill shouldn't depend on one model's quirks",
-    "Still applies the unconditional criteria (A, C, D–H, R) regardless of the pin"
+    "Still applies the unconditional criteria (A, C, D–H, R) regardless of the pin",
+    "Raises NO B5 finding against the skill's copy-and-tick workflow checklist — the A authoring doc endorses that pattern, and B5's carve-out says so"
   ]
 }
 ```
@@ -260,6 +262,38 @@ alone misses the other eight.
     "Flags the phrasal verbs and the normative contractions against R7, naming the conventions by number",
     "Does NOT invent a sentence-length or word-count finding — the doc's § What is deliberately not here rules that out",
     "Does NOT reword the skill's name or description frontmatter, which R7 places out of scope"
+  ]
+}
+```
+
+## Scenario 15 — Flags an ungated irreversible action (C10)
+
+```json
+{
+  "skills": ["reviewing-skills"],
+  "setup": "A target skill whose steps run a hard-to-reverse command (`git push --force`, or `rm -rf` on a build directory) with no instruction to confirm with the user first, and which tells the model to retry with `--no-verify` when a hook blocks it.",
+  "query": "Review this skill.",
+  "expected_behavior": [
+    "Flags the ungated irreversible command against C10",
+    "Separately flags the `--no-verify` retry as reaching for a destructive shortcut around a safety check",
+    "Does NOT flag the skill's local reversible actions (editing files, running tests) as needing a gate",
+    "Recommends naming which actions need the user's say-so, rather than gating everything"
+  ]
+}
+```
+
+## Scenario 16 — Flags a blanket tool default, without contradicting B3 (C9)
+
+```json
+{
+  "skills": ["reviewing-skills"],
+  "setup": "A target skill pinned to `claude-sonnet-5` containing the line `If in doubt, use the Grep tool.` and a separate, correctly scoped nudge for a step that runs with thinking disabled.",
+  "query": "Review this skill.",
+  "expected_behavior": [
+    "Flags the blanket 'if in doubt' default against C9, explaining that it now causes overtriggering",
+    "Does NOT flag the scoped thinking-disabled nudge — that is B3 working as intended",
+    "Recommends scoping the nudge to the case that needs it rather than deleting tool guidance wholesale",
+    "Treats C9 and B3 as complementary, not contradictory"
   ]
 }
 ```

@@ -27,7 +27,7 @@ this file and notes the staleness in the report.
 | B | Prompting Claude Sonnet 5 | https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5 |
 | B | Prompting Claude Opus 5 | https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5 |
 | B | Prompting Claude Opus 4.8 | https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-4-8 |
-| B | Prompting Claude Fable 5 | https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5 |
+| B | Prompting Claude Fable 5 (covers Mythos 5 too) | https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5 |
 | C | Claude prompting best practices | https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices |
 | D | Reduce hallucinations | https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations |
 | E | Increase output consistency | https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency |
@@ -97,7 +97,10 @@ exactly one model is fragile. (`SKILL.md` Step 5 carries the rule for reporting 
   finding stage and filter in a separate step. (Stated for Sonnet 5, Opus 5, and Opus 4.8.)
 - **B5 — progress-update scaffolding.** Current models narrate agentic work well unprompted.
   Scaffolding that forces interim status ("after every 3 tool calls, summarize progress") should be
-  removed; describe the cadence and shape wanted instead, with positive examples.
+  removed; describe the cadence and shape wanted instead, with positive examples. **Carve-out:** a
+  workflow checklist the skill tells the model to copy into its reply and tick off is *not* a `B5`
+  finding — the `A` authoring doc endorses that pattern by name for complex multi-step workflows.
+  `B5` governs narration cadence, not task tracking.
 
 **Sonnet 5:** literal instruction following (state scope — see `C8`); verbosity self-calibrates;
 more agentic than its predecessor and reaches for tools and self-verification loops readily — with
@@ -116,7 +119,8 @@ makes that leakage worse — remove such a rule rather than adding one.
 use; spawns **fewer subagents** by default — steer explicitly if the skill fans out; `xhigh`/`high`
 effort suits agentic work.
 
-**Fable 5:** brief steering beats enumerating behaviors (`A17`); much longer turns on hard tasks —
+**Fable 5 (and Mythos 5, which shares this doc):** brief steering beats enumerating behaviors
+(`A17`); much longer turns on hard tasks —
 if the skill assumes quick completion or blocks synchronously, reconsider; dispatches parallel
 subagents readily; never instruct it to reproduce its reasoning (`C7`).
 
@@ -143,6 +147,17 @@ subagents readily; never instruct it to reproduce its reasoning (`C7`).
 - **C8 — explicit scope.** Instructions meant to apply broadly state their scope ("every section,
   not just the first"). All current models follow instructions literally and won't silently
   generalize from one item to the rest.
+- **C9 — tool use not over-prompted.** No blanket "default to using `X`" or "if in doubt, use `X`".
+  Tools that undertriggered on older models trigger appropriately now, so a blanket default makes
+  them *over*trigger. Scope the nudge to the case that needs it ("use `X` when it would sharpen
+  your understanding of the problem"). This qualifies `B3` rather than contradicting it: nudge
+  explicitly when thinking is off, do not nudge blanketly otherwise.
+- **C10 — irreversible actions are confirmed.** A skill that can take destructive, hard-to-reverse,
+  or outward-facing actions names which ones need the user's say-so first, and forbids reaching for
+  a destructive shortcut when it hits an obstacle (bypassing a safety check with `--no-verify`,
+  discarding unfamiliar files, `git push --force`). Local reversible work — editing files, running
+  tests — needs no gate. Without this, a skill takes the shortcut and the user learns about it
+  afterward.
 
 ## D. Reduce hallucinations
 
