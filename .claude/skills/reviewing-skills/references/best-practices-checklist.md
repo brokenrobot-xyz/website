@@ -35,7 +35,9 @@ this file and notes the staleness in the report.
 | G | Reduce prompt leak | https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-prompt-leak |
 | H | Define success criteria & build evaluations | https://platform.claude.com/docs/en/test-and-evaluate/develop-tests |
 
-Each item below is a pass criterion. Cite the item key (e.g. `A3`, `D1`) in findings.
+Each item below is a pass criterion. Cite the criterion key (e.g. `A3`, `D1`) in findings. A few
+items carry their evidence from a doc outside their own group; each of those names its source
+inline, so a re-sync checks the page the item actually came from.
 
 ## A. Agent Skills authoring
 
@@ -46,7 +48,7 @@ Each item below is a pass criterion. Cite the item key (e.g. `A3`, `D1`) in find
 - **A3 — description content.** States both *what* the skill does and *when* to use it, with
   concrete trigger terms. ≤1024 chars. Not vague ("helps with X").
 - **A4 — length.** SKILL.md body under ~500 lines; overflow pushed to reference files.
-- **A5 — progressive disclosure.** SKILL.md is an overview that points to detail files; it does
+- **A5 — progressive disclosure.** SKILL.md is an overview that references detail files; it does
   not inline everything.
 - **A6 — references one level deep.** All reference files link directly from SKILL.md, not from
   each other (nested refs get partially read).
@@ -57,13 +59,16 @@ Each item below is a pass criterion. Cite the item key (e.g. `A3`, `D1`) in find
 - **A9 — examples.** Concrete input→output examples where output quality depends on style/shape.
 - **A10 — consistent terminology.** One term per concept throughout.
 - **A11 — no time-sensitive info.** No "before August 2025…"; use a versioned/"old patterns"
-  framing instead. (A dated `last-synced` metadata line is acceptable.)
-- **A12 — forward-slash paths.** No Windows backslashes.
-- **A13 — one default, not a menu.** Don't offer many interchangeable options; give a default with
-  an escape hatch.
+  framing instead, because a dated instruction goes quietly wrong rather than failing loudly. (A
+  dated `last-synced` metadata line is acceptable.)
+- **A12 — forward-slash paths.** No Windows backslashes, because backslash paths error on Unix
+  systems.
+- **A13 — one default, not a menu.** Do not offer many interchangeable options; give a default with
+  an escape hatch, because a menu makes the model deliberate where it should act.
 - **A14 — scripts solve, don't defer.** Bundled scripts handle their own errors; no unexplained
   "voodoo constants"; dependencies listed.
-- **A15 — MCP tools fully qualified.** `Server:tool_name`.
+- **A15 — MCP tools fully qualified.** `Server:tool_name`. Without the server prefix the model may
+  fail to locate the tool, especially with several MCP servers connected.
 - **A16 — allowed-tools least privilege.** Only the tools the skill needs.
 - **A17 — not over-prescriptive.** The skill doesn't enumerate behaviors a brief instruction
   would cover. Over-specification degrades newer models (Fable 5's docs are explicit that skills
@@ -75,14 +80,14 @@ Each item below is a pass criterion. Cite the item key (e.g. `A3`, `D1`) in find
 Apply the subset matching the skill's pinned or likely model (per its `model:` frontmatter). All
 four current model-prompting docs share the items below; per-model specifics follow. If the pin
 is a durable alias (`opus`, `sonnet`) or absent, treat the currently-released model in that family
-as the target. Note in the report that a pin can be overridden by managed settings, so a skill
-shouldn't depend on quirks of exactly one model.
+as the target. Managed settings can override a model pin, so a skill that depends on quirks of
+exactly one model is fragile. (`SKILL.md` Step 5 carries the rule for reporting this.)
 
 **Shared across current models:**
 
 - **B1 — verbosity.** No forced ceremony (mandatory summaries, interim status) unless it is
   load-bearing; current models self-calibrate length. (See also `A17`.)
-- **B2 — effort/thinking not over-scaffolded.** Don't hand-roll what adaptive thinking and the
+- **B2 — effort/thinking not over-scaffolded.** Do not hand-roll what adaptive thinking and the
   effort parameter already do.
 - **B3 — tool nudges.** If the skill relies on tool use with thinking off, it nudges explicitly.
 - **B4 — coverage before filtering.** A skill that finds, reviews, or audits must not cap the
@@ -115,7 +120,7 @@ effort suits agentic work.
 if the skill assumes quick completion or blocks synchronously, reconsider; dispatches parallel
 subagents readily; never instruct it to reproduce its reasoning (`C7`).
 
-> **The verification rule inverts between Opus 5 and Fable 5 — check the pin before applying it.**
+> **The verification rule inverts between Opus 5 and Fable 5.**
 > On Opus 5, scripted "verify your work" steps cause over-verification and should be removed. On
 > Fable 5 long runs, the opposite holds: self-verification should be made *explicit*, and separate
 > fresh-context verifier subagents outperform self-critique. A skill pinned to one model can carry
@@ -133,7 +138,8 @@ subagents readily; never instruct it to reproduce its reasoning (`C7`).
 - **C7 — no reasoning-echo.** The skill never instructs the model to transcribe, echo, or explain
   its internal reasoning *as response text*. Beyond being noise, this trips the
   `reasoning_extraction` refusal on Fable 5 (and elevated fallbacks). If reasoning visibility is
-  needed, read structured `thinking` blocks — don't ask the model to narrate them into output.
+  needed, read structured `thinking` blocks — do not ask the model to narrate them into output.
+  (Sourced from the Fable 5 doc in group `B`, not from this group's doc.)
 - **C8 — explicit scope.** Instructions meant to apply broadly state their scope ("every section,
   not just the first"). All current models follow instructions literally and won't silently
   generalize from one item to the rest.
@@ -150,7 +156,8 @@ subagents readily; never instruct it to reproduce its reasoning (`C7`).
 - **D5 — progress claims audited against tool results.** A skill that reports its own progress on a
   long or autonomous run instructs the model to check each claim against a tool result from the
   session, and to say plainly what is unverified, skipped, or failing. Anthropic reports this
-  nearly eliminates fabricated status reports on tasks designed to elicit them.
+  nearly eliminates fabricated status reports on tasks designed to elicit them. (Sourced from the
+  Fable 5 doc in group `B`, not from this group's doc.)
 
 ## E. Increase output consistency
 
@@ -223,7 +230,7 @@ Sources: `CLAUDE.md`, `docs/development/conventions/`, `docs/tooling/`.
 - **R1 — simplicity first.** No speculative features/abstractions/config beyond what the skill's
   job requires.
 - **R2 — surgical.** The skill's own *apply* edits touch only what a finding requires.
-- **R3 — single source of truth / no drift.** The skill points to authoritative repo docs rather
+- **R3 — single source of truth / no drift.** The skill references authoritative repo docs rather
   than restating their rules; any restated rule is sourced and kept in sync. Unsourced restated
   rules are a drift finding.
 - **R4 — ask when uncertain.** The skill surfaces ambiguity/tradeoffs rather than guessing
@@ -248,4 +255,5 @@ Sources: `CLAUDE.md`, `docs/development/conventions/`, `docs/tooling/`.
   weigh it against a conflicting instruction. A bare "never do X" is a finding.
 - **R11 — closed sets & explicit referents.** No `etc.`/"and so on" terminating a list the model
   must act on (it invites invented members) — state the membership test instead. No bare `this` /
-  `it` / `they` where two antecedents are plausible.
+  `it` / `they` where two antecedents are plausible, because a pronoun with two plausible
+  antecedents is a coin flip.
