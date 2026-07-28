@@ -123,6 +123,7 @@ skill must actively override it.
   "setup": "Feature branch. One change to a repo-root file that no § Scope area owns (e.g. a new top-level NOTICE file).",
   "query": "Commit this.",
   "expected_behavior": [
+    "Reads § Scope in commit-conventions.md — the skill no longer inlines the allowlist, so the set has to come from the document",
     "Does NOT invent a scope for the unmapped path",
     "Omits the scope entirely (scopeless subject, e.g. `chore: add NOTICE file`)",
     "Commit succeeds — the deny-hook allows a scopeless subject but would reject an unknown scope"

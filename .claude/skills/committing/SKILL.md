@@ -105,10 +105,10 @@ Pick the **type** from the nature of the change, using the vocabulary in § Type
 judgment call.
 
 For the **scope**, pick the recognizable area of the codebase the staged paths belong to, from
-the set in § Scope. The deny-hook enforces a fixed allowlist — `blog`, `rss`, `layout`,
-`seo`, `styles`, `content`, `deps`, `ci` — and rejects anything outside it. When the paths span
-more than one area with no single owner, or none fits cleanly, **omit the scope** — never invent
-one (a scopeless subject is always allowed).
+the fixed set in § Scope — read it, the deny-hook enforces exactly that set and rejects anything
+outside it. When the paths span more than one area with no single owner, or none fits cleanly,
+**omit the scope** — never invent one, because the hook rejects an unknown scope while a scopeless
+subject is always allowed.
 
 ### 6. Draft the subject
 

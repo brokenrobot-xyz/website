@@ -4,6 +4,10 @@ set -uo pipefail
 
 hook_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 HOOK="$hook_dir/deny-noncompliant-commit-message.sh"
+REPO="$(cd "$hook_dir/../.." && pwd)"
+
+# shellcheck source=../lib/commit-vocabulary.sh
+. "$hook_dir/lib/commit-vocabulary.sh"
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
@@ -110,6 +114,16 @@ run deny  "missing type"                          'git commit -m "just a message
 run deny  "unknown scope"                         'git commit -m "fix(banana): x"'
 run deny  "trailing period"                       'git commit -m "fix: something."'
 run deny  "-am bad type"                          'git commit -am "nope: change"'
+
+# The hook's allowlists are an executable copy of commit-conventions.md. Nothing above would catch
+# the two drifting apart, because every case here is written against the hook's own lists.
+vocab_drift="$(commit_vocabulary_drift "$REPO/$COMMIT_VOCAB_DOC" "$HOOK")"
+if [[ -z "$vocab_drift" ]]; then
+  pass=$((pass + 1)); printf 'ok   [%-5s] %s\n' "match" "hook allowlists match commit-conventions.md"
+else
+  fail=$((fail + 1)); printf 'FAIL exp=%-5s got=%-5s :: %s\n     %s\n' "match" "drift" \
+    "hook allowlists match commit-conventions.md" "$vocab_drift"
+fi
 
 printf '\n%d passed, %d failed\n' "$pass" "$fail"
 [[ "$fail" -eq 0 ]]

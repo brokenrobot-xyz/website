@@ -201,6 +201,20 @@ The version is pinned in three committed places — `CODEGRAPH_VERSION` in
 server in [`.mcp.json`](../.mcp.json), and the `codegraph:*` scripts in
 [`package.json`](../package.json) — align them to one version.
 
+### ✗ commit vocabulary drifted
+
+The allowed commit types and scopes live in two committed places: the tables and prose in
+[commit-conventions.md](development/conventions/commit-conventions.md) (§ Types, § Scope) and the
+`allowed_types` / `allowed_scopes` assignments in
+[`.claude/hooks/deny-noncompliant-commit-message.sh`](../.claude/hooks/deny-noncompliant-commit-message.sh).
+The report names which entries are on one side only — add them to the other, keeping the document
+as the source of truth. Left unaligned, the hook rejects a scope the document calls valid, or
+accepts one it never documented.
+
+A `cannot compare` line means the check could not read one of the lists — the § Types table, the
+§ Scope paragraph, or the hook's assignments changed shape. Fix the parser in
+[`.claude/hooks/lib/commit-vocabulary.sh`](../.claude/hooks/lib/commit-vocabulary.sh) to match.
+
 ### ✗ codegraph: no index · index unreadable · built by an older codegraph
 
 Run `npm run codegraph:init` in the checkout, or start a Claude Code session and let the

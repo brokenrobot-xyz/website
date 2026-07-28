@@ -16,6 +16,12 @@
 # Written to be sourced under `set -uo pipefail`: it defines functions and accumulator globals,
 # nothing else, and never exits the caller.
 
+# The commit-vocabulary comparison is shared with the commit-message hook's test suite, so both
+# checks judge drift the same way. Sourced by path from this file's own directory, because the
+# callers run from the project root while the skill executes this file directly.
+# shellcheck source=commit-vocabulary.sh
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/commit-vocabulary.sh"
+
 # Single source of truth for which codegraph build the hook runs and the pin the sanity check
 # verifies against .mcp.json and the codegraph:* npm scripts. npx resolves it from its own cache,
 # so this works in a checkout that has never been installed — codegraph is deliberately not a
@@ -100,6 +106,17 @@ dev_env_check_tools() {
         else
             tool_bad "codegraph pins drifted — this lib pins ${CODEGRAPH_VERSION} but ${drift}; align them, or the MCP server and the session hook index with different builds"
         fi
+    fi
+
+    # The commit vocabulary is the other pair of committed values that must agree: the convention
+    # document and the commit-message hook. The comparison lives in its own lib, shared with the
+    # hook's test suite.
+    local vocab_drift
+    vocab_drift="$(commit_vocabulary_drift)"
+    if [ -z "${vocab_drift}" ]; then
+        tool_ok "commit vocabulary consistent"
+    else
+        tool_bad "commit vocabulary drifted — ${vocab_drift}; align commit-conventions.md and deny-noncompliant-commit-message.sh, or the hook rejects a documented scope (or accepts an undocumented one)"
     fi
 }
 
