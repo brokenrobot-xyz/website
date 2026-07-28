@@ -167,7 +167,7 @@ subagents readily; never instruct it to reproduce its reasoning (`C7`).
 
 ## R. Repo conventions
 
-Sources: `CLAUDE.md`; `docs/development/conventions/`.
+Sources: `CLAUDE.md`, `docs/development/conventions/`, `docs/tooling/`.
 
 - **R1 — simplicity first.** No speculative features/abstractions/config beyond what the skill's
   job requires.
@@ -182,3 +182,19 @@ Sources: `CLAUDE.md`; `docs/development/conventions/`.
 - **R6 — naming convention.** Skill names use gerund form (verb-ing + object, e.g.
   `reviewing-skills`, `checking-dev-env`) per docs/tooling/workflow.md § The skills. Generated
   skills (`openspec-*`, `opsx:*`) are exempt.
+- **R7 — prose conventions.** Skill *body* prose (`SKILL.md` body, `evals.md`, `references/`)
+  follows `docs/tooling/conventions/writing-conventions.md`. Judge holistically; `R8`–`R11` below
+  are the specific checks worth calling out by name. Two scope limits: the `name`/`description`
+  frontmatter is **not** covered (that is `A1`/`A2`/`A3` — never reword a `description` for prose
+  style, it drives discovery), and the doc has **no sentence-length rule** — do not invent one, see
+  its § What is deliberately not here.
+- **R8 — named actor.** Instructions use the active voice. Flag passive constructions where the
+  actor is ambiguous ("is rejected" — by the skill, the model, or a hook?). Passive is fine where
+  the agent genuinely doesn't matter.
+- **R9 — notes vs. instructions.** Notes, blockquotes, and parentheticals carry information only.
+  A normative rule hiding in an aside is a finding: it belongs in a numbered step.
+- **R10 — guardrail consequences.** Every prohibition states its risk or result, so the model can
+  weigh it against a conflicting instruction. A bare "never do X" is a finding.
+- **R11 — closed sets & explicit referents.** No `etc.`/"and so on" terminating a list the model
+  must act on (it invites invented members) — state the membership test instead. No bare `this` /
+  `it` / `they` where two antecedents are plausible.
