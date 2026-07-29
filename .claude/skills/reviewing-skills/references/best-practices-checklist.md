@@ -1,7 +1,7 @@
 # Reviewing-skills checklist
 
 The baked half of the reviewer's hybrid criteria. `SKILL.md` Step 2 tries to refresh the
-Anthropic docs live (WebFetch the URLs below); when the network is unavailable it falls back to
+source docs live (WebFetch the URLs below); when the network is unavailable it falls back to
 this file and notes the staleness in the report.
 
 **last-synced:** 2026-07-29 — re-fetch the URLs and reconcile any new guidance when this is stale.

@@ -9,9 +9,9 @@ model: opus
 # Review a skill against best practices
 
 Audit one named skill against the criteria in
-[`references/best-practices-checklist.md`](references/best-practices-checklist.md) — the eight
-Anthropic best-practice docs plus this repo's conventions — and produce a **severity-ranked gap
-analysis**. Then, if the user wants, apply the fixes they approve, one finding at a time.
+[`references/best-practices-checklist.md`](references/best-practices-checklist.md) — the Agent
+Skills open standard, Anthropic's best-practice docs, and this repo's conventions — and produce a
+**severity-ranked gap analysis**. Then, if the user wants, apply the fixes they approve, one finding at a time.
 
 **Scope: one skill per invocation.** Review the named skill and its whole bundle (SKILL.md,
 evals, referenced files/hooks). To review several, run again per skill.
@@ -24,9 +24,9 @@ evals, referenced files/hooks). To review several, run again per skill.
   **Precedence** rule before scoring: the open standard is the base, Anthropic and Claude Code
   extend it, and the two carry different weight in a finding.
 - [`writing-conventions.md`](../../../docs/tooling/conventions/writing-conventions.md) — the prose
-  conventions `R7` grades against. Read it whenever you score prose: the checklist names only four
-  of its twelve conventions as `R8`–`R11`, so scoring `R7` from the checklist alone misses the
-  other eight.
+  conventions `R7` grades against. Read it whenever you score prose: the checklist condenses only
+  five of its twelve conventions into `R8`–`R11` (`R11` covers two), so scoring `R7` from the
+  checklist alone misses the other seven.
 - The live docs at the URLs in that file's § Sources — the authoritative, current guidance.
 
 ## Steps
@@ -91,26 +91,24 @@ a ranked list of what to fix.
 - H. Success criteria & evals — coverage, edge cases, measurability
 - R. Repo conventions — simplicity, surgical edits, single source of truth
 
-**What I'll read:** SKILL.md plus its whole bundle — its evals and every referenced
+**What I've read:** SKILL.md plus its whole bundle — its evals and every referenced
 file, script, or hook.
 
 **What you'll get:** a severity-ranked (High → Medium → Low) gap analysis with a per-group
 coverage table, then — if you want — I apply the fixes you approve, one at a time.
 
-**Effort:** usually a handful of turns; I'll try to fetch the live best-practice docs first,
-and note it in the report if the network's unavailable.
+**Effort:** usually a handful of turns; I've already tried to fetch the live best-practice
+docs, and the report will note if any fetch fell back to the baked checklist.
 ```
 
-Then ask the four scoping questions below (skip any the user has already answered, and note
+Then ask the three scoping questions below (skip any the user has already answered, and note
 sensible defaults so they can just say "use the defaults"):
 
 1. **Deliverable** — just the gap analysis, or also apply the fixes you approve afterward?
    *(default: analysis only)*
 2. **Focus** — weight all groups equally, or care most about some (e.g. discovery, evals,
    security)? *(default: all equal)*
-3. **How much to read** — the whole bundle, or SKILL.md only? *(default: whole bundle — a
-   partial read misses real issues)*
-4. **Change appetite** — surgical tweaks only, or open to bigger restructuring? *(default:
+3. **Change appetite** — surgical tweaks only, or open to bigger restructuring? *(default:
    surgical)*
 
 Do not assume — a wrong scope wastes the review. Group `B` (model-specific) is conditional: apply
@@ -157,7 +155,8 @@ Report in this structure:
 
 1. **Verdict** — one-paragraph overall assessment.
 2. **What's already right** — practices the skill follows (so they're not "fixed" away).
-3. **Findings, ranked H → M → L** — each with: an ID (`F1`, `F2`, … numbered in rank order), the
+3. **Findings, ranked H → M → L** — each with: a rank number (Finding 1, Finding 2, … in rank
+   order — never a letter prefix, which the grading script would read as a criterion key), the
    criterion key(s), a one-line statement of the defect, and a concrete recommendation. Flag Lows
    that are likely deliberate as such.
 4. **Per-group coverage table** — one row per group `A`–`H` and `R`, each with a status of `Pass`,
@@ -173,7 +172,7 @@ A finding looks like this. Given this line in a target skill's `evals/evals.json
 
 the finding reads:
 
-> **F3 — `H10`: `evals/evals.json` permits the run under test to grade itself.**
+> **Finding 3 — `H10`: `evals/evals.json` permits the run under test to grade itself.**
 > `evals/evals.json:12`'s "manual / self-scored" allows the same instance to produce and grade the
 > output, which `H10` rules out as evidence.
 > → Name the grader: a fresh instance or the human, never the run under test.

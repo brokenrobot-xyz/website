@@ -19,10 +19,11 @@
   ],
   "universal_assertions": [
     "Every finding carries a real key — each cited criterion key resolves to an item that exists in references/best-practices-checklist.md",
+    "Finding IDs are plain rank numbers (Finding 1, Finding 2, …) — a letter-prefixed ID (F1, N3) would collide with the criterion-key grep in the grading script",
     "Every finding carries a locator — a file plus a line or section in the reviewed bundle",
     "Report-only unless apply was chosen — no Edit/Write tool call touches the target skill unless the user chose analysis + apply in Step 3"
   ],
-  "coverage_map": "1–4 are the must-haves (one per severity behavior); 5–6 cover the apply phase and the false-positive guard; 7–10 cover the model-specific and self-maintenance behaviors; 11 covers the pre-interview brief; 12–14 cover the one-skill scope limit, the injection defense, and prose scoring against the full conventions doc; 15–16 cover the C10 confirmation rule and C9 tool-nudge calibration; 17–18 cover Agent Skills spec conformance and the open-standard precedence rule.",
+  "coverage_map": "1–4 are the must-haves (one per core Step-4 behavior); 5–6 cover the apply phase and the false-positive guard; 7–10 cover the model-specific and self-maintenance behaviors; 11 covers the pre-interview brief; 12–14 cover the one-skill scope limit, the injection defense, and prose scoring against the full conventions doc; 15–16 cover the C10 confirmation rule and C9 tool-nudge calibration; 17–18 cover Agent Skills spec conformance and the open-standard precedence rule.",
   "grading": {
     "machine_checkable": {
       "description": "The universal assertions above, plus each scenario's locator claims. Cited keys grep directly against the checklist.",
@@ -205,10 +206,10 @@
       "targets": "Step 3 — brief, then interview",
       "setup": "Any sound target skill; the user has given no scoping preferences yet.",
       "prompt": "Review the <target> skill.",
-      "expected_output": "A plain-language brief covering scope, files, deliverable and effort, followed by the four scoping questions with defaults named.",
+      "expected_output": "A plain-language brief covering scope, files, deliverable and effort, followed by the three scoping questions with defaults named.",
       "assertions": [
         "Presents a brief BEFORE asking scoping questions: what will be checked (the A–H, R groups), what files will be read, what the deliverable is, and rough effort",
-        "Then asks the four scoping questions, noting sensible defaults so the user can accept them",
+        "Then asks the three scoping questions, noting sensible defaults so the user can accept them",
         "Does not dump the raw criterion keys as the brief — uses the plain-language group summaries",
         "Accepts 'use the defaults' as a valid answer and proceeds with the stated per-question defaults"
       ],
@@ -251,7 +252,7 @@
       "id": 14,
       "name": "eval-full-prose-conventions",
       "targets": "Step 4 — scoring R7 against the whole conventions doc",
-      "setup": "A target skill whose prose violates conventions the checklist does NOT bake in as R8–R11: phrasal verbs ('set up', 'point to') per convention 8, and contracted normative sentences ('Don't stage untracked files') per convention 12. Its R8–R11 behavior is clean. Guards the A6 fix: writing-conventions.md is linked from SKILL.md precisely because the checklist names only four of its twelve conventions.",
+      "setup": "A target skill whose prose violates conventions the checklist does NOT bake in as R8–R11: phrasal verbs ('set up', 'point to') per convention 8, and contracted normative sentences ('Don't stage untracked files') per convention 12. Its R8–R11 behavior is clean. Guards the A6 fix: writing-conventions.md is linked from SKILL.md precisely because the checklist condenses only five of its twelve conventions into R8–R11.",
       "prompt": "Review this skill.",
       "expected_output": "Findings against R7 naming the violated conventions by number, with no invented sentence-length rule and no reword of the name or description.",
       "assertions": [

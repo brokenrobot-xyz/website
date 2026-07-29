@@ -6,8 +6,9 @@ under a skill's `references/`.
 
 **Out of scope.** These conventions do not govern:
 
-- **The `name` and `description` frontmatter fields.** Those follow Anthropic's skill-authoring
-  guidance, which `reviewing-skills` grades as checklist items `A1`, `A2`, and `A3`. The
+- **The `name` and `description` frontmatter fields.** Those follow the Agent Skills
+  specification and Anthropic's skill-authoring guidance, which `reviewing-skills` grades as
+  checklist items `A1`, `A2`, and `A3`. The
   `description` is matched against the user's phrasing to decide whether to load the skill, so
   rewording it for prose style degrades discovery. Leave both fields alone.
 - **Published site copy**, which follows the voice in [brand.md](../../brand.md).
