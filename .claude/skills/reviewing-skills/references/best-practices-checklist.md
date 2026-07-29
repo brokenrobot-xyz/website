@@ -4,7 +4,7 @@ The baked half of the reviewer's hybrid criteria. `SKILL.md` Step 2 tries to ref
 Anthropic docs live (WebFetch the URLs below); when the network is unavailable it falls back to
 this file and notes the staleness in the report.
 
-**last-synced:** 2026-07-28 — re-fetch the URLs and reconcile any new guidance when this is stale.
+**last-synced:** 2026-07-29 — re-fetch the URLs and reconcile any new guidance when this is stale.
 
 ## Contents
 
@@ -23,6 +23,7 @@ this file and notes the staleness in the report.
 
 | Key | Doc | URL |
 |---|---|---|
+| A | **Agent Skills specification** (the open standard) | https://agentskills.io/specification |
 | A | Agent & skill best practices | https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices |
 | B | Prompting Claude Sonnet 5 | https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5 |
 | B | Prompting Claude Opus 5 | https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5 |
@@ -34,6 +35,17 @@ this file and notes the staleness in the report.
 | F | Mitigate jailbreaks | https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks |
 | G | Reduce prompt leak | https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-prompt-leak |
 | H | Define success criteria & build evaluations | https://platform.claude.com/docs/en/test-and-evaluate/develop-tests |
+| H | **Evaluating skill output quality** (the open standard) | https://agentskills.io/skill-creation/evaluating-skills |
+
+**Precedence — the open standard is the base.** The Agent Skills specification defines what a
+valid skill *is*; a conflict with it is a finding. Anthropic's and Claude Code's docs *extend* the
+standard with platform guidance and extra frontmatter. Those extensions are permitted and often
+useful, but they never override the spec, and a skill that leans on one is not portable to other
+agents. Where a client **relaxes** a spec requirement, the spec's stricter form holds — Claude Code
+lists `name` as optional and defaults it to the directory name, but `A1` still requires it. Where a
+client adds a rule the spec does not have, that rule **narrows** the spec and is safe to apply — the
+ban on `anthropic`/`claude` in a name is Anthropic-platform-only, so cite it as a platform note
+rather than a spec violation.
 
 Each item below is a pass criterion. Cite the criterion key (e.g. `A3`, `D1`) in findings. A few
 items carry their evidence from a doc outside their own group; each of those names its source
@@ -41,13 +53,19 @@ inline, so a re-sync checks the page the item actually came from.
 
 ## A. Agent Skills authoring
 
-- **A1 — name.** Lowercase/numbers/hyphens only, ≤64 chars, no `anthropic`/`claude` reserved
-  words, no XML. Gerund preferred; noun phrase acceptable.
+- **A1 — name.** Required. 1–64 characters, lowercase letters, digits, and hyphens only; must not
+  start or end with a hyphen, must not contain consecutive hyphens (`--`), and **must match the
+  parent directory name** — a mismatch means other agents resolve the skill under a different name
+  than it declares. No XML. Gerund preferred; noun phrase acceptable. *Platform note:* Anthropic
+  reserves `anthropic` and `claude` in names, which the open standard does not — report that as a
+  Claude Code constraint, not a spec violation.
 - **A2 — description POV.** Third person ("Reviews…", not "Review…" or "I/you"). It is injected
   into the system prompt; mixed POV hurts discovery.
-- **A3 — description content.** States both *what* the skill does and *when* to use it, with
-  concrete trigger terms. ≤1024 chars. Not vague ("helps with X").
-- **A4 — length.** SKILL.md body under ~500 lines; overflow pushed to reference files.
+- **A3 — description content.** Required and non-empty. States both *what* the skill does and
+  *when* to use it, with concrete trigger terms. 1–1024 chars. Not vague ("helps with X").
+- **A4 — length.** SKILL.md body under ~500 lines **and** under ~5000 tokens; overflow pushed to
+  reference files. The two bounds are independent — dense prose can clear the line count and still
+  blow the token budget, which is what actually competes with conversation context.
 - **A5 — progressive disclosure.** SKILL.md is an overview that references detail files; it does
   not inline everything.
 - **A6 — references one level deep.** All reference files link directly from SKILL.md, not from
@@ -69,11 +87,35 @@ inline, so a re-sync checks the page the item actually came from.
   "voodoo constants"; dependencies listed.
 - **A15 — MCP tools fully qualified.** `Server:tool_name`. Without the server prefix the model may
   fail to locate the tool, especially with several MCP servers connected.
-- **A16 — allowed-tools least privilege.** Only the tools the skill needs.
+- **A16 — allowed-tools least privilege and form.** Only the tools the skill needs. The spec
+  defines the value as a **space-separated string**; Claude Code also accepts a comma-separated
+  string or a YAML list. A comma-separated or list value is a **Low** — it works here but is not
+  the form the standard defines, so it may not port to another agent. Carve-out: when a value
+  itself contains spaces (`Bash(git add *)`), space separation is ambiguous — prefer commas or a
+  list there and say why, rather than splitting the value.
 - **A17 — not over-prescriptive.** The skill doesn't enumerate behaviors a brief instruction
   would cover. Over-specification degrades newer models (Fable 5's docs are explicit that skills
   built for older models are "often too prescriptive" and can lower output quality) and violates
-  `R1`. Prefer short steering + intent over exhaustive rule lists.
+  `R1`. Prefer short steering + intent over exhaustive rule lists. Corroborated by the open
+  standard's iteration guidance: when pass rates plateau while rules keep accumulating, the skill is
+  over-constrained, and removing instructions is the move to try.
+- **A18 — optional spec frontmatter used correctly.** `license` is a license name or the name of a
+  bundled license file, kept short. `compatibility` is 1–500 chars and present **only** when the
+  skill has real environment requirements (a required CLI, network access, an intended product) —
+  most skills need none, and an empty-calorie `compatibility` line costs startup context for
+  nothing. `metadata` is a flat map of string keys to string values, with names distinctive enough
+  to avoid colliding with another author's keys.
+- **A19 — directory layout.** Bundled files sit under the standard directories — `scripts/` for
+  executable code, `references/` for documentation, `assets/` for templates and static resources —
+  and are addressed by paths relative to the skill root. A reviewer looking for a skill's script in
+  `scripts/` should find it there.
+- **A20 — spec core vs. client extensions.** The spec's frontmatter is `name`, `description`,
+  `license`, `compatibility`, `metadata`, and `allowed-tools`. Anything else — `model`, `effort`,
+  `context`, `agent`, `background`, `hooks`, `paths`, `shell`, `disable-model-invocation`,
+  `user-invocable`, `disallowed-tools`, `argument-hint`, `arguments` — is a Claude Code extension:
+  permitted, but it does not carry to other agents. Flag one only when it is load-bearing and its
+  purpose is undocumented, so a reader can tell deliberate use from a copied line. Do not flag a
+  skill merely for using an extension.
 
 ## B. Model-specific prompting (conditional)
 
@@ -218,7 +260,15 @@ the indirect model.
 
 ## H. Success criteria & evaluations
 
-- **H1 — evals exist.** ≥3 scenarios (`evals.md` or equivalent).
+- **H1 — evals exist, in the standard's format.** ≥3 scenarios, stored as `evals/evals.json` in
+  the skill directory. Each entry carries `id`, `prompt` (a realistic user message, not a
+  paraphrase of the skill's own steps), `expected_output` (a human-readable description of
+  success), optional `files`, and `assertions`. The repo extends that schema with three keys the
+  standard omits but `H3`/`H6`/`H7` require: `targets` (the step or branch under test), `baseline`
+  (what a run without the skill misses), and `models`. A prose `evals.md` is a finding — it holds
+  the same information but no runner can consume it. The standard suggests starting at 2–3 and
+  expanding once the first run shows what "good" looks like, so a brand-new skill at 2 is early
+  rather than failing; a settled skill still at 2 is a finding.
 - **H2 — measurable/specific.** Expected behaviors are concrete and checkable, not vague.
 - **H3 — distinct decision points.** Each scenario targets a different step/branch so a failure
   localizes the regression.
@@ -228,15 +278,37 @@ the indirect model.
 - **H6 — baseline-first.** Evals note running without the skill to establish the before/after.
 - **H7 — model coverage.** Scenarios name the model(s) the skill is expected to pass on
   (its pinned model at minimum).
-- **H8 — evals precede the prose.** The documented order is: find the gaps by running the task
-  without a skill, write three scenarios against those gaps, measure the baseline, then write the
-  minimum instructions that pass. A skill whose evals were clearly written after the fact is at
-  risk of documenting imagined problems rather than real ones.
+- **H8 — evals precede the prose, assertions follow the first run.** The documented order is: find
+  the gaps by running the task without a skill, write three scenarios against those gaps, measure
+  the baseline, then write the minimum instructions that pass. A skill whose evals were clearly
+  written after the fact is at risk of documenting imagined problems rather than real ones. The
+  order *within* a scenario is the reverse of what that implies: `prompt` and `expected_output`
+  come first, and `assertions` are added **after** the first run shows what the output actually
+  looks like. Assertions invented before any run tend to be brittle or unverifiable, so do not
+  fault a scenario set for reaching its assertions on the second pass.
 - **H9 — criteria are SMART.** Specific, measurable, achievable, relevant. "Handles edge cases
   well" fails; a stated pass condition on a named input passes. Volume of cheap automated checks
   beats a handful of hand-graded ones (`H5`).
 - **H10 — grader independence.** Where an LLM grades, it should not be the same instance that
-  produced the output. Self-grading in the same run is not evidence.
+  produced the output. Self-grading in the same run is not evidence. For comparing two versions of
+  a skill, prefer a blind comparison — the judge scores both outputs without being told which
+  version produced which.
+- **H11 — clean-context runs.** Each eval run starts from a fresh context — a subagent, or a
+  separate session — with no state left over from a previous run or from developing the skill. A
+  run that inherits the authoring conversation is testing the conversation, not the `SKILL.md`.
+- **H12 — cost recorded against benefit.** Runs capture token count and duration alongside the
+  pass rate, and the skill's value is read as the *delta* against the baseline. Without the cost
+  side, a skill that triples token usage for a two-point gain looks identical to one that is both
+  better and cheaper.
+- **H13 — assertion hygiene.** Assertions that pass in both the with-skill and without-skill runs
+  are removed or replaced: the model already handles them, so they inflate the with-skill pass rate
+  without measuring anything the skill contributes. Assertions that fail in both are investigated —
+  the assertion is broken, the case is too hard, or it checks the wrong thing. The assertions worth
+  keeping are the ones that pass with the skill and fail without it.
+- **H14 — evidence-based PASS.** Grading records PASS or FAIL with evidence quoting or referencing
+  the actual output, and gives no benefit of the doubt: a section titled "Summary" holding one
+  vague sentence fails an assertion asking for a summary. An opinion without a quotation is not a
+  grade.
 
 ## R. Repo conventions
 
@@ -255,7 +327,8 @@ Sources: `CLAUDE.md`, `docs/development/conventions/`, `docs/tooling/`.
 - **R6 — naming convention.** Skill names use gerund form (verb-ing + object, e.g.
   `reviewing-skills`, `checking-dev-env`) per docs/tooling/workflow.md § The skills. Generated
   skills (`openspec-*`, `opsx:*`) are exempt.
-- **R7 — prose conventions.** Skill *body* prose (`SKILL.md` body, `evals.md`, `references/`)
+- **R7 — prose conventions.** Skill *body* prose (`SKILL.md` body, the prose fields of
+  `evals/evals.json` or a legacy `evals.md`, `references/`)
   follows `docs/tooling/conventions/writing-conventions.md`. Judge holistically; `R8`–`R11` below
   are the specific checks worth calling out by name. Two scope limits: the `name`/`description`
   frontmatter is **not** covered (that is `A1`/`A2`/`A3` — never reword a `description` for prose

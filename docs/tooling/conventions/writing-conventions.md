@@ -1,7 +1,8 @@
 # Skill writing conventions
 
 How to write the prose inside `.claude/skills/`. These conventions cover the body of every
-`SKILL.md`, every `evals.md`, and every file under a skill's `references/`.
+`SKILL.md`, the prose fields of every `evals/evals.json` (or a legacy `evals.md`), and every file
+under a skill's `references/`.
 
 **Out of scope.** These conventions do not govern:
 
@@ -72,7 +73,7 @@ and "point to" each carry several. Write "configure", "revert", "commit", and "r
 
 ### 9. Use one term per concept
 
-Pick one name for each thing and keep it everywhere, across `SKILL.md`, `evals.md`, and the
+Pick one name for each thing and keep it everywhere, across `SKILL.md`, the evals, and the
 references. "Gate", "quality gate", and "preflight" for one concept force the agent to decide whether
 they mean the same thing.
 
