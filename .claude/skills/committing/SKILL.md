@@ -1,7 +1,8 @@
 ---
 name: committing
 description: Stages working-tree changes and authors one Conventional-Commits commit conforming to docs/development/conventions/commit-conventions.md, inferring type and scope from the changed paths. Use whenever the user asks to commit work in this repo.
-allowed-tools: Read, Bash
+compatibility: Requires git and jq — the deny-hook that validates every commit message calls jq.
+allowed-tools: Bash(git:*) Bash(cat:*) Read
 model: claude-sonnet-5
 hooks:
   PreToolUse:
@@ -101,6 +102,13 @@ Stage explicit paths, so the user can review exactly what the commit carries:
 git add <path> <path> ...
 ```
 
+When the index already holds a path this commit should not carry, unstage that path, because
+`git commit` carries the whole index and would otherwise land the work Step 3 set aside:
+
+```bash
+git restore --staged <path>
+```
+
 Never run a bare `git add -A` without the user's say-so, because the command stages unrelated work
 into a commit the user cannot review.
 
@@ -117,8 +125,8 @@ allows a scopeless subject.
 
 ### 6. Draft the subject
 
-Write `type(scope): description` per § Format — imperative mood, lowercase description, **no
-trailing period**. For a breaking change, follow § Breaking changes.
+Write `type(scope): description` per § Format, following § Subject line — imperative mood,
+lowercase description, **no trailing period**. For a breaking change, follow § Breaking changes.
 
 Worked examples (staged paths → subject):
 
@@ -131,10 +139,10 @@ Worked examples (staged paths → subject):
 
 ### 7. Draft the body — only if the subject is not enough
 
-If the subject already says enough, **write no body**. Otherwise add 1–3 sentences of prose
-explaining *why* the change was made or what tradeoff it makes — **not** a bullet-list of what
-files changed. Wrap at 72 columns. More than three sentences means the commit is probably doing
-too much; consider splitting (return to Step 3).
+If the subject already says enough, **write no body**. Otherwise follow § Body — why, not what:
+add 1–3 sentences of prose explaining *why* the change was made or what tradeoff it makes — **not**
+a bullet-list of what files changed, wrapped at 72 columns. More than three sentences means the
+commit is probably doing too much; consider splitting (return to Step 3).
 
 Ground the *why* only in what you can see — the diff, the file contents you read in Step 1, and
 the branch name. **Never invent a motivation**, because a fabricated *why* misleads every later
@@ -144,9 +152,11 @@ reader of the log. If the reason for the change is not evident from that evidenc
 ### 8. Announce, no approval gate
 
 Print the proposed message **and** the staged file list for the record, then commit immediately —
-do **not** wait for approval. The deny-hook validates the message on every `git commit` and rejects
-a non-conforming one regardless. If the user asked to review first in this specific invocation,
-honor that request; otherwise proceed straight to Step 9.
+do **not** wait for approval. A commit is local and reversible, so a wrong one costs an amend
+rather than a retraction. The deny-hook catches the mechanical faults — an attribution trailer, an
+unknown type or scope, a trailing period — but not whether the type is the right one or whether the
+body is grounded, which is why Steps 5 and 7 carry those rules. If the user asked to review first
+in this specific invocation, honor that request; otherwise proceed straight to Step 9.
 
 ### 9. Commit
 
@@ -197,3 +207,5 @@ Show the user the landed commit.
 - The commit succeeds — the deny-hook allowed the message (proof it conforms).
 - `git log -1 --pretty=%B` shows `type(scope): description`, no trailing period, no attribution
   trailer, and a body only when one was warranted.
+- The `git log -1 --stat` output from Step 10 lists only the paths Step 3 chose. An extra path
+  means the index still held work Step 4 should have unstaged, so amend the commit to drop it.
