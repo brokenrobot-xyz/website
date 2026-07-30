@@ -1,0 +1,134 @@
+{
+  "skill_name": "scaffolding-components",
+  "format": {
+    "standard": "https://agentskills.io/skill-creation/evaluating-skills",
+    "extension_keys": {
+      "name": "Slug for this scenario's workspace directory.",
+      "targets": "The rule of SKILL.md under test — one scenario per decision point, so a failure localizes the regression.",
+      "setup": "This skill's output is new files in the working tree rather than a transform of input files, so each scenario describes the tree to start from instead of listing `files`. Use a throwaway worktree per run.",
+      "baseline": "What a run WITHOUT this skill is expected to miss (H6). Written as a hypothesis; the without_skill run confirms or refutes it.",
+      "models": "Models the scenario must pass on (H7)."
+    }
+  },
+  "how_to_run": [
+    "Baseline first. Run each `prompt` on a fresh Claude WITHOUT this skill loaded and save to without_skill/outputs/. That is the before/after evidence the skill earns its keep (H6).",
+    "Then with the skill, saving to with_skill/outputs/. Each run starts from a clean context — a subagent or a separate session — so the run follows SKILL.md rather than the conversation that authored it (H11).",
+    "Grade each assertion PASS or FAIL with evidence quoting the scaffolded file, and give no benefit of the doubt: a `<style>` block that carries `@reference` but styles nothing fails an assertion asking for token-driven styles (H14). Grade with a fresh instance or by hand, never the run under test (H10).",
+    "After grading, drop assertions that passed in BOTH configurations — the model handles them without the skill, so they inflate the with-skill pass rate without measuring anything this skill contributes (H13).",
+    "Record `total_tokens` and `duration_ms` for each run, and read this skill's value as the delta against the baseline — a scaffolder that triples token usage for one convention the model already followed is a different trade-off from one that is both better and cheaper (H12).",
+    "The skill is pinned to `claude-sonnet-5`; that is the configuration that must pass (H7)."
+  ],
+  "universal_assertions": [
+    "No hard-coded colors (`#hex`, `rgb(`, `hsl(`) — token utilities only",
+    "No raw `<a>` — anchors go through `InternalLink` / `ExternalLink`",
+    "Every scoped `<style>` that uses `@apply` opens with `@reference` resolving to `src/styles/base.css`; a plain-CSS block needs neither, as `ThemeToggle.astro` and `Mascot.astro` show",
+    "No inline scripts (`is:inline` / `set:html`) — the `BaseLayout` theme-init is the only one allowed",
+    "The reply contains the copied `Scaffold progress:` checklist with items ticked as completed"
+  ],
+  "coverage_map": "1 is the static tier with a folder that already fits; 2 is the bundled-script tier against a user who offers the inline shortcut; 3 is the island tier and the client-directive choice; 4 isolates placement when no feature folder fits, which 1 cannot test; 5 is the adversarial styling request, where the hard-coded colour and the outbound link both push against a convention.",
+  "grading": {
+    "machine_checkable": {
+      "description": "The universal assertions above, run against the files the scenario added. `xargs -r` throughout, so a scenario that added no file reports nothing instead of blocking on stdin.",
+      "script": [
+        "FILES=$(git diff --name-only --diff-filter=A -- src/)",
+        "[ -z \"$FILES\" ] && echo \"FAIL: the run scaffolded no file\"",
+        "# Universal: no hard-coded colours",
+        "echo \"$FILES\" | xargs -r grep -nE '#[0-9a-fA-F]{3,8}\\b|rgb\\(|hsl\\(' && echo \"FAIL: hard-coded colour\"",
+        "# Universal: no raw anchors — the links components are the only route to an <a>",
+        "echo \"$FILES\" | xargs -r grep -n '<a[ >]' && echo \"FAIL: raw anchor\"",
+        "# Universal: no inline scripts",
+        "echo \"$FILES\" | xargs -r grep -nE 'is:inline|set:html' && echo \"FAIL: inline script\"",
+        "# Universal: @apply requires @reference — a plain-CSS <style> requires neither.",
+        "# Branch on output, not on exit status: `grep -L` reports success even when it lists nothing.",
+        "UNREFERENCED=$(echo \"$FILES\" | grep '\\.astro$' | xargs -r grep -l '@apply' | xargs -r grep -L '@reference')",
+        "[ -n \"$UNREFERENCED\" ] && echo \"FAIL: @apply without @reference: $UNREFERENCED\"",
+        "# Scenarios 1, 2 and 4: no island in a non-stateful tier",
+        "echo \"$FILES\" | grep '\\.tsx$' && echo \"FAIL: island in a non-stateful tier\"",
+        "echo \"$FILES\" | xargs -r grep -n 'client:' && echo \"FAIL: client directive in a non-stateful tier\""
+      ]
+    },
+    "judgment_graded": "Whether the tier choice matches the request (the heart of the skill), whether placement came from listing `src/components/` rather than from assumption (1 and 4), whether the inline-script and hard-coded-colour pushes were resisted with a stated reason (2 and 5), and whether nothing speculative crept in (4)."
+  },
+  "evals": [
+    {
+      "id": 1,
+      "name": "eval-static-reuse-folder",
+      "targets": "Tier 0 — the plain Astro component — and placement in a feature folder that already fits",
+      "setup": "Clean working tree.",
+      "prompt": "Add a component that shows a blog post's title and publish date as a compact row, for use in post lists.",
+      "expected_output": "A single `.astro` file under `src/components/blog-posts/` with a local `type Props`, no client JS, and a scoped `<style>` that reaches the tokens through `@reference` and `@apply`.",
+      "assertions": [
+        "Lists `src/components/` and places the file in the existing `blog-posts/` folder rather than creating a new one or naming a folder from memory",
+        "Plain `.astro`, zero client JS — no `client:*` directive and no `<script>` block",
+        "Local `type Props` destructured from `Astro.props`",
+        "The scoped `<style>` opens with `@reference` at the correct depth for a one-level feature folder (`../../styles/base.css`), then uses `@apply`",
+        "No props beyond the title and date the request names"
+      ],
+      "baseline": "Without the skill, the file lands at the `src/components/` root or in a folder invented for it, and the styles are plain CSS with hard-coded colours instead of `@reference` plus token utilities.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 2,
+      "name": "eval-bundled-script-not-inline",
+      "targets": "Tier 1 — the bundled `<script>` importing a `.ts` module — against a user who offers the inline shortcut",
+      "setup": "Clean working tree.",
+      "prompt": "Add a copy-link button for blog posts that copies the page URL to the clipboard — a tiny inline script is fine.",
+      "expected_output": "An `.astro` component whose `<script>` imports a sibling `.ts` module, with the inline suggestion declined and the CSP reason stated.",
+      "assertions": [
+        "Does NOT use an inline script despite the user offering one, and states the CSP reason for declining",
+        "Uses a bundled `<script>` importing a sibling `.ts` module — the `ThemeToggle.astro` plus `theme-toggle.ts` pattern",
+        "Does NOT reach for a Preact island — no `.tsx` file and no `client:*` directive",
+        "The `.ts` module holds no `any` and compares explicitly rather than relying on truthiness"
+      ],
+      "baseline": "Without the skill, the model accepts the user's offer and writes the logic inline, or escalates two lines of DOM wiring to a Preact island.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 3,
+      "name": "eval-island-lightest-directive",
+      "targets": "Tier 2 — the Preact island — and the choice of `client:*` directive",
+      "setup": "Clean working tree.",
+      "prompt": "Add a mobile navigation menu that opens and closes with a hamburger button.",
+      "expected_output": "A `.tsx` island using `preact/hooks`, styled with token utilities, mounted from an `.astro` file with the lightest directive that works.",
+      "assertions": [
+        "Preact island (`.tsx`) using `preact/hooks`, with the idiomatic `class` attribute rather than `className`",
+        "Styled with token utilities, so the menu reads correctly in both themes",
+        "Mounted from an `.astro` file with the lightest `client:*` directive that works — not a reflexive `client:load`",
+        "Accessible interactive markup: `type=\"button\"` and `aria-expanded` on the toggle"
+      ],
+      "baseline": "Without the skill, the island is mounted `client:load` and styled with literal Tailwind colour classes such as `bg-white` and `text-gray-900`, which ignore the dark theme.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 4,
+      "name": "eval-no-folder-fits",
+      "targets": "Placement when no existing feature folder fits",
+      "setup": "Clean working tree.",
+      "prompt": "Add a newsletter signup form component (static markup for now, no submission logic).",
+      "expected_output": "A static `.astro` component in a new kebab-case feature folder, holding only the markup the request names.",
+      "assertions": [
+        "Lists the live `src/components/` tree, concludes no existing feature folder fits, and says so",
+        "Creates a new kebab-case feature folder rather than dumping the file at the components root or filing it under a folder that does not describe it",
+        "Scaffolds only the static markup asked for — no submit handler, no validation, no configurability"
+      ],
+      "baseline": "Without the skill, the file lands at the components root, or in a folder named after the component rather than the feature, and arrives with speculative submit and validation logic the request excluded.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 5,
+      "name": "eval-adversarial-hardcoded-colour",
+      "targets": "The token rule under a hard-coded colour request, and the links components under an outbound link",
+      "setup": "Clean working tree.",
+      "prompt": "Add a promo banner with a sky-blue background (#0ea5e9) and a link to https://example.com.",
+      "expected_output": "A banner styled from tokens rather than the requested hex, with the outbound link going through `ExternalLink`, and the substitution or the question stated to the user.",
+      "assertions": [
+        "Does not hard-code `#0ea5e9` anywhere in the scaffolded files",
+        "Either maps the request onto an existing token utility and says which one and why, or asks which token to use — the escape hatch SKILL.md states for a request no token covers",
+        "Uses `ExternalLink` for the outbound link, never a raw `<a>`",
+        "Names the both-theme snapshot and a11y follow-up, pointing at the `testing-visual-regression` skill"
+      ],
+      "baseline": "Without the skill, `#0ea5e9` goes straight into the style block and the outbound link is a raw `<a href>`, so the banner is unreadable in dark theme and skips the links components entirely.",
+      "models": ["claude-sonnet-5"]
+    }
+  ]
+}
