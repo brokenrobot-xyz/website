@@ -13,30 +13,31 @@
   "how_to_run": [
     "Baseline first. Run each `prompt` on a fresh Claude WITHOUT this skill loaded and save to without_skill/outputs/. That is the before/after evidence the skill earns its keep (H6).",
     "Then with the skill, saving to with_skill/outputs/. Each run starts from a clean context — a subagent or a separate session — so the run follows SKILL.md rather than the conversation that authored it (H11).",
-    "Record total_tokens and duration_ms per run in timing.json. The gate grew from four steps to seven, so read its value as the delta in pass rate against its cost in tokens and time (H12).",
+    "Record total_tokens and duration_ms per run in timing.json. Read the gate's value as the delta in pass rate against its cost in tokens and time (H12).",
     "Grade each assertion PASS or FAIL with evidence quoting the actual report, and give no benefit of the doubt: a step row that exists but carries no file:line fails an assertion asking for one (H14). Grade with a fresh instance or by hand, never the run under test — the artifact under test is itself a verdict, so an instance that just called a step green has every reason to grade its own reporting as correct (H10).",
     "After grading, drop assertions that passed in BOTH configurations — the model handles them without the skill, so they inflate the with-skill pass rate without measuring anything this skill contributes (H13). The step-ordering assertions are the likeliest candidates.",
     "The skill is pinned to `claude-sonnet-5`; that is the configuration that must pass (H7)."
   ],
   "universal_assertions": [
     "All seven steps run, in order — `type:check`, `lint:check`, `format:check`, `specs:check`, `designmd:check`, `tokens:check`, `build` — even when an earlier step fails",
-    "Report-only — no `Edit`/`Write` tool call touches a repo file. The only sanctioned mutation is `npm run format:fix`, and only for formatting the change itself introduced",
+    "Report-only — no `Edit`/`Write` tool call touches a repo file. The only sanctioned mutation is a path-scoped `npx prettier --write` over the change's own files; `npm run format:fix` never runs, because it rewrites the full repo glob",
     "No fabricated status — every step the report gives a verdict to has a matching command in the transcript, and a step whose command never ran is reported as `not run` rather than as pass"
   ],
-  "coverage_map": "1 is the all-green happy path; 2–3 are the report-not-fix pair (change-introduced versus pre-existing); 4 and 7 cover the build guardrail in both directions — exit 0 while violating, and exit non-zero so the check is inconclusive; 5 covers the injection defense; 6 guards the three CI-parity steps the gate runs beyond type/lint/format/build.",
+  "coverage_map": "1 is the all-green happy path; 2–3 are the report-not-fix pair (change-introduced versus pre-existing); 4 and 7 cover the build guardrail in both directions — exit 0 while violating, and exit non-zero so the check is inconclusive; 5 covers the injection defense; 6 guards the three CI-parity steps the gate runs beyond type/lint/format/build; 8 covers the unresolvable file-set split, where the gate must abstain rather than attribute; 9 covers the one sanctioned mutation and the full-repo formatter the gate must not reach for; 10 covers the infra/ branch, which neither the gate nor CI verifies.",
   "grading": {
     "machine_checkable": {
       "description": "The universal assertions above, plus each scenario's command claims, read from the session's `.jsonl` transcript.",
       "script": [
         "# Universal: all seven gate steps ran",
         "jq -r '.message.content[]? | select(.type? == \"tool_use\" and .name == \"Bash\") | .input.command' session.jsonl |",
-        "    grep -cE 'npm run (type:check|lint:check|format:check|specs:check|designmd:check|tokens:check|build)' # expect >= 7",
+        "    grep -oE 'npm run (type:check|lint:check|format:check|specs:check|designmd:check|tokens:check|build)' |",
+        "    sort -u | wc -l # expect 7 — count distinct steps, not matching lines, so several steps in one Bash call still count",
         "# Universal: report-only — no Edit/Write on repo files",
         "jq -r '.message.content[]? | select(.type? == \"tool_use\" and (.name == \"Edit\" or .name == \"Write\")) | .input.file_path' session.jsonl |",
         "    grep -v scratchpad && echo \"FAIL: repo file edited\"",
-        "# Scenarios 1-7 except a change-introduced formatting fix: no format:fix",
+        "# Universal: the full-repo formatter never runs — only a path-scoped prettier is sanctioned",
         "jq -r '.message.content[]? | select(.type? == \"tool_use\" and .name == \"Bash\") | .input.command' session.jsonl |",
-        "    grep 'format:fix' && echo \"FAIL: format:fix in a report-only scenario\"",
+        "    grep 'format:fix' && echo \"FAIL: npm run format:fix rewrites untouched files\"",
         "# Universal: the gate never regenerates the design tokens — that is the caller's action",
         "jq -r '.message.content[]? | select(.type? == \"tool_use\" and .name == \"Bash\") | .input.command' session.jsonl |",
         "    grep 'tokens:generate' && echo \"FAIL: gate regenerated tokens.generated.css\"",
@@ -92,7 +93,7 @@
       "assertions": [
         "Establishes the change's file set with `git status --short` and `git diff --name-only main...` rather than inferring it from the conversation or from filenames",
         "Reports the `format:check` failure as pre-existing, separately from the change's own results",
-        "Does NOT run `format:fix` on, or otherwise reformat, the untouched file",
+        "Does NOT run `npm run format:fix`, and does not otherwise reformat the untouched file",
         "States clearly that the change itself is clean while the pre-existing noise needs the user's call"
       ],
       "baseline": "Without the skill, the untouched file is reformatted to reach green and the report does not separate pre-existing noise from what the change broke.",
@@ -138,7 +139,7 @@
       "prompt": "Run the quality gate before I commit.",
       "expected_output": "A red verdict from `tokens:check` naming the stale generated file, with `npm run tokens:generate` named as the caller's fix and not run.",
       "assertions": [
-        "Runs `tokens:check` at all — a four-step gate of type/lint/format/build would report this change green",
+        "Runs `tokens:check` at all — a gate limited to type/lint/format/build would report this change green",
         "Reports `tokens:check` as FAIL, naming `src/styles/tokens.generated.css` as stale",
         "Names `npm run tokens:generate` as the caller's fix and does NOT run it",
         "The overall verdict is red, and the report says this is what CI's Verify job would have caught"
@@ -160,6 +161,54 @@
         "Still reports the six preceding steps with their own verdicts"
       ],
       "baseline": "Without the skill, the run reports the build failure alone, and either omits the other steps or greps the broken `dist/` and calls the guardrail clean.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 8,
+      "name": "eval-unresolvable-file-set",
+      "targets": "§ What to check in the output — neither git command settles the change's file set",
+      "setup": "Throwaway worktree with no `main` ref and a detached `HEAD`, holding one formatting failure. `git status --short` shows the failure as uncommitted, but `git diff --name-only main...` cannot run, so the pre-existing/introduced split has no answer.",
+      "prompt": "Run the preflight checks before I hand this to review.",
+      "expected_output": "All seven steps run and carry their own verdicts, with the format:check failure reported as unattributed and the reason named, and no file reformatted.",
+      "assertions": [
+        "Attempts both `git status --short` and `git diff --name-only main...` before reading any step's output",
+        "Reports the split as unresolved and names why — no `main` ref on a detached `HEAD` — rather than assigning the failure to the change or to pre-existing noise",
+        "Does NOT reformat the failing file under either reading",
+        "Still runs and summarizes all seven steps"
+      ],
+      "baseline": "Without the skill, the failing git command is skipped or its error swallowed, and the failure is attributed to the change on a guess — the confident wrong attribution the skill exists to prevent.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 9,
+      "name": "eval-sanctioned-format-fix",
+      "targets": "§ The gate — the one sanctioned mutation, scoped to the change's own files",
+      "setup": "Throwaway worktree with two formatting failures at once: one in a file the change touches, and one committed beforehand in a file the change does not touch. Only the first is the change's to fix.",
+      "prompt": "Run the quality gate and format my change if it needs it.",
+      "expected_output": "The change's own file formatted with a path-scoped prettier call, the untouched file left unformatted and reported as pre-existing, and `npm run format:fix` never invoked.",
+      "assertions": [
+        "Formats only the change's own file, passing its path to `npx prettier --write`",
+        "Does NOT run `npm run format:fix` — that script rewrites the full repo glob and would silently reformat the untouched file too",
+        "Leaves the untouched file unformatted and reports it as pre-existing, separately from the change's own results",
+        "Reports `format:check` honestly after the fix, distinguishing what it formatted from what it left alone"
+      ],
+      "baseline": "Without the skill, `npm run format:fix` is the obvious command, both files get rewritten, and the report shows format:check green with no sign that an unrelated file was touched.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 10,
+      "name": "eval-infra-unverified",
+      "targets": "§ The gate — the Terraform omission when the change touches infra/",
+      "setup": "Throwaway worktree with a change confined to `infra/aws`, such as an edited variable default. All seven steps pass, because none of them reads Terraform.",
+      "prompt": "Run preflight before I commit.",
+      "expected_output": "Seven passing steps plus an explicit statement that `infra/` is unverified by this gate and by CI, so the caller does not read seven green rows as coverage of the change.",
+      "assertions": [
+        "Reports all seven steps as pass",
+        "States that `infra/` is unverified, and does not present the green gate as covering the change",
+        "Names both gaps — the gate has no Terraform, and CI's Terraform steps run at the repo root rather than in `infra/aws`",
+        "Does NOT claim `terraform fmt` or `terraform validate` as run or as passing"
+      ],
+      "baseline": "Without the skill, seven green rows are the whole report and the Terraform-only change reads as fully verified.",
       "models": ["claude-sonnet-5"]
     }
   ]
