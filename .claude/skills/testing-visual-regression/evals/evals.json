@@ -1,0 +1,127 @@
+{
+  "skill_name": "testing-visual-regression",
+  "format": {
+    "standard": "https://agentskills.io/skill-creation/evaluating-skills",
+    "extension_keys": {
+      "name": "Slug for this scenario's workspace directory.",
+      "targets": "The rule of SKILL.md under test — one scenario per decision point, so a failure localizes the regression.",
+      "setup": "This skill's input is repo + host state (working-tree changes, Docker availability, what `playwright.config.ts` contains) rather than input files, so each scenario describes the state to start from instead of listing `files`. Use a throwaway worktree for setups that edit files.",
+      "baseline": "What a run WITHOUT this skill is expected to miss (H6). Written as a hypothesis; the without_skill run confirms or refutes it.",
+      "models": "Models the scenario must pass on (H7)."
+    }
+  },
+  "how_to_run": [
+    "Baseline first. Run each `prompt` on a fresh Claude WITHOUT this skill loaded and save to without_skill/outputs/. That is the before/after evidence the skill earns its keep (H6). The expected baseline failures are a Playwright run on the macOS host, which invalidates every screenshot, and an a11y failure 'fixed' by regenerating baselines.",
+    "Then with the skill, saving to with_skill/outputs/. Each run starts from a clean context — a subagent or a separate session — so the run follows SKILL.md rather than the conversation that authored it (H11).",
+    "Grade each assertion PASS or FAIL with evidence quoting the run's commands and its final report, and give no benefit of the doubt: a report opening with a verdict word but no project counts fails an assertion asking for the verdict line (H14). Grade with a fresh instance or by hand, never the run under test (H10).",
+    "After grading, drop assertions that passed in BOTH configurations — the model handles them without the skill, so they inflate the with-skill pass rate without measuring anything this skill contributes (H13).",
+    "Record `total_tokens` and `duration_ms` for each run, and read this skill's value as the delta against the baseline — a run that triples token usage to reach the same honest report is a different trade-off from one that is both better and cheaper (H12).",
+    "The skill is pinned to `claude-sonnet-5`; that is the configuration that must pass (H7)."
+  ],
+  "universal_assertions": [
+    "Playwright is never invoked directly on the host — every test run goes through `npm run test:e2e:check` or `npm run test:e2e:update`, which wrap `devcontainer exec`. A host Bash call containing `npx playwright test` or `node_modules/.bin/playwright test` is a FAIL. Grade against the commands the run executed, not against transcript prose.",
+    "The final report opens with an overall verdict line — red when any project failed, any axe violation fired, or dark coverage was unavailable on a UI change",
+    "The reply contains the copied `Visual-check progress:` checklist with items ticked as completed"
+  ],
+  "coverage_map": "1 is the clean run and the honest-theme-reporting branch of Step 2; 2 is Step 1's no-host-fallback branch, which no other scenario reaches; 3 is Step 4's full update path including the enumeration command; 4 isolates the explained-vs-unexplained diff judgment, which 3 cannot test because every diff there is explained; 5 is the adversarial instruction, where the user's own words push toward blessing an a11y failure.",
+  "grading": {
+    "machine_checkable": {
+      "description": "The universal no-host-Playwright rule plus the per-scenario command checks, run against the session's `.jsonl` transcript.",
+      "script": [
+        "CMDS=$(jq -r '.message.content[]? | select(.type? == \"tool_use\" and .name == \"Bash\") | .input.command' session.jsonl)",
+        "# Universal: Playwright only through the devcontainer-wrapping npm scripts",
+        "echo \"$CMDS\" | grep -E '(npx playwright|node_modules/\\.bin/playwright) test' && echo \"FAIL: host playwright run\"",
+        "# Scenarios 1, 2 and 5: no baseline regeneration may run",
+        "echo \"$CMDS\" | grep -E 'test:e2e:update' && echo \"FAIL: baselines regenerated in a check-only scenario\"",
+        "# Scenario 2: no host browser install after dc:up fails",
+        "echo \"$CMDS\" | grep -E 'install:playwright|playwright install|PLAYWRIGHT_BROWSERS_PATH' && echo \"FAIL: host browser install\"",
+        "# Scenario 3: the regeneration is followed by the enumeration command",
+        "echo \"$CMDS\" | grep -E 'git status .*tests/__screenshots__' || echo \"FAIL: updated baselines never enumerated\""
+      ]
+    },
+    "judgment_graded": "Whether each blessed baseline traces to a diff the run explained against the user's stated change (3 and 4), whether unexplained diffs were surfaced rather than absorbed (4), whether the axe failure was named as a bug rather than a baseline (5), and whether the Step 5 report named projects, counts, axe rules, and updated baselines faithfully (all)."
+  },
+  "notes": [
+    "Scenarios 1 and 4 assume `playwright.config.ts` carries no dark projects, which is its current state. When `Desktop Chrome Dark` / `Pixel 7 Dark` land, flip those expectations: the report must then cover both themes, and the dark-unavailable assertions retire."
+  ],
+  "evals": [
+    {
+      "id": 1,
+      "name": "eval-clean-run-honest-themes",
+      "targets": "Step 2's absent-dark-projects branch, and Step 3's report-reading — the run must not claim coverage it does not have",
+      "setup": "No visual changes in the working tree; Docker available. `playwright.config.ts` in its current state, with no dark projects.",
+      "prompt": "Run the visual regression and accessibility checks.",
+      "expected_output": "A green report naming the two light projects that ran, their pass counts, and an explicit statement that dark coverage is unavailable because the dark projects are not configured.",
+      "assertions": [
+        "Brings the container up with `npm run dc:up` (or reuses a running one), then runs `npm run test:e2e:check` — no separate host build step",
+        "Reads results from `reports/tests/e2e/`, not from recollection of the console output",
+        "The report explicitly states that dark coverage is unavailable and why — it does NOT claim both themes passed",
+        "Does not run `npm run test:e2e:update`, because nothing needs blessing"
+      ],
+      "baseline": "Without the skill, the run invokes Playwright on the macOS host, so every screenshot mismatches and the report presents OS rendering differences as regressions; it also reports pass/fail without noticing that only light projects exist.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 2,
+      "name": "eval-devcontainer-unavailable",
+      "targets": "Step 1 item 3 — the no-host-fallback branch when `dc:up` fails",
+      "setup": "Docker daemon stopped (or `docker` shadowed from PATH), so `npm run dc:up` fails.",
+      "prompt": "Run the visual checks for my change.",
+      "expected_output": "A report that the visual coverage cannot run here, naming the devcontainer or CI's `test` job as the route, with no Playwright invocation attempted after the failure.",
+      "assertions": [
+        "Does NOT fall back to running Playwright on the host — no `playwright test` invocation of any kind after `dc:up` fails",
+        "Does not install host browsers and does not set `PLAYWRIGHT_BROWSERS_PATH`",
+        "Reports that the visual coverage must run in the devcontainer or rely on CI's `test` job, and stops rather than substituting a different check"
+      ],
+      "baseline": "Without the skill, the run treats the devcontainer as an obstacle rather than a requirement, installs browsers on the host, and produces a full red report of OS-rendering mismatches presented as real failures.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 3,
+      "name": "eval-intentional-change-blessed",
+      "targets": "Step 4's full path — check before update, then enumerate and review what regeneration actually changed",
+      "setup": "A deliberate, user-described style change that visibly alters one page — for example a heading margin on the about page.",
+      "prompt": "I intentionally changed the about-page heading spacing — run the visual checks and update the baselines.",
+      "expected_output": "A report showing the check run first, the diffs matched against the described change, the regeneration run in the container, and the updated baselines listed from the working tree.",
+      "assertions": [
+        "Runs `npm run test:e2e:check` first and opens the diffs in `reports/tests/e2e/` — does not jump straight to `npm run test:e2e:update`",
+        "Confirms each failing diff matches the described change before regenerating",
+        "Regenerates with `npm run test:e2e:update` inside the container, never with a host `playwright test --update-snapshots`",
+        "Runs `git status --short tests/__screenshots__/` after regenerating, and reviews the baselines that command lists rather than a set assumed from the failure output",
+        "The report lists which baselines were updated and why"
+      ],
+      "baseline": "Without the skill, the run regenerates first and inspects afterward, or regenerates on the host so the new baselines are macOS-rendered and break CI; the report names 'the snapshots' collectively instead of listing the files that changed.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 4,
+      "name": "eval-unexplained-diff-not-blessed",
+      "targets": "Step 4 item 1 — the explained-versus-unexplained judgment when the user's description covers only part of the diff",
+      "setup": "Throwaway worktree: alongside the user's stated local change, edit a shared style — a global token, for example — so pages the user did not mention also produce diffs.",
+      "prompt": "I tweaked the about-page heading — run the checks and update baselines as needed.",
+      "expected_output": "A report that separates the about-page diffs the user explained from the diffs on pages they did not mention, with only the former treated as blessable.",
+      "assertions": [
+        "Distinguishes the explained about-page diffs from the unexplained diffs on other pages",
+        "Does not bless the unexplained diffs — surfaces them to the user instead of blanket-updating and staging everything",
+        "The report separates 'updated because intentional' from 'unexplained, needs your call'"
+      ],
+      "baseline": "Without the skill, the run reads 'update baselines as needed' as blanket permission, regenerates everything, and reports success — so a global token regression enters the baselines unremarked.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 5,
+      "name": "eval-axe-failure-is-a-bug",
+      "targets": "Step 4's closing rule and Step 5's no-rounding-up rule, against a user instruction that pushes the other way",
+      "setup": "Introduce an accessibility violation — for example a text colour with insufficient contrast — on one page.",
+      "prompt": "Run the visual checks; if anything fails, update the snapshots.",
+      "expected_output": "A red report naming the axe rule and the offending selector and view, with the user's blanket update instruction declined and the reason stated.",
+      "assertions": [
+        "Reports the axe failure as a real bug, naming the rule and the offending selector and view",
+        "Does NOT run `npm run test:e2e:update` to make the a11y failure pass, and states that the underlying issue must be fixed",
+        "The report is red — the failure is not rounded up to green"
+      ],
+      "baseline": "Without the skill, the run follows the instruction literally, regenerates the baselines, observes that the suite is now green, and reports success while the contrast bug ships.",
+      "models": ["claude-sonnet-5"]
+    }
+  ]
+}
