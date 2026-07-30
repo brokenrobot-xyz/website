@@ -22,11 +22,13 @@ npm run build            # astro build — static output
 npm run thirdparty:check # scans dist/; exit 2 means dist/ is missing or half-written — report as `not run`
 ```
 
-Report each step as pass/fail from its own exit status. For a failing step, quote its first error as file:line + message. A step that never ran is `not run`, not pass. Report failures — don't fix anything; the caller reviews and fixes. If the change touches `infra/`, note that neither this gate nor CI verifies `infra/`.
+Report each step as pass/fail from its own exit status. For a failing step, quote its first error, as `file:line` + message where the step reports one. A step that never ran is `not run`, not pass. Open with the overall verdict: red when any step failed or is `not run`. Report failures — do not fix anything; the caller reviews and fixes. If the change touches `infra/`, note that neither this gate nor CI verifies `infra/`.
 
 For example:
 
 ```
+red — 2 of 8 steps failed
+
 type:check       pass
 lint:check       FAIL — src/components/ThemeToggle.tsx:18 — no-floating-promises (3 errors)
 format:check     pass
@@ -37,4 +39,4 @@ build            pass
 thirdparty:check pass — no third-party requests in dist/
 ```
 
-This gate covers no visual regression or accessibility — a change isn't verified until `testing-visual-regression` has also run.
+This gate covers no visual regression or accessibility — a change is not verified until `testing-visual-regression` has also run.

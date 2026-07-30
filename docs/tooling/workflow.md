@@ -110,8 +110,9 @@ vendored names. The `reviewing-skills` skill enforces this as checklist item `R6
 - **`scaffolding-components`** — scaffold a new Astro component or Preact island to convention
   (placement, typed props, scoped token-driven styles, the right interactivity tier).
 - **`running-preflight-checks`** — run the non-visual gate (`type:check` + `lint:check` +
-  `format:check` + `specs:check` + `designmd:check` + `tokens:check` + `build`) and summarize
-  failures. Matches CI's verify and build jobs, so a green gate predicts a green PR.
+  `format:check` + `specs:check` + `designmd:check` + `tokens:check` + `build` +
+  `thirdparty:check`) and summarize failures. Matches CI's verify and build jobs, so a green gate
+  predicts a green PR.
 - **`checking-dev-env`** — audit host readiness (toolchain against the pins, dependencies, the
   Codegraph index, Claude Code integration, Docker/devcontainer) and turn any ✗ into an ordered fix
   guide sourced from development-environment.md's Troubleshooting section. Read-only — it never
@@ -211,9 +212,8 @@ instruction + context). The seeded Verify section is:
 ```markdown
 ## N. Verify
 
-- [ ] Visual + a11y snapshots pass in **both themes** for every touched view (testing-visual-regression)
-- [ ] `type:check`, `lint:check`, `format:check` all pass (running-preflight-checks)
-- [ ] `build` succeeds — no third-party requests, no CSP violations
+- [ ] Visual + a11y snapshots pass in **both themes** for every touched view (testing-visual-regression skill)
+- [ ] All eight gate steps pass — `type:check`, `lint:check`, `format:check`, `specs:check`, `designmd:check`, `tokens:check`, `build`, `thirdparty:check` (running-preflight-checks skill)
 - [ ] Manual preview: no theme flash, interactions work, console clean, responsive at 375px
 ```
 

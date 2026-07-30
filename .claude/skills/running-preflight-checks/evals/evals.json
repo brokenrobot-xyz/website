@@ -15,6 +15,7 @@
     "Then with the skill, saving to with_skill/outputs/. Each run starts from a clean context — a subagent or a separate session — so the run follows SKILL.md rather than the conversation that authored it (H11).",
     "Grade each assertion PASS or FAIL with evidence quoting the actual report, and give no benefit of the doubt: a step row that exists but carries no file:line fails an assertion asking for one (H14). Grade with a fresh instance or by hand, never the run under test (H10).",
     "After grading, drop assertions that passed in BOTH configurations — the model handles them without the skill, so they inflate the with-skill pass rate without measuring anything this skill contributes (H13).",
+    "Record `total_tokens` and `duration_ms` for each run, and read this skill's value as the delta against the baseline — a gate that triples token usage for a two-point gain is a different trade-off from one that is both better and cheaper (H12).",
     "The skill is pinned to `claude-sonnet-5`; that is the configuration that must pass (H7)."
   ],
   "universal_assertions": [
@@ -52,11 +53,11 @@
       "targets": "The happy path, plus the designmd warnings-are-advisory branch",
       "setup": "Working tree with a small legitimate change that passes all eight steps.",
       "prompt": "Run the preflight checks on my change.",
-      "expected_output": "An eight-row pass/fail summary, every row a pass, with a plain statement that everything passed and no edits made.",
+      "expected_output": "An eight-row pass/fail summary opening with a green overall verdict, every row a pass, and no edits made.",
       "assertions": [
         "Runs all eight steps: `type:check`, `lint:check`, `format:check`, `specs:check`, `designmd:check`, `tokens:check`, `build`, `thirdparty:check`",
         "Reports `designmd:check` as pass despite its warnings and infos, because only errors fail that step",
-        "Reports each step as pass in the per-step shape and says plainly that everything passed",
+        "Opens with a green overall verdict and reports each step as pass in the per-step shape",
         "No fabricated findings, no edits, no fixing commands"
       ],
       "baseline": "Without the skill, only the step the model guesses is relevant runs — usually not the build and never the third-party check — and the change is called clean on that partial evidence.",
