@@ -117,9 +117,9 @@ vendored names. The `reviewing-skills` skill enforces this as checklist item `R6
   Codegraph index, Claude Code integration, Docker/devcontainer) and turn any ✗ into an ordered fix
   guide sourced from development-environment.md's Troubleshooting section. Read-only — it never
   installs or fixes anything.
-- **`committing`** — stage the working tree and author one Conventional-Commits commit conforming to
-  [commit-conventions](../development/conventions/commit-conventions.md), inferring type and scope
-  from the changed paths.
+- **`committing-conventionally`** — stage the working tree and author one Conventional-Commits
+  commit conforming to [commit-conventions](../development/conventions/commit-conventions.md),
+  inferring type and scope from the changed paths.
 - **`updating-dependencies`** — refresh npm dependencies: detect what's outdated, bucket into
   patch/minor/major, apply patches directly, and research minor/major bumps (one
   `dependency-update-researcher` run per bump) before recommending them. Delegates verification to

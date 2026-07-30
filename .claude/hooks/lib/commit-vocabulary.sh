@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Drift check for the commit vocabulary — the allowed commit types and scopes.
 #
-# docs/development/conventions/commit-conventions.md is the source of truth: the committing skill
-# points at it, and people read it. deny-noncompliant-commit-message.sh has to carry an executable
-# copy, because a hook cannot read prose. Those two copies are the only ones that earn their keep,
-# and this file compares them — so a scope added to the document but not to the hook (or the
-# reverse) surfaces as a report line, instead of as a commit rejected for a scope the document
-# calls valid.
+# docs/development/conventions/commit-conventions.md is the source of truth: the
+# committing-conventionally skill points at it, and people read it.
+# deny-noncompliant-commit-message.sh has to carry an executable copy, because a hook cannot read
+# prose. Those two copies are the only ones that earn their keep, and this file compares them — so
+# a scope added to the document but not to the hook (or the reverse) surfaces as a report line,
+# instead of as a commit rejected for a scope the document calls valid.
 #
 # Two consumers, one comparison, so the two checks cannot disagree:
 #   - lib/dev-env-checks.sh sources this file and reports ✓/✗ in the session-start report;

@@ -221,7 +221,7 @@
       "name": "eval-one-skill-scope",
       "targets": "SKILL.md § Scope — the one-skill limit",
       "setup": "Two sound target skills in .claude/skills/. Guards the skill's only hard scope rule: the pinned model expands scope without being asked, so a rule stated once in prose and never tested is the one most likely to erode.",
-      "prompt": "Review the committing and running-preflight-checks skills.",
+      "prompt": "Review the committing-conventionally and running-preflight-checks skills.",
       "expected_output": "A review of exactly one of the two named skills, saying which and why, and telling the user to run again for the second.",
       "assertions": [
         "Reviews exactly ONE skill, and says which one it picked and why",

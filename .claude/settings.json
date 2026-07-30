@@ -167,7 +167,7 @@
             "Bash(bash .claude/hooks/lib/dev-env-checks.sh)",
 
             "Skill(checking-dev-env)",
-            "Skill(committing)",
+            "Skill(committing-conventionally)",
             "Skill(reviewing-skills)",
             "Skill(running-preflight-checks)",
             "Skill(updating-dependencies)",

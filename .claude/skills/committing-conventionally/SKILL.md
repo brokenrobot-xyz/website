@@ -1,5 +1,5 @@
 ---
-name: committing
+name: committing-conventionally
 description: Stages working-tree changes and authors one Conventional-Commits commit conforming to docs/development/conventions/commit-conventions.md, inferring type and scope from the changed paths. Use whenever the user asks to commit work in this repo.
 compatibility: Requires git and jq — the deny-hook that validates every commit message calls jq.
 allowed-tools: Bash(git:*) Bash(cat:*) Read
