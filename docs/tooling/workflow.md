@@ -51,9 +51,11 @@ does with them:
 
 - **Archive on the branch**, before opening the PR, so the pull request carries the code and the
   updated spec together — they land atomically.
-- **The PR runs CI** ([`pipeline.yml`](../../.github/workflows/pipeline.yml)): `format` / `lint` /
-  `type` / `specs:check` in the verify job, the build, and the e2e suite — the same gates the
-  `running-preflight-checks` and `testing-visual-regression` skills run locally.
+- **The PR runs CI** ([`pipeline.yml`](../../.github/workflows/pipeline.yml)): `format:check` /
+  `lint:check` / `type:check` / `specs:check` / `designmd:check` / `tokens:check` in the verify job,
+  the Terraform format and validate checks over `infra/`, the build, and the e2e suite — the same
+  gates the `running-preflight-checks` and `testing-visual-regression` skills run locally, except
+  the Terraform checks, which need a toolchain the local gate does not have.
 - **Merge to `main` deploys.** No release branches; the deploy jobs ship to production on every merge
   — see [tech-stack](../tech-stack.md) for the targets.
 - **The release gate** (the third human gate) is meant to be a required approval on the `Production`
@@ -102,8 +104,9 @@ vendored names. The `reviewing-skills` skill enforces this as checklist item `R6
   Playwright projects.
 - **`scaffolding-components`** — scaffold a new Astro component or Preact island to convention
   (placement, typed props, scoped token-driven styles, the right interactivity tier).
-- **`running-preflight-checks`** — run the non-visual gate (`type:check` + `lint:check` + `format:check` +
-  `build`) and summarize failures.
+- **`running-preflight-checks`** — run the non-visual gate (`type:check` + `lint:check` +
+  `format:check` + `specs:check` + `designmd:check` + `tokens:check` + `build`) and summarize
+  failures. Matches CI's verify and build jobs, so a green gate predicts a green PR.
 - **`checking-dev-env`** — audit host readiness (toolchain against the pins, dependencies, the
   Codegraph index, Claude Code integration, Docker/devcontainer) and turn any ✗ into an ordered fix
   guide sourced from development-environment.md's Troubleshooting section. Read-only — it never
