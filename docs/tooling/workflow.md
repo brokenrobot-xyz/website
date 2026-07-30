@@ -53,9 +53,14 @@ does with them:
   updated spec together — they land atomically.
 - **The PR runs CI** ([`pipeline.yml`](../../.github/workflows/pipeline.yml)): `format:check` /
   `lint:check` / `type:check` / `specs:check` / `designmd:check` / `tokens:check` in the verify job,
-  the Terraform format and validate checks over `infra/`, the build, and the e2e suite — the same
-  gates the `running-preflight-checks` and `testing-visual-regression` skills run locally, except
-  the Terraform checks, which need a toolchain the local gate does not have.
+  the build with its third-party-resource check (`thirdparty:check`), and the e2e suite — the same
+  gates the `running-preflight-checks` and `testing-visual-regression` skills run locally.
+- **`infra/` is unverified, in CI as well as locally.** The verify job has Terraform steps, but each
+  `run:` starts its own shell, so its `cd infra/aws` and `cd infra/cloudflare` steps do not carry and
+  `terraform fmt -check` and `terraform validate` execute against the repo root, where there is no
+  Terraform to check. Terraform is not part of the local toolchain either, so a change under `infra/`
+  reaches production having been read by a human and nothing else. Fixing the workflow (a
+  `working-directory:` on each step) is a planned change.
 - **Merge to `main` deploys.** No release branches; the deploy jobs ship to production on every merge
   — see [tech-stack](../tech-stack.md) for the targets.
 - **The release gate** (the third human gate) is meant to be a required approval on the `Production`
