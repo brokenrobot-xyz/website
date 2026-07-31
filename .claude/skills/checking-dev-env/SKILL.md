@@ -1,6 +1,7 @@
 ---
 name: checking-dev-env
 description: Checks whether this machine is ready to develop brokenrobot.xyz — toolchain versions against the pins, dependencies, the Codegraph index, Claude Code integration (typescript-lsp plugin, codegraph MCP, node version manager), and Docker/devcontainer availability — and turns any failure into an ordered, hand-holding setup guide with exact commands. Use when setting up a new machine or worktree, when the SessionStart report shows ✗ lines, or when builds or tools misbehave and the environment is suspect. Diagnoses only, never installs or changes anything; pair with running-preflight-checks for the code-quality half.
+compatibility: Requires bash to run the scan script; every tool it probes may legitimately be absent, which is a finding rather than a failure. Without jq the codegraph and Claude Code integration areas report "not checked" instead of a verdict.
 allowed-tools: Read Bash Skill
 model: claude-sonnet-5
 context: fork

@@ -1,6 +1,7 @@
 ---
 name: scaffolding-components
 description: Scaffolds a new Astro component (or Preact island) for brokenrobot.xyz to the repo's conventions — feature-folder placement, typed props, scoped token-driven styles, both-theme readiness, and the correct interactivity choice. Use when adding a new UI component so it matches the existing tree instead of drifting.
+compatibility: Scaffolding itself needs only a checkout of this repo's Astro + Tailwind + Preact tree. Step 4's verification needs Node and npm at the package.json engine versions with dependencies installed, and Docker for the visual-regression half.
 model: claude-sonnet-5
 metadata:
     author: brokenrobot.xyz
