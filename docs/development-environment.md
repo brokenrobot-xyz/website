@@ -33,8 +33,8 @@ With nvm the equivalent is `nvm install && nvm use`; asdf/volta read `.node-vers
 ## Install
 
 ```sh
-git clone git@github.com:mezeitamas/brokenrobot.xyz.git
-cd brokenrobot.xyz
+git clone git@github.com:brokenrobot-xyz/website.git
+cd website
 npm ci    # reproducible install from the committed package-lock.json
 npm start # dev server on http://localhost:4321
 ```

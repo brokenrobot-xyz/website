@@ -6,7 +6,7 @@
     "author": "Tamas Mezei",
     "repository": {
         "type": "git",
-        "url": "git@github.com:mezeitamas/brokenrobot.xyz.git"
+        "url": "git@github.com:brokenrobot-xyz/website.git"
     },
     "type": "module",
     "engines": {

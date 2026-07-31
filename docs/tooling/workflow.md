@@ -163,10 +163,12 @@ Unlike the other servers, `github` needs a credential. Keep it read-only and out
   requests, Issues, Actions, Commit statuses. Nothing more — the server runs read-only and write actions
   are out of scope.
 - **Where it lives.** Put it in `.claude/settings.local.json` (gitignored), whose `env` block Claude Code
-  injects into the session — including the MCP Docker subprocess via `-e GITHUB_PERSONAL_ACCESS_TOKEN`:
+  injects into the session. The variable carries a `BROKEN_ROBOT_XYZ_` prefix so per-project tokens can
+  coexist (e.g. in the machine-global `~/.claude/settings.json`); `.mcp.json` maps it onto the
+  `GITHUB_PERSONAL_ACCESS_TOKEN` name the server's Docker container expects:
 
     ```json
-    { "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "github_pat_…" } }
+    { "env": { "BROKEN_ROBOT_XYZ_GITHUB_PERSONAL_ACCESS_TOKEN": "github_pat_…" } }
     ```
 
     Use this file — **not** `.zshrc` (a Dock/Finder launch of the desktop app doesn't source it) and **not**

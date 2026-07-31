@@ -27,7 +27,7 @@
                 "-i",
                 "--rm",
                 "-e",
-                "GITHUB_PERSONAL_ACCESS_TOKEN",
+                "GITHUB_PERSONAL_ACCESS_TOKEN=${BROKEN_ROBOT_XYZ_GITHUB_PERSONAL_ACCESS_TOKEN}",
                 "-e",
                 "GITHUB_READ_ONLY=1",
                 "-e",
