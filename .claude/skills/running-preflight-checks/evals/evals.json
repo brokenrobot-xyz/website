@@ -1,0 +1,146 @@
+{
+  "skill_name": "running-preflight-checks",
+  "format": {
+    "standard": "https://agentskills.io/skill-creation/evaluating-skills",
+    "extension_keys": {
+      "name": "Slug for this scenario's workspace directory.",
+      "targets": "The rule of SKILL.md under test — one scenario per decision point, so a failure localizes the regression.",
+      "setup": "This skill's input is repo state rather than input files, so each scenario describes the working tree to build instead of listing `files`. Use a throwaway worktree for setups that edit files.",
+      "baseline": "What a run WITHOUT this skill is expected to miss (H6). Written as a hypothesis; the without_skill run confirms or refutes it.",
+      "models": "Models the scenario must pass on (H7)."
+    }
+  },
+  "how_to_run": [
+    "Baseline first. Run each `prompt` on a fresh Claude WITHOUT this skill loaded and save to without_skill/outputs/. That is the before/after evidence the skill earns its keep (H6).",
+    "Then with the skill, saving to with_skill/outputs/. Each run starts from a clean context — a subagent or a separate session — so the run follows SKILL.md rather than the conversation that authored it (H11).",
+    "Grade each assertion PASS or FAIL with evidence quoting the actual report, and give no benefit of the doubt: a step row that exists but carries no file:line fails an assertion asking for one (H14). Grade with a fresh instance or by hand, never the run under test (H10).",
+    "After grading, drop assertions that passed in BOTH configurations — the model handles them without the skill, so they inflate the with-skill pass rate without measuring anything this skill contributes (H13).",
+    "Record `total_tokens` and `duration_ms` for each run, and read this skill's value as the delta against the baseline — a gate that triples token usage for a two-point gain is a different trade-off from one that is both better and cheaper (H12).",
+    "The skill is pinned to `claude-sonnet-5`; that is the configuration that must pass (H7)."
+  ],
+  "universal_assertions": [
+    "All eight steps run — `type:check`, `lint:check`, `format:check`, `specs:check`, `designmd:check`, `tokens:check`, `build`, `thirdparty:check` — even when an earlier step fails",
+    "Report-only — no `Edit`/`Write` tool call touches a repo file, and no fixing command runs: no `format:fix`, no `prettier --write`, no `tokens:generate`",
+    "No fabricated status — every step the report gives a verdict to has a matching command in the transcript, and a step whose command never ran is reported as `not run` rather than as pass"
+  ],
+  "coverage_map": "1 is the all-green happy path, and it also carries the designmd:check warnings-are-not-errors branch; 2 is report-not-fix on a failing step; 3 covers the guardrail when the build exits 0 but dist/ violates; 4 guards `tokens:check` specifically, the CI-parity step whose omission a type/lint/format/build gate would report green; 5 covers the failed build, where `thirdparty:check` exits 2 and must be reported as `not run` rather than pass; 6 covers the infra/ branch, which neither the gate nor CI verifies.",
+  "grading": {
+    "machine_checkable": {
+      "description": "The universal assertions above, plus each scenario's command claims, read from the session's `.jsonl` transcript.",
+      "script": [
+        "# Universal: all eight gate steps ran",
+        "jq -r '.message.content[]? | select(.type? == \"tool_use\" and .name == \"Bash\") | .input.command' session.jsonl |",
+        "    grep -oE 'npm run (type:check|lint:check|format:check|specs:check|designmd:check|tokens:check|build|thirdparty:check)' |",
+        "    sort -u | wc -l # expect 8 — count distinct steps, not matching lines, so several steps in one Bash call still count",
+        "# Universal: report-only — no Edit/Write on repo files",
+        "jq -r '.message.content[]? | select(.type? == \"tool_use\" and (.name == \"Edit\" or .name == \"Write\")) | .input.file_path' session.jsonl |",
+        "    grep -v scratchpad && echo \"FAIL: repo file edited\"",
+        "# Universal: no fixing command runs",
+        "jq -r '.message.content[]? | select(.type? == \"tool_use\" and .name == \"Bash\") | .input.command' session.jsonl |",
+        "    grep -E 'format:fix|prettier --write|tokens:generate' && echo \"FAIL: the gate fixed instead of reporting\"",
+        "# Universal: no fabricated status — the steps that ran must cover the steps given a verdict",
+        "jq -r '.message.content[]? | select(.type? == \"tool_use\" and .name == \"Bash\") | .input.command' session.jsonl |",
+        "    grep -oE '(type|lint|format|specs|designmd|tokens|thirdparty):check|npm run build' | sort -u",
+        "# ...then diff that list against the step names the final report gives a pass/FAIL verdict to."
+      ]
+    },
+    "judgment_graded": "Whether the report follows the per-step pass/fail shape, quoting the first error in each failing step's output as file:line + message, whether the guardrail violation is treated as a failure rather than advisory (3), whether the token drift is reported without being fixed (4), and whether a failed build leads to `thirdparty:check` reported as `not run` rather than pass (5)."
+  },
+  "evals": [
+    {
+      "id": 1,
+      "name": "eval-all-green",
+      "targets": "The happy path, plus the designmd warnings-are-advisory branch",
+      "setup": "Working tree with a small legitimate change that passes all eight steps.",
+      "prompt": "Run the preflight checks on my change.",
+      "expected_output": "An eight-row pass/fail summary opening with a green overall verdict, every row a pass, and no edits made.",
+      "assertions": [
+        "Runs all eight steps: `type:check`, `lint:check`, `format:check`, `specs:check`, `designmd:check`, `tokens:check`, `build`, `thirdparty:check`",
+        "Reports `designmd:check` as pass despite its warnings and infos, because only errors fail that step",
+        "Opens with a green overall verdict and reports each step as pass in the per-step shape",
+        "No fabricated findings, no edits, no fixing commands"
+      ],
+      "baseline": "Without the skill, only the step the model guesses is relevant runs — usually not the build and never the third-party check — and the change is called clean on that partial evidence.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 2,
+      "name": "eval-failing-step-report-not-fix",
+      "targets": "Report failures — don't fix anything",
+      "setup": "Throwaway worktree: introduce a type error in a file that is part of the current change (e.g. assign a string to a number-typed prop).",
+      "prompt": "Run the quality gate before I commit.",
+      "expected_output": "A red verdict naming the type error at file:line, with the remaining steps still run and summarized, and the file left untouched.",
+      "assertions": [
+        "Reports `type:check` as FAIL, quoting the first error in the step's output as file:line + message",
+        "Still runs and summarizes the remaining steps",
+        "Does NOT edit the file to fix the error — the failure is handed back to the caller",
+        "The overall verdict is red; it is not rounded up to green"
+      ],
+      "baseline": "Without the skill, the model fixes the type error itself and reports green, and stops before the remaining steps.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 3,
+      "name": "eval-guardrail-violation",
+      "targets": "The thirdparty:check step when the build exits 0",
+      "setup": "Throwaway worktree: add two third-party resources to a layout so the build compiles but violates the self-hosting guardrail. Inside one `is:inline` script, use a single-quoted `fetch('https://…')` and a single-quoted resource assignment (`img.src = 'https://…'`) — the forms `.prettierrc`'s `singleQuote` produces and an `is:inline` body carries into `dist/` verbatim.",
+      "prompt": "Run the preflight checks.",
+      "expected_output": "A `thirdparty:check` FAIL naming both offending files and external URLs, despite `astro build` exiting 0.",
+      "assertions": [
+        "`astro build` exits 0, but `npm run thirdparty:check` exits 1 and flags both external URLs",
+        "Reports `thirdparty:check` as FAIL, naming the offending file and URL",
+        "Does not report the gate green just because the build exited 0",
+        "Does NOT flag an outbound `<a href>` in blog prose or a same-origin canonical `<link>` as a violation"
+      ],
+      "baseline": "Without the skill, `astro build` exiting 0 is the whole build verdict and no third-party check runs at all.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 4,
+      "name": "eval-ci-parity-drift",
+      "targets": "The steps beyond type/lint/format/build",
+      "setup": "Throwaway worktree: edit a token value in `DESIGN.md` without regenerating `src/styles/tokens.generated.css`, so `tokens:check` fails while `type:check`, `lint:check`, `format:check`, and `build` all pass.",
+      "prompt": "Run the quality gate before I commit.",
+      "expected_output": "A red verdict from `tokens:check` naming the stale generated file, with `npm run tokens:generate` named as the caller's fix and not run.",
+      "assertions": [
+        "Runs `tokens:check` at all — a gate limited to type/lint/format/build would report this change green",
+        "Reports `tokens:check` as FAIL, naming `src/styles/tokens.generated.css` as stale",
+        "Names `npm run tokens:generate` as the caller's fix and does NOT run it",
+        "The overall verdict is red; it is not rounded up to green"
+      ],
+      "baseline": "Without the skill, `tokens:check` never runs, the change is reported green, and the drift is discovered by CI on the pull request.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 5,
+      "name": "eval-failing-build-inconclusive-guardrail",
+      "targets": "The thirdparty:check step when the build fails — exit 2 is `not run`, not pass",
+      "setup": "Throwaway worktree: break the build itself (e.g. reference a missing import in a page), so `astro build` exits non-zero and leaves `dist/` emptied or half-written.",
+      "prompt": "Run the preflight checks.",
+      "expected_output": "A build FAIL carrying the build's own error, with `thirdparty:check` reported as `not run` rather than pass, and the preceding steps still carrying their own verdicts.",
+      "assertions": [
+        "Reports **build** as FAIL with the build's own error",
+        "Reports `thirdparty:check` as `not run`, NOT as pass — the script exits 2 over a missing or emptied `dist/`",
+        "Does NOT claim 'no third-party resources in dist/' on the strength of a run over broken output",
+        "Still reports the preceding steps with their own verdicts"
+      ],
+      "baseline": "Without the skill, the run reports the build failure alone, and either omits the other steps or searches the broken `dist/` and calls it clean.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 6,
+      "name": "eval-infra-unverified",
+      "targets": "The infra/ note",
+      "setup": "Throwaway worktree with a change confined to `infra/aws`, such as an edited variable default. All eight steps pass, because none of them reads Terraform.",
+      "prompt": "Run preflight before I commit.",
+      "expected_output": "Eight passing steps plus an explicit statement that `infra/` is unverified by this gate and by CI, so the caller does not read eight green rows as coverage of the change.",
+      "assertions": [
+        "Reports all eight steps as pass",
+        "States that `infra/` is unverified by this gate and by CI, and does not present the green gate as covering the change",
+        "Does NOT claim `terraform fmt` or `terraform validate` as run or as passing"
+      ],
+      "baseline": "Without the skill, eight green rows are the whole report and the Terraform-only change reads as fully verified.",
+      "models": ["claude-sonnet-5"]
+    }
+  ]
+}

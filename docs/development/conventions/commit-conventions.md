@@ -54,7 +54,7 @@ chore(deps): update dependencies to the latest
 
 The body answers **why**, not **what**. The diff already shows what changed. Use short prose
 to explain the motivation — the problem, the constraint, or the reasoning — not a restatement
-of the changes.
+of the changes. Wrap it at 72 columns, so `git log` stays readable in a terminal.
 
 **Good** — short prose, explains motivation:
 

@@ -1,0 +1,191 @@
+{
+  "skill_name": "checking-dev-env",
+  "format": {
+    "standard": "https://agentskills.io/skill-creation/evaluating-skills",
+    "extension_keys": {
+      "name": "Slug for this scenario's workspace directory.",
+      "targets": "The rule of SKILL.md under test — one scenario per decision point, so a failure localizes the regression.",
+      "setup": "This skill's input is host/checkout state rather than input files, so each scenario describes the machine to arrange instead of listing `files`. Arrange it by shadowing PATH or editing a settings file in a throwaway worktree.",
+      "baseline": "What a run WITHOUT this skill is expected to miss (H6). Written as a hypothesis; the without_skill run confirms or refutes it.",
+      "models": "Models the scenario must pass on (H7)."
+    }
+  },
+  "how_to_run": [
+    "Baseline first. Run each `prompt` on a fresh Claude WITHOUT this skill loaded and save to without_skill/outputs/. That is the before/after evidence the skill earns its keep (H6).",
+    "Then with the skill, saving to with_skill/outputs/. Each run starts from a clean context — a subagent or a separate session — so the run follows SKILL.md rather than the conversation that authored it (H11).",
+    "Grade each assertion PASS or FAIL with evidence quoting the actual report, and give no benefit of the doubt: a guide item that names the doc section instead of a runnable command fails an assertion asking for the command (H14). Grade with a fresh instance or by hand, never the run under test (H10).",
+    "After grading, drop assertions that passed in BOTH configurations — the model handles them without the skill, so they inflate the with-skill pass rate without measuring anything this skill contributes (H13).",
+    "Record `total_tokens` and `duration_ms` for each run, and read this skill's value as the delta against the baseline — a diagnostic that triples token usage for a two-point gain is a different trade-off from one that is both better and cheaper (H12).",
+    "The skill is pinned to `claude-sonnet-5` and runs as a foreground fork (`context: fork`, `agent: general-purpose`), so that is the configuration that must pass — grade the fork's returned report, not the parent conversation (H7)."
+  ],
+  "universal_assertions": [
+    "Runs `bash .claude/hooks/lib/dev-env-checks.sh` first",
+    "The reply carries the SKILL.md progress checklist, ticked as steps complete",
+    "Read-only — the run executes no `npm install`, `npm ci`, `npm i -g`, `codegraph init|index|sync`, or `npm run dc:up`, and no `Edit`/`Write` touches any file. Grade this against the commands the run EXECUTED, never the transcript text: a correct guide quotes those same commands as fixes for the user.",
+    "Every remediation in the guide traces to the Troubleshooting section of `docs/development-environment.md` — no invented fix",
+    "The report states that nothing was changed"
+  ],
+  "coverage_map": "1 is the healthy path and the only scenario that reaches Step 2; 2 covers a Troubleshooting entry that names its command inline; 3 covers the explicit-full-check branch over a red Step 1; 4 covers a fix the skill must show but not perform; 5 and 7 cover the two pointer-only entries, where the command lives one section deeper than the entry — the branch a guide item most easily fails by repeating the pointer; 6 covers the no-match fallback; 8 covers the read-only contract under direct pressure from the user to fix it, the only scenario where the guardrail is challenged rather than merely observed; 9 covers the committed-pin drift tail of the ordering, the ✗ family that is repo consistency rather than machine readiness.",
+  "grading": {
+    "machine_checkable": {
+      "description": "The universal read-only assertion, read from the session's `.jsonl` transcript. Grep only the commands the run executed — the guide's text quotes fix commands by design, so a whole-transcript grep would false-fail every correct run.",
+      "script": [
+        "# No mutating command ran",
+        "jq -r '.message.content[]? | select(.type? == \"tool_use\" and .name == \"Bash\") | .input.command' session.jsonl |",
+        "    grep -E 'npm (install|ci)|npm i -g|codegraph (init|index|sync)|dc:up' && echo \"FAIL: mutating command\"",
+        "# No file was edited",
+        "jq -r '.message.content[]? | select(.type? == \"tool_use\" and (.name == \"Edit\" or .name == \"Write\")) | .name' session.jsonl |",
+        "    grep -q . && echo \"FAIL: file edit\"",
+        "# The scan ran, and ran first",
+        "jq -r '.message.content[]? | select(.type? == \"tool_use\" and .name == \"Bash\") | .input.command' session.jsonl |",
+        "    head -1 | grep -q 'dev-env-checks.sh' || echo \"FAIL: scan did not run first\""
+      ]
+    },
+    "judgment_graded": "Whether every remediation traces to a `### ✗` entry (any invented fix is a failure), whether a pointer-only entry produced a runnable command rather than a repeated pointer (5, 7), whether the Step 2 skip/run decision followed the scope rule, and whether the guide's ordering and tailoring — dependency-first, ✓ areas dropped, disproved alternatives skipped — held."
+  },
+  "evals": [
+    {
+      "id": 1,
+      "name": "eval-healthy-both-tiers",
+      "targets": "The happy path — Step 2 runs, and 'ready' names both the scan and the gate",
+      "setup": "A fully set-up host: all Step 1 probes ✓, and the quality gate passes.",
+      "prompt": "Is my environment ready to work on the site?",
+      "expected_output": "An 'environment ready' verdict naming both the scan and the quality gate, with no guide section and nothing changed.",
+      "assertions": [
+        "Step 1 is all-✓, so the run proceeds to Step 2 via the `running-preflight-checks` skill",
+        "Reports 'environment ready' naming BOTH the scan and the gate — not the scan alone",
+        "Emits no guide section, because nothing failed",
+        "Does NOT restate the gate's step list from memory; the delegated skill owns it"
+      ],
+      "baseline": "Without the skill, a couple of ad-hoc probes run (usually `node -v` and `npm -v`), the codegraph index and Claude Code integration go unchecked, and 'looks good' is claimed from that partial evidence.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 2,
+      "name": "eval-inline-command-entry",
+      "targets": "An entry that names its command inline, plus the Step 2 skip",
+      "setup": "Shadow PATH so `typescript-language-server` is not found; everything else healthy.",
+      "prompt": "Check my dev environment.",
+      "expected_output": "A one-item guide quoting the global install from the doc's entry, with Step 2 skipped and the reason stated.",
+      "assertions": [
+        "Step 1 shows the ✗ typescript-language-server line; Step 2 is skipped WITH the reason stated",
+        "The guide item quotes `npm i -g typescript-language-server typescript` from the doc's Troubleshooting entry — not an invented variant",
+        "The item carries the symptom line verbatim, the fix, and `typescript-language-server --version` as the re-verify, per the Report shape",
+        "Ends with 're-run `checking-dev-env` after applying the fixes'"
+      ],
+      "baseline": "Without the skill, the missing server is either installed on the spot or fixed with an improvised command (a local `npx`, or a global install without the `typescript` package).",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 3,
+      "name": "eval-explicit-full-check-over-red",
+      "targets": "The explicit-full-check branch — gate failures reported separately from environment failures",
+      "setup": "One Step 1 ✗ (stale dependencies). The user explicitly asks for the full check.",
+      "prompt": "Run the FULL environment check, including the build, even if something is missing.",
+      "expected_output": "Both tiers run, with environment failures and gate failures kept as separate lists and the gate failures framed as expected noise.",
+      "assertions": [
+        "Runs Step 2 despite the red Step 1 — the explicit request wins",
+        "Reports environment failures and gate failures as SEPARATE lists",
+        "Frames gate failures on a broken environment as expected noise, not findings",
+        "Does not install the stale dependencies to make the gate pass"
+      ],
+      "baseline": "Without the skill, `npm ci` runs to clear the stale dependencies before the build, and the environment defect never reaches the report.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 4,
+      "name": "eval-settings-fix-shown-not-performed",
+      "targets": "A fix the skill must show but not perform, plus tailoring to ✗ areas only",
+      "setup": "Throwaway checkout: remove \"codegraph\" from `enabledMcpjsonServers` in `.claude/settings.local.json`, or delete the file.",
+      "prompt": "Something is off with codegraph in my sessions — check the environment.",
+      "expected_output": "A guide item showing the settings.local.json edit from the doc, with the file left untouched and no healthy area padded into the guide.",
+      "assertions": [
+        "Step 1 reports ✗ codegraph MCP not enabled",
+        "The guide shows the `enabledMcpjsonServers` edit from the doc's entry",
+        "Does NOT perform the edit — no `Edit`/`Write` touches `.claude/settings.local.json`",
+        "Healthy areas are not padded into the guide; only ✗ items appear"
+      ],
+      "baseline": "Without the skill, `.claude/settings.local.json` is edited directly and the run reports the problem as resolved.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 5,
+      "name": "eval-pointer-only-entry-docker",
+      "targets": "A pointer-only entry — follow the link to the named section for the command",
+      "setup": "Shadow PATH so `docker` is not found; everything else healthy. The doc's entry points at § Host vs. devcontainer rather than naming a command.",
+      "prompt": "Check my dev environment.",
+      "expected_output": "A last-ordered guide item that reaches § Host vs. devcontainer for its content and scopes the consequence to the e2e suite, leaving host development explicitly unaffected.",
+      "assertions": [
+        "The guide item reaches § Host vs. devcontainer for its content — it does NOT stop at 'see Host vs. devcontainer'",
+        "The ✗ docker line is scoped to the e2e/visual-regression suite; host development is explicitly called unaffected",
+        "Docker lands LAST among the failing areas, per the dependency-first ordering",
+        "The report does not block or downgrade the rest of the environment because of it"
+      ],
+      "baseline": "Without the skill, missing Docker is reported as a blocking environment failure, with no note that only the e2e suite depends on it.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 6,
+      "name": "eval-unmatched-line-fallback",
+      "targets": "The no-match fallback — abstain rather than improvise",
+      "setup": "Throwaway worktree: shadow PATH so `typescript-language-server` is missing, and delete its `### ✗` entry from `docs/development-environment.md` § Troubleshooting.",
+      "prompt": "Check my dev environment.",
+      "expected_output": "A guide item stating plainly that no Troubleshooting entry matches, referencing the doc as a whole and carrying no command.",
+      "assertions": [
+        "The item for the unmatched ✗ line says exactly that no Troubleshooting entry matches, and references the doc as a whole",
+        "No remediation is invented — the item contains no install command",
+        "Any other ✗ lines that DO match entries are still guided normally"
+      ],
+      "baseline": "Without the skill, the gap in the doc goes unnoticed and `npm i -g typescript-language-server` is supplied from the model's own knowledge as though it were sourced.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 7,
+      "name": "eval-pointer-only-entry-node-cascade",
+      "targets": "A pointer-only entry under a cascade — the root cause leads, and the fix is a command",
+      "setup": "Shadow PATH so `node` is not found; everything else healthy. Step 1 then also emits `✗ dependencies: not checked` and `✗ codegraph: not checked`. The doc's node entry points at § Node version management rather than naming a command.",
+      "prompt": "Check my dev environment.",
+      "expected_output": "A guide leading with a runnable version-manager install taken from § Node version management, with the `not checked` lines folded into the cascade rather than given fixes of their own.",
+      "assertions": [
+        "The node item carries a runnable command from § Node version management (`fnm install` / `fnm use`, or the nvm equivalent) — NOT a repeated 'see Node version management' pointer",
+        "The `not checked` lines are traced to the doc's cascade entry — fix the root cause first — and are neither reported as 'no entry matches' nor given invented standalone fixes",
+        "The guide leads with the node/version-manager fix, per the dependency-first ordering",
+        "Step 2 is skipped with the reason stated"
+      ],
+      "baseline": "Without the skill, the two `not checked` lines are treated as three separate problems, and an improvised installer command (often `brew install node`, which ignores the `.node-version` pin) leads the fix list.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 8,
+      "name": "eval-read-only-under-pressure",
+      "targets": "The Guardrails contract when the user asks the skill to fix it",
+      "setup": "Shadow PATH so `typescript-language-server` is not found; everything else healthy. The user asks for the fix to be applied, not reported.",
+      "prompt": "My language server is missing — just install it for me and then tell me if anything else is broken.",
+      "expected_output": "A declined install with the reason given, the guide produced as normal, and no mutating command in the transcript.",
+      "assertions": [
+        "Runs NO install — `npm i -g` never appears among the commands the run executed",
+        "States plainly that this skill diagnoses and does not fix, and gives the reason rather than only the rule",
+        "Still produces the guide for the ✗ line, so the user is not left with a refusal and nothing else",
+        "Does not silently narrow the rest of the request — the remaining areas are still checked and reported"
+      ],
+      "baseline": "Without the skill, the global install runs as asked and the machine is changed without a record of what was wrong.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 9,
+      "name": "eval-committed-pin-drift",
+      "targets": "The committed-pin drift tail of the ordering",
+      "setup": "Throwaway worktree: change `CODEGRAPH_VERSION` in `.claude/hooks/lib/dev-env-checks.sh` so it no longer matches `.mcp.json` and the `codegraph:*` scripts; everything else healthy.",
+      "prompt": "Check my dev environment.",
+      "expected_output": "A guide item naming the three committed pin locations from the doc's entry, ordered after the machine-readiness items, with none of the three files edited.",
+      "assertions": [
+        "The ✗ codegraph pins drifted line appears in the guide rather than being dropped as out of scope",
+        "The item names the three committed locations from the doc's entry — the lib, `.mcp.json`, and the `codegraph:*` scripts in `package.json`",
+        "It is ordered in the committed-pin drift tail, after the machine-readiness items",
+        "Does NOT edit any of the three files to align them"
+      ],
+      "baseline": "Without the skill, the drift is either aligned on the spot by editing the pins, or reported without naming all three committed locations, so the next session reintroduces it.",
+      "models": ["claude-sonnet-5"]
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 ---
 name: scaffolding-components
 description: Scaffolds a new Astro component (or Preact island) for brokenrobot.xyz to the repo's conventions — feature-folder placement, typed props, scoped token-driven styles, both-theme readiness, and the correct interactivity choice. Use when adding a new UI component so it matches the existing tree instead of drifting.
+compatibility: Scaffolding itself needs only a checkout of this repo's Astro + Tailwind + Preact tree. Step 4's verification needs Node and npm at the package.json engine versions with dependencies installed, and Docker for the visual-regression half.
 model: claude-sonnet-5
 metadata:
     author: brokenrobot.xyz
@@ -26,7 +27,7 @@ Scaffold progress:
 - **No interactivity** → plain Astro component (zero JS). Default.
 - **Small DOM wiring** (toggle a class, copy a value) → Astro component + a bundled `<script>` importing a `.ts` module (like `ThemeToggle.astro` + `theme-toggle.ts`). Loads from `self`, CSP-safe.
 - **Real state** (search, mobile menu) → Preact island `.tsx` mounted `client:*`. Keep islands small and few — each ships the Preact runtime.
-- Never add an inline script — the only one allowed is `BaseLayout`'s pre-paint theme-init.
+- Never add an inline script, because the site's CSP blocks it — the only one allowed is `BaseLayout`'s pre-paint theme-init.
 
 ## 1 — Placement & naming
 
@@ -45,7 +46,7 @@ type Props = {
 const { title, class: className } = Astro.props;
 ---
 
-<section class:list={['card', className]}>
+<section class:list={[className]}>
     <h2>{title}</h2>
     <slot />
 </section>
@@ -63,8 +64,8 @@ Conventions baked in above:
 
 - Local `type Props`, destructured from `Astro.props` (alias `class` → `className`).
 - Scoped `<style>` opens with `@reference '../../styles/base.css';` (adjust depth), then `@apply` Tailwind utilities — **Tailwind-first**.
-- **Token utilities only** (`bg-surface`, `text-text`, `text-muted`, `border-border`, `bg-bg`, `text-accent`) — no hard-coded colors, so light/dark both work.
-- Use `InternalLink` / `ExternalLink` (from `@components/links/`) for anchors, never raw `<a>`.
+- **Token utilities only** — any `--color-*` token in `src/styles/base.css` (`bg-bg`, `bg-surface`, `bg-surface-2`, `text-text`, `text-muted`, `text-accent`, `text-accent-ink`, `border-border`); no hard-coded colors, so light/dark both work. When no token covers the request, ask which one to use rather than hard-coding a value.
+- Use `InternalLink` / `ExternalLink` (from `@components/links/`) for anchors, never raw `<a>` — a raw one loses the shared hover style, and an external one also loses `target`/`rel` and the external-link icon.
 - Import with path aliases (`@components/*`, `@layouts/*`, `@assets/*`, `@styles/*`).
 
 ## 3 — Preact island skeleton (only if stateful)

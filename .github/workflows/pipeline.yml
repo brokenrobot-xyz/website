@@ -99,6 +99,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Third-party resource check
+        run: npm run thirdparty:check
+
       - name: Upload dist
         uses: actions/upload-artifact@v6
         with:
