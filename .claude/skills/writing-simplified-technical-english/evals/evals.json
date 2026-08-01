@@ -291,20 +291,45 @@
       ],
       "baseline": "Without the skill, the report carries the line numbers noted while reading, so the second number is stale by the number of lines the first fix added.",
       "models": ["opus", "sonnet"]
+    },
+    {
+      "id": 16,
+      "name": "eval-clean-file-is-left-alone",
+      "targets": "Step 5 — a change set with nothing to change",
+      "files": ["evals/files/eval-clean-file-is-left-alone/reference.md"],
+      "prompt": "Apply the writing conventions to reference.md.",
+      "expected_output": "The file is byte-identical and both report tables are empty. The reply states that the file already satisfies the conventions.",
+      "assertions": [
+        "reference.md is byte-identical after the run",
+        "Reports no changes",
+        "Does not shorten the long guardrail, replace 'commence', collapse the repeated term, or add an article to a list label",
+        "States that the file already satisfies the conventions rather than reporting a marginal change"
+      ],
+      "baseline": "Without the skill, the run finds something to improve — it shortens the guardrail or replaces 'commence' — because a request to apply conventions reads as a request to change something.",
+      "models": ["opus", "sonnet"]
     }
   ],
-  "coverage_map": "1–2 cover the two modes and the default. 3–4 cover the scope boundary, whole-file and within-file. 5–6 cover the two ways an over-eager rewrite does damage: length-driven splitting and paragraph-wide rewriting. 7 covers the per-convention sweep that finds the violations a single reading misses. 8 and 10 cover the two conventions whose rewrite most often loses content — the guardrail consequence and the buried rule. 9 covers the project-carve-out lookup, the one behavior that depends on the host project rather than the file under revision. 11 guards the adaptation boundary the skill's name invites a run to cross: it applies the standard's ambiguity rules without the standard's dictionary. 12 covers the confusion this skill's own input creates: every file is written to direct an agent, so the run must revise the file's imperatives rather than obey them. 13 covers the boundary where a convention cannot be applied at all, because conventions 6, 7, and 10 each need a reading only the author knows. 14 covers the one convention that reads the whole change set rather than one file, so a run that revises each file on its own leaves the drift in place. 15 covers the report itself, because a rewrite moves the line numbers the detection pass recorded and a stale number sends the author to a line that never changed.",
+  "coverage_map": "1–2 cover the two modes and the default. 3–4 cover the scope boundary, whole-file and within-file. 5–6 cover the two ways an over-eager rewrite does damage: length-driven splitting and paragraph-wide rewriting. 7 covers the per-convention sweep that finds the violations a single reading misses. 8 and 10 cover the two conventions whose rewrite most often loses content — the guardrail consequence and the buried rule. 9 covers the project-carve-out lookup, the one behavior that depends on the host project rather than the file under revision. 11 guards the adaptation boundary the skill's name invites a run to cross: it applies the standard's ambiguity rules without the standard's dictionary. 12 covers the confusion this skill's own input creates: every file is written to direct an agent, so the run must revise the file's imperatives rather than obey them. 13 covers the boundary where a convention cannot be applied at all, because conventions 6, 7, and 10 each need a reading only the author knows. 14 covers the one convention that reads the whole change set rather than one file, so a run that revises each file on its own leaves the drift in place. 15 covers the report itself, because a rewrite moves the line numbers the detection pass recorded and a stale number sends the author to a line that never changed. 16 covers the empty case, where the file already satisfies every convention and the run must report nothing rather than manufacture a marginal change.",
   "grading": {
     "machine_checkable": {
-      "description": "The universal assertions, plus every scenario assertion phrased as 'byte-identical'. Both reduce to a diff against the scenario's input files.",
+      "description": "The script checks two things automatically for every fixture: the frontmatter survives unchanged, and the fenced blocks survive unchanged. The script then emits a unified diff per file, so every assertion about an untouched file or an untouched span grades against that diff rather than against a re-reading — an empty diff proves an untouched file. The other three universal assertions are judgment calls, not machine checks. A check that cannot run reports ERROR rather than FAIL, because an environment fault read as a skill failure sends the grader after a defect that does not exist. The script reads only fixtures directly under evals/files/<scenario>/, so a scenario with a nested fixture path needs its diff by hand.",
       "script": [
-        "# frontmatter and fenced blocks must survive every scenario unchanged",
-        "for f in with_skill/outputs/*/SKILL.md; do",
-        "  orig=\"evals/files/$(basename \"$(dirname \"$f\")\")/SKILL.md\"",
-        "  diff <(awk '/^---$/{n++; next} n==1' \"$orig\") <(awk '/^---$/{n++; next} n==1' \"$f\") \\",
-        "    >/dev/null || echo \"FAIL: frontmatter changed in $f\"",
-        "  diff <(awk '/^```/{n++} n%2==1' \"$orig\") <(awk '/^```/{n++} n%2==1' \"$f\") \\",
-        "    >/dev/null || echo \"FAIL: fenced block changed in $f\"",
+        "# Run from the skill directory. $OUT is the run's outputs directory,",
+        "# holding one subdirectory per scenario name.",
+        "tmp=$(mktemp -d); trap 'rm -rf \"$tmp\"' EXIT",
+        "for orig in evals/files/*/*.md; do",
+        "  scen=$(basename \"$(dirname \"$orig\")\"); name=$(basename \"$orig\")",
+        "  out=\"$OUT/$scen/$name\"",
+        "  [ -f \"$out\" ] || { echo \"MISS: $out never produced\"; continue; }",
+        "  for part in frontmatter fence; do",
+        "    if [ \"$part\" = frontmatter ]; then prog='/^---$/{n++; next} n==1'",
+        "    else prog='/^```/{n++} n%2==1'; fi",
+        "    awk \"$prog\" \"$orig\" > \"$tmp/a\" && awk \"$prog\" \"$out\" > \"$tmp/b\"",
+        "    diff -q \"$tmp/a\" \"$tmp/b\" >/dev/null 2>&1; rc=$?",
+        "    if [ \"$rc\" -eq 1 ]; then echo \"FAIL: $part changed in $out\"",
+        "    elif [ \"$rc\" -gt 1 ]; then echo \"ERROR: $part check could not run for $out\"; fi",
+        "  done",
+        "  echo \"=== $scen/$name ===\"; diff -u \"$orig\" \"$out\" || true",
         "done"
       ]
     },
