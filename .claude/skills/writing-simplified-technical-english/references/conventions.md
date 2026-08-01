@@ -78,6 +78,10 @@ Never leave a bare "this", "that", "it", or "they". Follow the demonstrative wit
 to. Write "this check", "that file", "the baseline" instead. A pronoun with two plausible antecedents
 is a coin flip.
 
+When two antecedents stay plausible after you read the surrounding procedure, the text does not
+carry the answer — leave the pronoun and report the line, because naming the wrong noun hides the
+coin flip instead of settling it.
+
 ### 7. Name the whole set
 
 Never close a list with "etc.", "and so on", or "and similar". An open set invites the agent to

@@ -90,13 +90,20 @@ Never restrict which word the author chose to name a thing. These conventions om
 controlled dictionary, so vocabulary is the author's decision unless one concept carries two names,
 which convention 9 covers.
 
+When the rewrite needs information the text does not carry, do not supply the missing information.
+A pronoun with two plausible antecedents, an open set with no stated membership test, and a noun
+stack that parses two ways each have one correct reading that only the author knows, and a guessed
+reading replaces a visible ambiguity with a confident instruction that commands the wrong action.
+Leave such a line as it stands, and report the line as unresolved with the readings you weighed.
+
 ### 4. Verify
 
 Read every rewritten sentence against the original and confirm three things:
 
 - The instruction commands the same action it commanded before.
 - Every guardrail still carries its consequence.
-- Every demonstrative you introduced points at a noun the reader can resolve.
+- Every referent you made explicit names the noun the author meant, rather than the noun that
+  reads most smoothly.
 
 A rewrite that drops a condition is worse than the ambiguity the rewrite fixed, because the agent
 now follows a rule that has lost its limit.
@@ -105,6 +112,9 @@ now follows a rule that has lost its limit.
 
 List each change as three fields: the line, the convention, and a one-line reason. In check mode,
 list the same three fields for each violation and state that no file changed.
+
+List each unresolved line separately, with the convention it breaks and the readings you weighed,
+because a line you could not settle is work the author still owes.
 
 ## What this skill never adds
 
