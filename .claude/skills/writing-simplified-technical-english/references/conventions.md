@@ -94,7 +94,7 @@ and "point to" each carry several. Write "configure", "revert", "commit", and "r
 
 ### 9. Use one term per concept
 
-Pick one name for each thing and keep it everywhere, across every file in the document set. "Gate",
+Pick one name for each thing and keep it everywhere, across every file in the change set. "Gate",
 "quality gate", and "preflight" for one concept force the agent to decide whether they mean the same
 thing.
 
@@ -126,7 +126,7 @@ apparatus together.
 The sentences that exceed those caps are the guardrails that bind a condition to an action. Splitting
 them to satisfy a word count risks breaking that binding, which creates the ambiguity these
 conventions exist to remove. A long sentence that names its actor, carries one instruction, and puts
-its condition first is already clear. Length is not the defect these conventions are looking for.
+its condition first is already clear. Length is not the violation these conventions are looking for.
 
 ## Traceability
 

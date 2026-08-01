@@ -1,8 +1,8 @@
 # Before and after, one pair per convention
 
 Worked rewrites for each of the twelve conventions in
-[`conventions.md`](conventions.md). Each entry states the defect, then shows the smallest rewrite
-that removes the defect. Match the shape of the rewrite, not its wording.
+[`conventions.md`](conventions.md). Each entry states the violation, then shows the smallest rewrite
+that removes the violation. Match the shape of the rewrite, not its wording.
 
 ## Contents
 
@@ -24,7 +24,7 @@ that removes the defect. Match the shape of the rewrite, not its wording.
 
 **Before:** The commit is rejected when the message carries no scope.
 
-**Defect:** The sentence hides the actor. The agent cannot tell whether the skill, a hook, or the
+**Violation:** The sentence hides the actor. The agent cannot tell whether the skill, a hook, or the
 model performs the rejection, so it cannot tell whether the rejection is something it must
 implement or something that happens to it.
 
@@ -37,7 +37,7 @@ build time" needs no actor if nothing in the procedure depends on which step gen
 
 **Before:** Run the type check and fix any errors, then commit the result and open a pull request.
 
-**Defect:** Four instructions occupy one sentence. An agent that completes two of them has followed
+**Violation:** Four instructions occupy one sentence. An agent that completes two of them has followed
 the sentence as written.
 
 **After:**
@@ -54,7 +54,7 @@ the same commit."
 
 **Before:** Regenerate the baselines if the visual difference is intentional.
 
-**Defect:** The agent reads the command before it reads the test that gates the command, so it
+**Violation:** The agent reads the command before it reads the test that gates the command, so it
 begins planning work it may not need to do.
 
 **After:** When the visual difference is intentional, regenerate the baselines.
@@ -65,7 +65,7 @@ begins planning work it may not need to do.
 
 > Note: the dark-theme run reads the light-theme output, so the light theme goes first.
 
-**Defect:** The blockquote carries a rule. An agent that treats notes as context rather than
+**Violation:** The blockquote carries a rule. An agent that treats notes as context rather than
 instruction runs the two themes in the wrong order.
 
 **After:** Promote the rule into the procedure and leave the note holding information only.
@@ -77,7 +77,7 @@ instruction runs the two themes in the wrong order.
 
 **Before:** Never edit the generated file.
 
-**Defect:** The prohibition carries no reason, so the agent cannot weigh it against an instruction
+**Violation:** The prohibition carries no reason, so the agent cannot weigh it against an instruction
 that tells it to change what the generated file contains.
 
 **After:** Never edit the generated file, because the next build overwrites the file and the change
@@ -87,7 +87,7 @@ disappears without an error.
 
 **Before:** Read the configuration and the schema, then validate it.
 
-**Defect:** "It" has two plausible antecedents, and the two readings describe different work.
+**Violation:** "It" has two plausible antecedents, and the two readings describe different work.
 
 **After:** Read the configuration and the schema, then validate the configuration against the schema.
 
@@ -95,7 +95,7 @@ disappears without an error.
 
 **Before:** Run the usual checks: types, lint, format, etc.
 
-**Defect:** "Etc." invites the agent to invent members of the set, so two runs check different
+**Violation:** "Etc." invites the agent to invent members of the set, so two runs check different
 things.
 
 **After, when the set is closed:** Run the four checks: types, lint, format, and tests.
@@ -106,7 +106,7 @@ things.
 
 **Before:** Set up the environment, then roll back the migration if the check fails.
 
-**Defect:** "Set up" and "roll back" each carry several meanings. "Set up" spans installing,
+**Violation:** "Set up" and "roll back" each carry several meanings. "Set up" spans installing,
 configuring, and starting.
 
 **After:** Configure the environment. When the check fails, revert the migration.
@@ -116,7 +116,7 @@ configuring, and starting.
 **Before:** The gate runs before every commit. Skip the quality gate for a documentation-only
 change. The preflight suite reports each failure.
 
-**Defect:** Three names for one concept force the agent to decide whether they name the same thing,
+**Violation:** Three names for one concept force the agent to decide whether they name the same thing,
 and it may conclude that a documentation-only change skips one of three separate procedures.
 
 **After:** Use one name in every sentence and every file.
@@ -125,13 +125,13 @@ and it may conclude that a documentation-only change skips one of three separate
 > each failure.
 
 This is the one convention that constrains word choice, and it constrains only consistency. Picking
-"gate" over "preflight" is the author's call; using both for one concept is the defect.
+"gate" over "preflight" is the author's call; using both for one concept is the violation.
 
 ## 10. Noun stacks
 
 **Before:** the default branch protection rule override list
 
-**Defect:** Six stacked nouns parse more than one way. The list may hold overrides for the
+**Violation:** Six stacked nouns parse more than one way. The list may hold overrides for the
 protection rule, or rules that override the default branch.
 
 **After:** the list of overrides for the default branch's protection rule
@@ -142,13 +142,13 @@ Hyphens work when the words genuinely act as a unit: "a read-only access token".
 
 **Before:** Perform a validation of the input before the execution of the query.
 
-**Defect:** Two actions are buried in nouns, and two empty verbs carry the sentence.
+**Violation:** Two actions are buried in nouns, and two empty verbs carry the sentence.
 
 **After:** Validate the input before you run the query.
 
 ## 12. Mechanics
 
-| Defect                | Before                       | After                             |
+| Violation             | Before                       | After                             |
 | --------------------- | ---------------------------- | --------------------------------- |
 | British spelling      | Normalise the path.          | Normalize the path.               |
 | Contraction in a rule | Don't stage unrelated files. | Do not stage unrelated files.     |
@@ -163,8 +163,8 @@ These pass. Leave them alone.
   them, because a commit that carries unrelated work cannot be reviewed as one change." The sentence
   runs long, names its actor, carries one instruction, and puts its condition first.
 - **An unapproved word.** These conventions omit the standard's controlled dictionary, so a word is
-  never a defect on its own. "Commence" instead of "start" passes.
+  never a violation on its own. "Commence" instead of "start" passes.
 - **A deliberate repetition.** A term repeated where a pronoun would read more smoothly is
-  convention 6 working, not a defect to smooth away.
+  convention 6 working, not a violation to smooth away.
 - **An imperative fragment in a heading or a list label.** Convention 12 exempts both from the
   article rule.
