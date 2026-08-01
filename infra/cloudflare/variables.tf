@@ -15,3 +15,10 @@ variable "apex_domain_name" {
   type        = string
   sensitive   = false
 }
+
+variable "manage_registrar_domain" {
+  description = "Whether the domain is at Cloudflare Registrar (set after the transfer completes)"
+  type        = bool
+  default     = false
+  sensitive   = false
+}

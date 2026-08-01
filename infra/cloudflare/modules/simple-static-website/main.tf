@@ -91,6 +91,22 @@ resource "cloudflare_ruleset" "redirect_apex_to_www" {
 }
 
 ###############################################################################
+# Registrar
+###############################################################################
+# Terraform cannot initiate the registrar transfer itself (auth code +
+# payment) - that single step happens in the dashboard. Once the domain is at
+# Cloudflare Registrar, set manage_registrar_domain to bring its settings
+# under Terraform.
+
+resource "cloudflare_registrar_domain" "website" {
+  count = var.manage_registrar_domain ? 1 : 0
+
+  account_id  = var.cloudflare_account_id
+  domain_name = var.apex_domain_name
+  auto_renew  = true
+}
+
+###############################################################################
 # 404 Error Page
 ###############################################################################
 # Cloudflare Pages will automatically serve a public/404.html file as the custom error page for 404 errors.
