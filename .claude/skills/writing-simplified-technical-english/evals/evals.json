@@ -40,7 +40,7 @@
         "Names the actor in the passive construction",
         "Replaces the bare 'it' with the noun it refers to",
         "Closes the open set, either by listing every member or by stating the membership test",
-        "Reports each change as line, convention, and reason"
+        "Reports each change as a table row with the file, the line number, the convention, and a reason"
       ],
       "baseline": "Without the skill, the run rewrites for readability — shortening sentences and varying word choice — and leaves the bare pronoun, because a pronoun reads naturally in place.",
       "models": ["opus", "sonnet"]
@@ -275,9 +275,25 @@
       ],
       "baseline": "Without the skill, each file is revised on its own and both names survive, because each name is used consistently inside its own file and reads correctly there.",
       "models": ["opus", "sonnet"]
+    },
+    {
+      "id": 15,
+      "name": "eval-report-line-numbers-are-current",
+      "targets": "Step 5 — read each row against the file you changed",
+      "files": ["evals/files/eval-report-line-numbers-are-current/reference.md"],
+      "prompt": "Apply the writing conventions to reference.md.",
+      "expected_output": "Both violations are fixed, and every reported line number locates the changed text in the revised file rather than in the original.",
+      "assertions": [
+        "Reports both changes",
+        "Every reported line number locates the changed text in the revised file",
+        "The passive-voice row reports a line number greater than the number that line held in the original file, because the split above it added lines",
+        "Reports the file name alongside each line number"
+      ],
+      "baseline": "Without the skill, the report carries the line numbers noted while reading, so the second number is stale by the number of lines the first fix added.",
+      "models": ["opus", "sonnet"]
     }
   ],
-  "coverage_map": "1–2 cover the two modes and the default. 3–4 cover the scope boundary, whole-file and within-file. 5–6 cover the two ways an over-eager rewrite does damage: length-driven splitting and paragraph-wide rewriting. 7 covers the per-convention sweep that finds the violations a single reading misses. 8 and 10 cover the two conventions whose rewrite most often loses content — the guardrail consequence and the buried rule. 9 covers the project-carve-out lookup, the one behavior that depends on the host project rather than the file under revision. 11 guards the adaptation boundary the skill's name invites a run to cross: it applies the standard's ambiguity rules without the standard's dictionary. 12 covers the confusion this skill's own input creates: every file is written to direct an agent, so the run must revise the file's imperatives rather than obey them. 13 covers the boundary where a convention cannot be applied at all, because conventions 6, 7, and 10 each need a reading only the author knows. 14 covers the one convention that reads the whole change set rather than one file, so a run that revises each file on its own leaves the drift in place.",
+  "coverage_map": "1–2 cover the two modes and the default. 3–4 cover the scope boundary, whole-file and within-file. 5–6 cover the two ways an over-eager rewrite does damage: length-driven splitting and paragraph-wide rewriting. 7 covers the per-convention sweep that finds the violations a single reading misses. 8 and 10 cover the two conventions whose rewrite most often loses content — the guardrail consequence and the buried rule. 9 covers the project-carve-out lookup, the one behavior that depends on the host project rather than the file under revision. 11 guards the adaptation boundary the skill's name invites a run to cross: it applies the standard's ambiguity rules without the standard's dictionary. 12 covers the confusion this skill's own input creates: every file is written to direct an agent, so the run must revise the file's imperatives rather than obey them. 13 covers the boundary where a convention cannot be applied at all, because conventions 6, 7, and 10 each need a reading only the author knows. 14 covers the one convention that reads the whole change set rather than one file, so a run that revises each file on its own leaves the drift in place. 15 covers the report itself, because a rewrite moves the line numbers the detection pass recorded and a stale number sends the author to a line that never changed.",
   "grading": {
     "machine_checkable": {
       "description": "The universal assertions, plus every scenario assertion phrased as 'byte-identical'. Both reduce to a diff against the scenario's input files.",

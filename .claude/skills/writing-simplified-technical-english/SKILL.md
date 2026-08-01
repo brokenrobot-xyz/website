@@ -120,11 +120,25 @@ now follows a rule that has lost its limit.
 
 ### 5. Report
 
-List each change as three fields: the line, the convention, and a one-line reason. In check mode,
-list the same three fields for each violation and state that no file changed.
+Report every change as a row in one table with four columns: the file, the line number, the
+convention, and a one-line reason.
 
-List each unresolved line separately, with the convention it breaks and the readings you weighed,
-because a line you could not settle is work the author still owes.
+| File                  | Line | Convention                | Reason                                            |
+| --------------------- | ---- | ------------------------- | ------------------------------------------------- |
+| `SKILL.md`            | 42   | 1 — name the actor        | Names the commit hook as the actor the passive hid. |
+| `references/guide.md` | 17   | 9 — one term per concept  | Replaces "preflight" with "gate" at every occurrence. |
+
+Report every unresolved line in a second table with the same four columns, and give the readings
+you weighed in place of the reason, because a line you could not settle is work the author still
+owes.
+
+In check mode, report both tables. State that no file changed.
+
+Read each row against the file you changed before you report the row. Give the line number the
+changed text carries in the revised file, because a rewrite that adds or removes a line moves every
+line number the detection pass recorded, and a stale number sends the author to a line that never
+changed. Report only a change you can locate in the revised file, because a row with no matching
+change is a claim the run cannot support.
 
 ## What this skill never adds
 
