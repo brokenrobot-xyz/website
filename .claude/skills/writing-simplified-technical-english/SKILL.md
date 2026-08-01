@@ -86,6 +86,10 @@ conventions are read against.
 
 ### 3. Rewrite
 
+In check mode, work this step without an edit: decide the smallest rewrite for each candidate,
+classify each line a rewrite cannot settle as unresolved, and change no file. Then skip step 4 and
+go to step 5, because step 4 verifies a rewrite that check mode never applies.
+
 Work from [`references/examples.md`](references/examples.md), which pairs a violating line with its
 rewrite for each of the twelve conventions.
 
@@ -132,9 +136,11 @@ Report every unresolved line in a second table with the same four columns, and g
 you weighed in place of the reason, because a line you could not settle is work the author still
 owes.
 
-In check mode, report both tables. State that no file changed.
+In check mode, report both tables. A row in the first table names a violation and the rewrite the
+line needs, rather than a change you applied, and carries the line number the line holds in the
+unchanged file. State that no file changed.
 
-Read each row against the file you changed before you report the row. Give the line number the
+In revise mode, read each row against the file you changed before you report the row. Give the line number the
 changed text carries in the revised file, because a rewrite that adds or removes a line moves every
 line number the detection pass recorded, and a stale number sends the author to a line that never
 changed. Report only a change you can locate in the revised file, because a row with no matching

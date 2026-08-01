@@ -46,7 +46,7 @@
     {
       "id": 2,
       "name": "eval-check-mode-edits-nothing",
-      "targets": "§ Two modes — check mode, and Step 5's check-mode report",
+      "targets": "§ Two modes — check mode, Step 3's check-mode gate, and Step 5's check-mode report",
       "files": ["evals/files/eval-check-mode-edits-nothing/agent.md"],
       "prompt": "Audit agent.md against the writing conventions and list the problems.",
       "expected_output": "A list of three violations with line, convention, and reason, plus an explicit statement that no file changed.",
