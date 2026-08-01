@@ -328,12 +328,13 @@ Sources: `CLAUDE.md`, `docs/development/conventions/`, `docs/tooling/`.
   `reviewing-skills`, `checking-dev-env`) per docs/tooling/workflow.md § The skills. Generated
   skills (`openspec-*`, `opsx:*`) are exempt.
 - **R7 — prose conventions.** Skill *body* prose (`SKILL.md` body, the prose fields of
-  `evals/evals.json` or a legacy `evals.md`, `references/`)
-  follows `docs/tooling/conventions/writing-conventions.md`. Judge holistically; `R8`–`R11` below
-  are the specific checks worth calling out by name. Two scope limits: the `name`/`description`
-  frontmatter is **not** covered (that is `A1`/`A2`/`A3` — never reword a `description` for prose
-  style, it drives discovery), and the doc has **no sentence-length rule** — do not invent one, see
-  its § What is deliberately not here.
+  `evals/evals.json` or a legacy `evals.md`, `references/`) follows the twelve conventions the
+  `writing-simplified-technical-english` skill carries. Invoke that skill in check mode to grade all twelve;
+  when it is not installed, judge holistically against `R8`–`R11` below and report that the other
+  seven went ungraded. Two scope limits: the `name`/`description` frontmatter is **not** covered
+  (that is `A1`/`A2`/`A3` — never reword a `description` for prose style, it drives discovery), and
+  the conventions have **no sentence-length rule** — do not invent one, because the longest sentences
+  are the guardrails that bind a condition to an action and splitting one breaks that binding.
 - **R8 — named actor.** Instructions use the active voice. Flag passive constructions where the
   actor is ambiguous ("is rejected" — by the skill, the model, or a hook?). Passive is fine where
   the agent genuinely doesn't matter.

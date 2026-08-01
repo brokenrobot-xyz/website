@@ -1,0 +1,249 @@
+{
+  "skill_name": "writing-simplified-technical-english",
+  "format": {
+    "standard": "https://agentskills.io/skill-creation/evaluating-skills",
+    "extension_keys": {
+      "name": "Slug for this scenario's workspace directory.",
+      "targets": "The step, mode, or guard of SKILL.md under test (H3) — one scenario per decision point, so a failure localizes the regression.",
+      "files": "Input files written into the scenario workspace before the prompt runs. This skill's input is prose in a file, so every scenario ships its own synthetic target and depends on no host repository.",
+      "baseline": "What a run WITHOUT this skill is expected to miss (H6). Written as a hypothesis; the without_skill run confirms or refutes it.",
+      "models": "Models the scenario must pass on (H7)."
+    }
+  },
+  "how_to_run": [
+    "Baseline first. Run each `prompt` on a fresh Claude WITHOUT this skill loaded and save to without_skill/outputs/. That is the before/after evidence the skill earns its keep (H6).",
+    "Then with the skill, saving to with_skill/outputs/. Each run starts from a clean context — a subagent or a separate session — so the run follows SKILL.md rather than the conversation that authored it (H11).",
+    "Write each scenario's `files` into an empty scratch directory and run there. No scenario reads or writes a real project, so the suite is portable to any host repository.",
+    "Record total_tokens and duration_ms per run in timing.json. The skill's value is the delta in pass rate read against its cost in tokens and time (H12).",
+    "Grade each assertion PASS or FAIL with evidence quoting the resulting file or the transcript. Give no benefit of the doubt (H14). Grade with a fresh instance or by hand — never the run under test, since a run that self-scores confirms its own reading of the conventions instead of testing it (H10).",
+    "After grading, drop assertions that passed in BOTH configurations — the model handles them without the skill, so they inflate the with-skill pass rate without measuring anything this skill contributes (H13)."
+  ],
+  "universal_assertions": [
+    "No frontmatter `name` or `description` value is altered in any scenario",
+    "No text inside a fenced code block is altered in any scenario",
+    "Every reported change names the convention it applies",
+    "No sentence is shortened, split, or merged for length alone",
+    "No word is replaced merely for being outside a controlled vocabulary"
+  ],
+  "evals": [
+    {
+      "id": 1,
+      "name": "eval-revise-is-the-default",
+      "targets": "§ Two modes, one default — an unqualified request revises",
+      "files": {
+        "SKILL.md": "Frontmatter plus a body whose steps carry a passive construction ('the branch is created'), a bare 'it' with two antecedents, and a list ending in 'etc.'"
+      },
+      "prompt": "Apply the writing conventions to SKILL.md.",
+      "expected_output": "The file is edited in place, and the reply lists each change with its line and convention.",
+      "assertions": [
+        "Edits the file rather than only reporting findings",
+        "Names the actor in the passive construction",
+        "Replaces the bare 'it' with the noun it refers to",
+        "Closes the open set, either by listing every member or by stating the membership test",
+        "Reports each change as line, convention, and reason"
+      ],
+      "baseline": "Without the skill, the run rewrites for readability — shortening sentences and varying word choice — and leaves the bare pronoun, because a pronoun reads naturally in place.",
+      "models": ["opus", "sonnet"]
+    },
+    {
+      "id": 2,
+      "name": "eval-check-mode-edits-nothing",
+      "targets": "§ Two modes — check mode, and Step 5's check-mode report",
+      "files": {
+        "agent.md": "An agent definition carrying three violations: a bare prohibition, a four-noun stack, and a rule hidden in a blockquote."
+      },
+      "prompt": "Audit agent.md against the writing conventions and list the problems.",
+      "expected_output": "A list of three violations with line, convention, and reason, plus an explicit statement that no file changed.",
+      "assertions": [
+        "Makes no edit to agent.md (byte-identical before and after)",
+        "States explicitly that no file changed",
+        "Reads 'audit' and 'list the problems' as check mode without being told the mode name",
+        "Finds all three violations"
+      ],
+      "baseline": "Without the skill, an audit request produces a rewritten file or a mix of prose advice and applied edits, because nothing distinguishes reporting from revising.",
+      "models": ["opus", "sonnet"]
+    },
+    {
+      "id": 3,
+      "name": "eval-refuses-out-of-scope-file",
+      "targets": "Step 1 — the whole file is out of scope",
+      "files": {
+        "landing-copy.md": "Marketing copy for a product page: second person, contractions, and deliberate sentence fragments.",
+        "CLAUDE.md": "A project file stating that published site copy follows the project's brand guide."
+      },
+      "prompt": "Apply the writing conventions to landing-copy.md.",
+      "expected_output": "A refusal that names the published-copy exclusion and leaves the file untouched.",
+      "assertions": [
+        "Makes no edit to landing-copy.md",
+        "Names the published-product-copy exclusion as the reason",
+        "Points at the project's voice or brand guide as the governing document",
+        "Does not partially revise the file before stopping"
+      ],
+      "baseline": "Without the skill, the run applies the conventions to marketing copy, stripping contractions and second person from text whose voice depends on both.",
+      "models": ["opus", "sonnet"]
+    },
+    {
+      "id": 4,
+      "name": "eval-mixed-scope-file",
+      "targets": "Step 1 — one file mixes scopes",
+      "files": {
+        "SKILL.md": "Frontmatter whose `description` contains 'etc.' and a passive clause, a body with the same two defects, and a fenced bash block containing a comment written in the passive voice."
+      },
+      "prompt": "Apply the writing conventions to SKILL.md.",
+      "expected_output": "Only the body is revised. The frontmatter and the fenced block are byte-identical.",
+      "assertions": [
+        "The `description` value is byte-identical after the run",
+        "The fenced block's contents are byte-identical after the run",
+        "The body's equivalent defects are fixed",
+        "States that the frontmatter was left alone because the description drives skill discovery"
+      ],
+      "baseline": "Without the skill, the run fixes the same defect everywhere it appears, including the description, because the defect is identical in each location.",
+      "models": ["opus", "sonnet"]
+    },
+    {
+      "id": 5,
+      "name": "eval-long-guardrail-survives",
+      "targets": "§ What this skill never adds — no length rule",
+      "files": {
+        "reference.md": "A document containing one 38-word guardrail that names its actor, carries one instruction, states its condition first, and gives its consequence — plus two genuine violations elsewhere."
+      },
+      "prompt": "Apply the writing conventions to reference.md.",
+      "expected_output": "The two genuine violations are fixed. The long guardrail is unchanged.",
+      "assertions": [
+        "The 38-word guardrail is byte-identical after the run",
+        "Does not split the guardrail into shorter sentences",
+        "Fixes the two genuine violations",
+        "If the guardrail is mentioned at all, explains that length is not a defect"
+      ],
+      "baseline": "Without the skill, the run splits the long sentence, and the split separates the condition from the action it gates.",
+      "models": ["opus", "sonnet"]
+    },
+    {
+      "id": 6,
+      "name": "eval-smallest-span",
+      "targets": "Step 3 — change the smallest span",
+      "files": {
+        "design.md": "A 200-word design section whose only defect is one nominalization in the third sentence."
+      },
+      "prompt": "Apply the writing conventions to design.md.",
+      "expected_output": "One clause changes. The surrounding paragraph is untouched.",
+      "assertions": [
+        "Exactly one sentence differs from the original",
+        "The paragraph's other sentences are byte-identical",
+        "Does not restructure the section's headings or order",
+        "Reports one change, not a rewrite"
+      ],
+      "baseline": "Without the skill, the run rewrites the whole section, because a request to improve prose reads as a license to rewrite it.",
+      "models": ["opus", "sonnet"]
+    },
+    {
+      "id": 7,
+      "name": "eval-quiet-defects-found",
+      "targets": "Step 2 — walk once per convention, not once per sentence",
+      "files": {
+        "tasks.md": "A task list whose defects are all quiet: a five-noun stack, a bare 'they' with two antecedents, and one concept named three different ways across the file."
+      },
+      "prompt": "Apply the writing conventions to tasks.md.",
+      "expected_output": "All three defects are found and fixed, including the terminology drift that is only visible across the whole file.",
+      "assertions": [
+        "Finds the five-noun stack",
+        "Resolves the bare 'they'",
+        "Finds the one-term-per-concept violation, which requires comparing separated sections",
+        "Settles on a single term and applies that term at every occurrence"
+      ],
+      "baseline": "Without the skill, the run finds at most the noun stack. The terminology drift survives, because each occurrence reads correctly in isolation.",
+      "models": ["opus", "sonnet"]
+    },
+    {
+      "id": 8,
+      "name": "eval-guardrail-consequence-survives-rewrite",
+      "targets": "Step 4 — verify that every guardrail keeps its consequence",
+      "files": {
+        "SKILL.md": "A body whose guardrail is passive and wordy but does carry its consequence: 'The remote branch must never be force-pushed to, as the collaborator's commits would be discarded without a warning.'"
+      },
+      "prompt": "Apply the writing conventions to SKILL.md.",
+      "expected_output": "The guardrail becomes active and direct, and it still states what happens when the rule is broken.",
+      "assertions": [
+        "The rewritten guardrail names the actor",
+        "The rewritten guardrail still states the consequence",
+        "The consequence still names what is lost, not merely that something goes wrong",
+        "The prohibition is not weakened into advice"
+      ],
+      "baseline": "Without the skill, the rewrite tightens the sentence and drops the trailing clause, because the clause reads as explanatory padding.",
+      "models": ["opus", "sonnet"]
+    },
+    {
+      "id": 9,
+      "name": "eval-project-carve-out-honored",
+      "targets": "§ What this governs — a project adds its own carve-out",
+      "files": {
+        "CLAUDE.md": "A project file stating that files under `notes/` are personal scratch notes and follow no convention.",
+        "notes/scratch.md": "Scratch prose carrying several violations.",
+        "reference.md": "A technical document carrying the same violations."
+      },
+      "prompt": "Apply the writing conventions across this project.",
+      "expected_output": "reference.md is revised. notes/scratch.md is untouched, and the reply says which file was skipped and why.",
+      "assertions": [
+        "Reads CLAUDE.md before revising",
+        "Leaves notes/scratch.md byte-identical",
+        "Names the skipped file and cites the project's carve-out",
+        "Revises reference.md"
+      ],
+      "baseline": "Without the skill, both files are revised, because nothing directs the run to read the project's conventions before editing.",
+      "models": ["opus", "sonnet"]
+    },
+    {
+      "id": 10,
+      "name": "eval-note-promoted-not-deleted",
+      "targets": "Convention 4 — a rule hiding in an aside",
+      "files": {
+        "SKILL.md": "A numbered procedure with a parenthetical in step 2 that carries a required action the numbered steps never state."
+      },
+      "prompt": "Apply the writing conventions to SKILL.md.",
+      "expected_output": "The required action becomes a numbered step. The procedure's existing step order is preserved.",
+      "assertions": [
+        "The required action appears as a numbered step",
+        "The action is not merely reworded inside the parenthetical",
+        "The action is not deleted along with the parenthetical",
+        "The original steps keep their relative order"
+      ],
+      "baseline": "Without the skill, the parenthetical is either left as an aside or removed as redundant, and the required action is lost.",
+      "models": ["opus", "sonnet"]
+    },
+    {
+      "id": 11,
+      "name": "eval-no-controlled-vocabulary",
+      "targets": "Step 3 — never restrict which word the author chose",
+      "files": {
+        "reference.md": "A document using words the ASD-STE100 dictionary does not approve — 'commence', 'utilize', 'terminate', 'endeavor' — each used consistently for one concept, plus one genuine convention 8 violation ('set up')."
+      },
+      "prompt": "Apply Simplified Technical English to reference.md.",
+      "expected_output": "The phrasal verb is replaced. The unapproved single-meaning words are left alone.",
+      "assertions": [
+        "'commence', 'utilize', 'terminate', and 'endeavor' are unchanged",
+        "Replaces the phrasal verb 'set up' with a single precise verb",
+        "If vocabulary is discussed at all, states that the controlled dictionary is not adopted",
+        "Does not claim the output conforms to ASD-STE100"
+      ],
+      "baseline": "Without the skill, a prompt naming Simplified Technical English triggers approved-word substitution, so 'commence' becomes 'start' and 'utilize' becomes 'use' — changes the conventions do not ask for.",
+      "models": ["opus", "sonnet"]
+    }
+  ],
+  "coverage_map": "1–2 cover the two modes and the default. 3–4 cover the scope boundary, whole-file and within-file. 5–6 cover the two ways an over-eager rewrite does damage: length-driven splitting and paragraph-wide rewriting. 7 covers the per-convention sweep that finds the defects a single reading misses. 8 and 10 cover the two conventions whose rewrite most often loses content — the guardrail consequence and the buried rule. 9 covers the project-carve-out lookup, the one behavior that depends on the host project rather than the target file. 11 guards the adaptation boundary the skill's name invites a run to cross: it applies the standard's ambiguity rules without the standard's dictionary.",
+  "grading": {
+    "machine_checkable": {
+      "description": "The universal assertions, plus every scenario assertion phrased as 'byte-identical'. Both reduce to a diff against the scenario's input files.",
+      "script": [
+        "# frontmatter and fenced blocks must survive every scenario unchanged",
+        "for f in with_skill/outputs/*/SKILL.md; do",
+        "  orig=\"inputs/$(basename \"$(dirname \"$f\")\")/SKILL.md\"",
+        "  diff <(awk '/^---$/{n++; next} n==1' \"$orig\") <(awk '/^---$/{n++; next} n==1' \"$f\") \\",
+        "    >/dev/null || echo \"FAIL: frontmatter changed in $f\"",
+        "  diff <(awk '/^```/{n++} n%2==1' \"$orig\") <(awk '/^```/{n++} n%2==1' \"$f\") \\",
+        "    >/dev/null || echo \"FAIL: fenced block changed in $f\"",
+        "done"
+      ]
+    },
+    "judgment_graded": "Whether a rewrite preserves the original instruction, whether a guardrail's consequence survives in substance rather than in form, whether the chosen single term is the right one, and whether a skipped revision was genuinely out of scope. Grade these with a fresh instance, never the run under test (H10)."
+  }
+}

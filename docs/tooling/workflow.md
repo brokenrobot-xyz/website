@@ -127,6 +127,13 @@ vendored names. The `reviewing-skills` skill enforces this as checklist item `R6
 - **`reviewing-skills`** — review a skill (its SKILL.md, evals, and referenced files) against
   Anthropic's skill-authoring and prompting best practices plus this repo's conventions, producing a
   severity-ranked gap analysis and optionally applying approved fixes.
+- **`writing-simplified-technical-english`** — revise agent-facing prose (skill bodies, agent
+  definitions, OpenSpec artifacts, `docs/`) so an agent cannot read a sentence two ways, and check
+  prose without editing it. It applies twelve conventions adapted from ASD-STE100 Issue 9 — the
+  standard's ambiguity rules without its controlled dictionary or its sentence-length caps. It
+  carries those conventions and their examples in its own bundle, holds no reference to this
+  repository, and is written to be published as a plugin; how this project applies it is recorded in
+  [conventions/writing-conventions.md](conventions/writing-conventions.md).
 
 ## MCP servers (`.mcp.json`)
 

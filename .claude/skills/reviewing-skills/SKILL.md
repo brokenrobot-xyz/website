@@ -2,7 +2,7 @@
 name: reviewing-skills
 description: Reviews a Claude Code skill — its SKILL.md, evals, and referenced files — against Anthropic's skill-authoring and prompting best practices plus this repo's conventions, producing a severity-ranked gap analysis and optionally applying approved fixes. Use when the user asks to review, audit, or improve a skill in this repo.
 compatibility: Designed for Claude Code — reviews skills under .claude/skills/. Network access keeps the criteria current; without it the review falls back to the baked checklist and says so.
-allowed-tools: Read Edit Write Bash Grep Glob WebFetch
+allowed-tools: Read Edit Write Bash Grep Glob WebFetch Skill
 model: opus
 ---
 
@@ -23,10 +23,11 @@ evals, referenced files/hooks). To review several, run again per skill.
   conventions). Cite criterion keys (e.g. `A2`, `D1`, `R3`) in findings. Read its § Sources
   **Precedence** rule before scoring: the open standard is the base, Anthropic and Claude Code
   extend it, and the two carry different weight in a finding.
-- [`writing-conventions.md`](../../../docs/tooling/conventions/writing-conventions.md) — the prose
-  conventions `R7` grades against. Read it whenever you score prose: the checklist condenses only
-  five of its twelve conventions into `R8`–`R11` (`R11` covers two), so scoring `R7` from the
-  checklist alone misses the other seven.
+- The **`writing-simplified-technical-english`** skill — the prose conventions `R7` grades against.
+  Invoke it in check mode whenever you score prose, because the checklist condenses only five of its
+  twelve conventions into `R8`–`R11` (`R11` covers two) and scoring `R7` from the checklist alone
+  misses the other seven. When the skill is not installed, score `R8`–`R11` on your own and say in
+  the report that the other seven conventions went ungraded.
 - The live docs at the URLs in that file's § Sources — the authoritative, current guidance.
 
 ## Steps

@@ -251,15 +251,16 @@
     {
       "id": 14,
       "name": "eval-full-prose-conventions",
-      "targets": "Step 4 — scoring R7 against the whole conventions doc",
-      "setup": "A target skill whose prose violates conventions the checklist does NOT bake in as R8–R11: phrasal verbs ('set up', 'point to') per convention 8, and contracted normative sentences ('Don't stage untracked files') per convention 12. Its R8–R11 behavior is clean. Guards the A6 fix: writing-conventions.md is linked from SKILL.md precisely because the checklist condenses only five of its twelve conventions into R8–R11.",
+      "targets": "Step 4 — scoring R7 across all twelve conventions",
+      "setup": "A target skill whose prose violates conventions the checklist does NOT bake in as R8–R11: phrasal verbs ('set up', 'point to') per convention 8, and contracted normative sentences ('Don't stage untracked files') per convention 12. Its R8–R11 behavior is clean. Guards the delegation: R7 hands prose scoring to the writing-simplified-technical-english skill precisely because the checklist condenses only five of the twelve conventions into R8–R11.",
       "prompt": "Review this skill.",
       "expected_output": "Findings against R7 naming the violated conventions by number, with no invented sentence-length rule and no reword of the name or description.",
       "assertions": [
-        "Reads writing-conventions.md, not only the checklist's R7–R11 summaries",
+        "Invokes writing-simplified-technical-english in check mode rather than scoring from the checklist's R7–R11 summaries alone",
         "Flags the phrasal verbs and the normative contractions against R7, naming the conventions by number",
-        "Does NOT invent a sentence-length or word-count finding — the doc's § What is deliberately not here rules that out",
-        "Does NOT reword the skill's name or description frontmatter, which R7 places out of scope"
+        "Does NOT invent a sentence-length or word-count finding — the conventions rule that out",
+        "Does NOT reword the skill's name or description frontmatter, which R7 places out of scope",
+        "When the skill is not installed, still scores R8–R11 and reports that the other seven conventions went ungraded"
       ],
       "baseline": "Without the skill, prose is graded by general taste and the eight conventions outside R8–R11 go unchecked.",
       "models": ["opus"]
