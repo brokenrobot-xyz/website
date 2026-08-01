@@ -148,37 +148,6 @@ jobs:
           path: reports/tests/e2e/
           retention-days: 3
 
-  deploy-to-aws:
-    name: 'Deploy to AWS'
-    runs-on: ubuntu-24.04
-    needs: [verify, build, test]
-    if: github.ref == 'refs/heads/main'
-    timeout-minutes: 10
-    environment: Production
-    concurrency:
-      group: Production
-      cancel-in-progress: true
-
-    steps:
-      - name: Download dist
-        uses: actions/download-artifact@v7
-        with:
-          name: dist
-          path: dist/
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v5
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Deploy to AWS S3
-        run: aws s3 sync dist/ s3://${{ secrets.AWS_S3_BUCKET_NAME }} --delete
-
-      - name: Invalidate AWS CloudFront cache
-        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
-
   deploy-to-cloudflare:
     name: 'Deploy to Cloudflare'
     runs-on: ubuntu-24.04

@@ -20,7 +20,7 @@ src/
   utils/           readingTimePlugin.ts, codeBlockFocusPlugin.ts (Sätteri plugins)
   consts.ts        Centralized site metadata
   content.config.ts Content collection schema
-public/            Static assets (favicon, robots.txt)
+public/            Static assets (favicon, robots.txt, _headers)
 tests/             Playwright specs + visual snapshots
 infra/             Terraform (AWS, Cloudflare) + Kubernetes
 ```
@@ -143,8 +143,8 @@ each one.
    and styles and **no `unsafe-inline`**, so an injected inline script does not run. Because the
    hashes are per-page and follow the content, only the build can produce this layer — and
    because it lives in the HTML, it travels unchanged to any host.
-2. **An edge header**, defined in three places that must stay identical: the Terraform variable
-   `content_security_policy` (AWS CloudFront — production), `nginx.conf` (Kubernetes), and
+2. **An edge header**, defined in three places that must stay identical: `public/_headers`
+   (Cloudflare Pages — production), `nginx.conf` (Kubernetes), and
    `server.headers` in `astro.config.ts` (what `astro preview`, and therefore the Playwright
    suite, serves). This layer carries what a `<meta>` element cannot express —
    `frame-ancestors` — and additionally covers non-HTML responses and host-generated error
