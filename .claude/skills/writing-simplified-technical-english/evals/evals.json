@@ -5,7 +5,7 @@
     "extension_keys": {
       "name": "Slug for this scenario's workspace directory.",
       "targets": "The step, mode, or guard of SKILL.md under test (H3) — one scenario per decision point, so a failure localizes the regression.",
-      "files": "Input files copied into the scenario workspace before the prompt runs. This skill's input is prose in a file, so every scenario ships its own synthetic fixture and depends on no host repository. A path array points at committed fixtures under `evals/files/<scenario-name>/`, which is the shape the standard defines and the only shape a run can grade. A scenario that still carries an object of filename to prose description has no committed fixture yet: two runs of that scenario revise different files, so its baseline delta is uncontrolled and its byte-identical assertions have nothing to diff against. Scenarios 5, 6, and 7 carry fixtures; migrating the remaining nine is open work.",
+      "files": "Input files copied into the scenario workspace before the prompt runs. This skill's input is prose in a file, so every scenario ships its own synthetic fixture and depends on no host repository. A path array references committed fixtures under `evals/files/<scenario-name>/`, which is the shape the standard defines and the only shape a run can grade. A scenario that still carries an object of filename to prose description has no committed fixture yet: two runs of that scenario revise different files, so its baseline delta is uncontrolled and its byte-identical assertions have nothing to diff against. Scenarios 5, 6, and 7 carry fixtures; migrating the remaining nine is open work.",
       "baseline": "What a run WITHOUT this skill is expected to miss (H6). Written as a hypothesis; the without_skill run confirms or refutes it.",
       "models": "Models the scenario must pass on (H7)."
     }
@@ -76,7 +76,7 @@
       "assertions": [
         "Makes no edit to landing-copy.md",
         "Names the published-product-copy exclusion as the reason",
-        "Points at the project's voice or brand guide as the governing document",
+        "Names the project's voice or brand guide as the governing document",
         "Does not partially revise the file before stopping"
       ],
       "baseline": "Without the skill, the run applies the conventions to marketing copy, stripping contractions and second person from text whose voice depends on both.",
