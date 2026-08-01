@@ -26,6 +26,7 @@ coverage
 .env.production
 
 # Claude Code local settings (may hold secrets, e.g. the GitHub MCP token)
+.claude/worktrees/
 .claude/settings.local.json
 
 # Codegraph local index (per-worktree, never shared)
