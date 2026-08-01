@@ -5,7 +5,7 @@
     "extension_keys": {
       "name": "Slug for this scenario's workspace directory.",
       "targets": "The step, mode, or guard of SKILL.md under test (H3) — one scenario per decision point, so a failure localizes the regression.",
-      "files": "Input files written into the scenario workspace before the prompt runs. This skill's input is prose in a file, so every scenario ships its own synthetic target and depends on no host repository.",
+      "files": "Input files copied into the scenario workspace before the prompt runs. This skill's input is prose in a file, so every scenario ships its own synthetic target and depends on no host repository. A path array points at committed fixtures under `evals/files/<scenario-name>/`, which is the shape the standard defines and the only shape a run can grade. A scenario that still carries an object of filename to prose description has no committed fixture yet: two runs of that scenario revise different documents, so its baseline delta is uncontrolled and its byte-identical assertions have nothing to diff against. Scenarios 5, 6, and 7 carry fixtures; migrating the remaining nine is open work.",
       "baseline": "What a run WITHOUT this skill is expected to miss (H6). Written as a hypothesis; the without_skill run confirms or refutes it.",
       "models": "Models the scenario must pass on (H7)."
     }
@@ -13,7 +13,7 @@
   "how_to_run": [
     "Baseline first. Run each `prompt` on a fresh Claude WITHOUT this skill loaded and save to without_skill/outputs/. That is the before/after evidence the skill earns its keep (H6).",
     "Then with the skill, saving to with_skill/outputs/. Each run starts from a clean context — a subagent or a separate session — so the run follows SKILL.md rather than the conversation that authored it (H11).",
-    "Write each scenario's `files` into an empty scratch directory and run there. No scenario reads or writes a real project, so the suite is portable to any host repository.",
+    "Copy each scenario's `files` into an empty scratch directory and run there, preserving each fixture's path relative to its scenario directory. No scenario reads or writes a real project, so the suite is portable to any host repository.",
     "Record total_tokens and duration_ms per run in timing.json. The skill's value is the delta in pass rate read against its cost in tokens and time (H12).",
     "Grade each assertion PASS or FAIL with evidence quoting the resulting file or the transcript. Give no benefit of the doubt (H14). Grade with a fresh instance or by hand — never the run under test, since a run that self-scores confirms its own reading of the conventions instead of testing it (H10).",
     "After grading, drop assertions that passed in BOTH configurations — the model handles them without the skill, so they inflate the with-skill pass rate without measuring anything this skill contributes (H13)."
@@ -104,9 +104,7 @@
       "id": 5,
       "name": "eval-long-guardrail-survives",
       "targets": "§ What this skill never adds — no length rule",
-      "files": {
-        "reference.md": "A document containing one 38-word guardrail that names its actor, carries one instruction, states its condition first, and gives its consequence — plus two genuine violations elsewhere."
-      },
+      "files": ["evals/files/eval-long-guardrail-survives/reference.md"],
       "prompt": "Apply the writing conventions to reference.md.",
       "expected_output": "The two genuine violations are fixed. The long guardrail is unchanged.",
       "assertions": [
@@ -122,9 +120,7 @@
       "id": 6,
       "name": "eval-smallest-span",
       "targets": "Step 3 — change the smallest span",
-      "files": {
-        "design.md": "A 200-word design section whose only defect is one nominalization in the third sentence."
-      },
+      "files": ["evals/files/eval-smallest-span/design.md"],
       "prompt": "Apply the writing conventions to design.md.",
       "expected_output": "One clause changes. The surrounding paragraph is untouched.",
       "assertions": [
@@ -140,9 +136,7 @@
       "id": 7,
       "name": "eval-quiet-defects-found",
       "targets": "Step 2 — walk once per convention, not once per sentence",
-      "files": {
-        "tasks.md": "A task list whose defects are all quiet: a five-noun stack, a bare 'they' with two antecedents, and one concept named three different ways across the file."
-      },
+      "files": ["evals/files/eval-quiet-defects-found/tasks.md"],
       "prompt": "Apply the writing conventions to tasks.md.",
       "expected_output": "All three defects are found and fixed, including the terminology drift that is only visible across the whole file.",
       "assertions": [
@@ -255,7 +249,7 @@
       "script": [
         "# frontmatter and fenced blocks must survive every scenario unchanged",
         "for f in with_skill/outputs/*/SKILL.md; do",
-        "  orig=\"inputs/$(basename \"$(dirname \"$f\")\")/SKILL.md\"",
+        "  orig=\"evals/files/$(basename \"$(dirname \"$f\")\")/SKILL.md\"",
         "  diff <(awk '/^---$/{n++; next} n==1' \"$orig\") <(awk '/^---$/{n++; next} n==1' \"$f\") \\",
         "    >/dev/null || echo \"FAIL: frontmatter changed in $f\"",
         "  diff <(awk '/^```/{n++} n%2==1' \"$orig\") <(awk '/^```/{n++} n%2==1' \"$f\") \\",
