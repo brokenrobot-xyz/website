@@ -41,37 +41,6 @@ resource "aws_cloudfront_function" "viewer_request" {
 }
 
 # ########################################
-# Route 53 Domains - registration
-# ########################################
-# The Route 53 Domains API lives in us-east-1 only, hence the aliased
-# provider. Terraform adopts the already-registered domain rather than
-# registering it; destroying only forgets it. Adoption also enforces the
-# resource defaults: auto-renew on, WHOIS privacy on.
-#
-# Set cloudflare_name_servers (from the zone_name_servers output of
-# infra/cloudflare) to delegate DNS to Cloudflare; while it is empty the
-# registration keeps its current nameservers and stays out of Terraform.
-
-resource "aws_route53domains_registered_domain" "website" {
-  count = length(var.cloudflare_name_servers) > 0 ? 1 : 0
-
-  domain_name   = local.apex_domain_name
-  transfer_lock = var.domain_transfer_lock
-
-  dynamic "name_server" {
-    for_each = var.cloudflare_name_servers
-
-    content {
-      name = name_server.value
-    }
-  }
-
-  tags = local.tags
-
-  provider = aws.domain_registrar
-}
-
-# ########################################
 # SNS - alarms
 # ########################################
 
