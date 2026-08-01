@@ -56,8 +56,8 @@ docs.
 
 - **Ad-free and tracking-free.** No ads, affiliate links, analytics spyware, or third-party
   trackers. This is core to the brand promise.
-- **Static by design.** A static-site model delivered from Cloudflare Pages. See
-  [tech-stack](tech-stack.md).
+- **Static by design.** A static-site model with dual-cloud delivery (AWS S3/CloudFront +
+  Cloudflare Pages). See [tech-stack](tech-stack.md).
 - **Strict security.** A strict CSP and hardened security headers. See
   [architecture](architecture.md) for what this means for theming.
 - **Stable URLs.** `/blog/<slug>/` permalinks and the RSS feed keep working — readers and

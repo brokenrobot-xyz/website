@@ -173,10 +173,9 @@ export default defineConfig({
         port: process.env.BROKENROBOT_PORT === undefined ? 4321 : parseInt(process.env.BROKENROBOT_PORT, 10),
         headers: {
             'Cache-Control': `public, max-age=0, must-revalidate`,
-            // Mirrors the edge header in public/_headers (Cloudflare Pages — production) and
-            // nginx.conf so `astro preview` (and the Playwright suite, which runs against it)
-            // exercises the same two-layer policy as production. Keep the three in sync; the
-            // strict, hash-based half is the <meta> policy from `security.csp`.
+            // Mirrors the edge header in nginx.conf so `astro preview` (and the Playwright suite,
+            // which runs against it) exercises the same two-layer policy as production. Keep the
+            // two in sync; the strict, hash-based half is the <meta> policy from `security.csp`.
             'Content-Security-Policy': `default-src 'none'; child-src 'none'; connect-src 'self'; font-src 'self'; frame-src 'none'; img-src 'self'; manifest-src 'none'; media-src 'none'; object-src 'none'; script-src 'self' 'unsafe-inline'; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; style-src-attr 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none';`,
             'Permissions-Policy': `accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), display-capture=(), document-domain=(), encrypted-media=(), gamepad=(), geolocation=(), gyroscope=(), fullscreen=(self), magnetometer=(), microphone=(), midi=(), payment=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), speaker-selection=(), usb=(), web-share=(), xr-spatial-tracking=()`,
             'Referrer-Policy': `same-origin`,

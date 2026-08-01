@@ -41,15 +41,15 @@ design overhaul.
 - **CI/CD** runs in GitHub Actions (`.github/workflows/pipeline.yml`): a `verify` →
   `build` → `test` sequence (format, lint, type-check, OpenSpec validation, then build, then
   Playwright), followed by deployment from `main`.
-- **Delivery is Cloudflare Pages:** the built site is published to **Cloudflare Pages** on every
-  merge to `main`, with edge security headers from `public/_headers`. The deploy job targets the
-  `Cloudflare` GitHub Environment; the release gate — a required approval on that
-  environment — is intended but **not yet configured** (see [development-workflow](development-workflow.md)).
+- **Dual-cloud delivery:** the built site is published to both **AWS** (S3 sync + CloudFront
+  invalidation) and **Cloudflare Pages**, on every merge to `main`. The deploy jobs target the
+  `Production` and `Cloudflare` GitHub Environments; the release gate — a required approval on those
+  environments — is intended but **not yet configured** (see [development-workflow](development-workflow.md)).
 
 ## Infrastructure & tooling
 
-- **Infrastructure as code:** Terraform under `infra/` (Cloudflare; the retired AWS stack
-  remains until it is destroyed) plus Kubernetes manifests. CI also runs `terraform fmt`/`validate`.
+- **Infrastructure as code:** Terraform under `infra/` (AWS, Cloudflare) plus Kubernetes
+  manifests. CI also runs `terraform fmt`/`validate`.
 - **Container:** a `Dockerfile` serves `dist/` via unprivileged Nginx.
 - **Dev container:** a reproducible environment with Node and Terraform pre-installed.
 
