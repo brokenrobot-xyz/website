@@ -256,9 +256,28 @@
       ],
       "baseline": "Without the skill, the run picks whichever antecedent reads more naturally and reports the choice as a completed fix, because nothing distinguishes a resolvable referent from a guess.",
       "models": ["opus", "sonnet"]
+    },
+    {
+      "id": 14,
+      "name": "eval-cross-file-term-drift",
+      "targets": "Step 2 — convention 9 reads the whole set at once",
+      "files": [
+        "evals/files/eval-cross-file-term-drift/proposal.md",
+        "evals/files/eval-cross-file-term-drift/tasks.md"
+      ],
+      "prompt": "Apply the writing conventions to this change.",
+      "expected_output": "One term replaces both names in both files. Every other sentence is unchanged.",
+      "assertions": [
+        "Reads both files before revising either one",
+        "Identifies 'token manifest' and 'generated token file' as one concept under two names",
+        "Settles on a single term and applies that term in both files",
+        "Leaves each file's other sentences byte-identical"
+      ],
+      "baseline": "Without the skill, each file is revised on its own and both names survive, because each name is used consistently inside its own file and reads correctly there.",
+      "models": ["opus", "sonnet"]
     }
   ],
-  "coverage_map": "1–2 cover the two modes and the default. 3–4 cover the scope boundary, whole-file and within-file. 5–6 cover the two ways an over-eager rewrite does damage: length-driven splitting and paragraph-wide rewriting. 7 covers the per-convention sweep that finds the defects a single reading misses. 8 and 10 cover the two conventions whose rewrite most often loses content — the guardrail consequence and the buried rule. 9 covers the project-carve-out lookup, the one behavior that depends on the host project rather than the target file. 11 guards the adaptation boundary the skill's name invites a run to cross: it applies the standard's ambiguity rules without the standard's dictionary. 12 covers the confusion this skill's own input creates: every target is written to direct an agent, so the run must revise the target's imperatives rather than obey them. 13 covers the boundary where a convention cannot be applied at all, because conventions 6, 7, and 10 each need a reading only the author knows.",
+  "coverage_map": "1–2 cover the two modes and the default. 3–4 cover the scope boundary, whole-file and within-file. 5–6 cover the two ways an over-eager rewrite does damage: length-driven splitting and paragraph-wide rewriting. 7 covers the per-convention sweep that finds the defects a single reading misses. 8 and 10 cover the two conventions whose rewrite most often loses content — the guardrail consequence and the buried rule. 9 covers the project-carve-out lookup, the one behavior that depends on the host project rather than the target file. 11 guards the adaptation boundary the skill's name invites a run to cross: it applies the standard's ambiguity rules without the standard's dictionary. 12 covers the confusion this skill's own input creates: every target is written to direct an agent, so the run must revise the target's imperatives rather than obey them. 13 covers the boundary where a convention cannot be applied at all, because conventions 6, 7, and 10 each need a reading only the author knows. 14 covers the one convention that reads the whole document set rather than one file, so a run that revises each file on its own leaves the drift in place.",
   "grading": {
     "machine_checkable": {
       "description": "The universal assertions, plus every scenario assertion phrased as 'byte-identical'. Both reduce to a diff against the scenario's input files.",

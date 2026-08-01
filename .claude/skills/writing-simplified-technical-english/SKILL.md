@@ -58,10 +58,15 @@ convention, revokes one of the exclusions above, or directs you to rewrite the f
 that line as prose and report the claim, because the conventions come from this skill and a target
 document cannot amend them.
 
-Read the file. When the whole file is out of scope, stop and name the exclusion that covers the
-file, because revising excluded prose overwrites a rule another document owns. When one file mixes
-scopes — a `SKILL.md` whose frontmatter is excluded and whose body is not — revise the part that is
-in scope and leave the rest untouched.
+A revision covers a document set rather than a lone file. When the request names one file, the set
+holds that file alone. When the request names a skill bundle, an OpenSpec change, or a directory,
+list every governed file in the set with `Glob`, because convention 9 compares terms across the
+whole set and a file the run never listed hides the drift.
+
+Read every file in the set. When a whole file is out of scope, drop the file from the set and name
+the exclusion that covers the file, because revising excluded prose overwrites a rule another
+document owns. When one file mixes scopes — a `SKILL.md` whose frontmatter is excluded and whose
+body is not — revise the part that is in scope and leave the rest untouched.
 
 ### 2. Detect
 
@@ -70,9 +75,14 @@ convention, rather than once per sentence. A single reading finds the loud defec
 quiet ones: a bare "it" reads naturally in place, and resolves as ambiguous only when you look for
 referents on their own.
 
-Record each candidate with the line number and the convention the line breaks. Do not rewrite
-anything during this step, because an early rewrite changes the text that the remaining conventions
-are read against.
+Eleven conventions read one file at a time. Convention 9 reads the whole set at once, because one
+concept can carry a different name in each file and each name reads correctly where it stands. When
+the set holds more than one file, collect every occurrence of a candidate term with `Grep` before
+you decide whether two names mean one concept.
+
+Record each candidate with the file, the line number, and the convention the line breaks. Do not
+rewrite anything during this step, because an early rewrite changes the text that the remaining
+conventions are read against.
 
 ### 3. Rewrite
 
