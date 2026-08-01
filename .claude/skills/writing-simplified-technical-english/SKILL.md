@@ -108,7 +108,7 @@ Leave such a line as it stands, and report the line as unresolved with the readi
 
 ### 4. Verify
 
-Read every rewritten sentence against the original and confirm three things:
+A rewrite is complete only when three things hold:
 
 - The instruction commands the same action it commanded before.
 - Every guardrail still carries its consequence.
