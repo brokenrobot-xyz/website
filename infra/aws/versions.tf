@@ -17,3 +17,8 @@ provider "aws" {
   region = "us-east-1"
   alias  = "certificate_authority"
 }
+
+provider "aws" {
+  region = "us-east-1"
+  alias  = "domain_registrar"
+}

@@ -6,6 +6,7 @@ module "website" {
   source    = "./modules/simple-static-website"
   providers = { cloudflare = cloudflare }
 
-  cloudflare_account_id = var.cloudflare_account_id
-  apex_domain_name      = var.apex_domain_name
+  cloudflare_account_id   = var.cloudflare_account_id
+  apex_domain_name        = var.apex_domain_name
+  manage_registrar_domain = var.manage_registrar_domain
 }
