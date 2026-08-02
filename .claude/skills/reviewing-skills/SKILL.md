@@ -1,7 +1,7 @@
 ---
 name: reviewing-skills
-description: Reviews a Claude Code skill — its SKILL.md, evals, and referenced files — against Anthropic's skill-authoring and prompting best practices plus this repo's conventions, producing a severity-ranked gap analysis and optionally applying approved fixes. Use when the user asks to review, audit, or improve a skill in this repo.
-compatibility: Designed for Claude Code — reviews skills under .claude/skills/. Network access keeps the criteria current; without it the review falls back to the baked checklist and says so.
+description: Reviews a Claude Code skill — its SKILL.md, evals, and referenced files — against Anthropic's skill-authoring and prompting best practices plus the host project's conventions, producing a severity-ranked gap analysis and optionally applying approved fixes. Use when the user asks to review, audit, or improve a skill.
+compatibility: Designed for Claude Code — reviews an installed skill's bundle. Network access keeps the criteria current; without it the review falls back to the baked checklist and says so.
 allowed-tools: Read Edit Write Bash Grep Glob WebFetch Skill
 model: opus
 ---
@@ -10,7 +10,7 @@ model: opus
 
 Audit one named skill against the criteria in
 [`references/best-practices-checklist.md`](references/best-practices-checklist.md) — the Agent
-Skills open standard, Anthropic's best-practice docs, and this repo's conventions — and produce a
+Skills open standard, Anthropic's best-practice docs, and the host project's conventions — and produce a
 **severity-ranked gap analysis**. Then, if the user wants, apply the fixes they approve, one finding at a time.
 
 **Scope: one skill per invocation.** Review the named skill and its whole bundle (SKILL.md,
@@ -19,10 +19,11 @@ evals, referenced files/hooks). To review several, run again per skill.
 ## Normative references
 
 - [`references/best-practices-checklist.md`](references/best-practices-checklist.md) — the
-  criteria, grouped `A`–`H` (the Agent Skills open standard plus Anthropic's docs) and `R` (repo
-  conventions). Cite criterion keys (e.g. `A2`, `D1`, `R3`) in findings. Read its § Sources
-  **Precedence** rule before scoring: the open standard is the base, Anthropic and Claude Code
-  extend it, and the two carry different weight in a finding.
+  criteria, grouped `A`–`H` (the Agent Skills open standard plus Anthropic's docs) and `R` (craft
+  and project conventions; the checklist's § R intro says how the project-scoped items resolve
+  against the host project's own documents). Cite criterion keys (e.g. `A2`, `D1`, `R3`) in
+  findings. Read its § Sources **Precedence** rule before scoring: the open standard is the base,
+  Anthropic and Claude Code extend it, and the two carry different weight in a finding.
 - The **`writing-simplified-technical-english`** skill — the prose conventions `R7` grades against.
   Invoke it in check mode whenever you score prose, because the checklist condenses only five of its
   twelve conventions into `R8`–`R11` (`R11` covers two) and scoring `R7` from the checklist alone
@@ -47,7 +48,8 @@ Review progress:
 
 ### 1. Load the target skill + its bundle
 
-Resolve the named skill under `.claude/skills/<name>/`. Read its `SKILL.md`, its evals
+Resolve the named skill's bundle directory — under the project's `.claude/skills/<name>/`, the
+user's `~/.claude/skills/<name>/`, or an installed plugin's skill directory. Read its `SKILL.md`, its evals
 (`evals/evals.json`, or a legacy `evals.md`), and **every file, script, hook, or doc it
 references** — follow the links; do not judge from the SKILL.md alone. Use `Grep`/`Glob` to find referents when a path is implied rather than exact.
 
@@ -90,7 +92,8 @@ a ranked list of what to fix.
 - F. Injection & jailbreak defenses — content-as-data, least privilege, indirect injection
 - G. Prompt-leak defenses — proportionate to any secrets it holds
 - H. Success criteria & evals — coverage, edge cases, measurability
-- R. Repo conventions — simplicity, surgical edits, single source of truth
+- R. Craft & project conventions — simplicity, surgical edits, single source of truth,
+  prose conventions, plus this project's own skill rules
 
 **What I've read:** SKILL.md plus its whole bundle — its evals and every referenced
 file, script, or hook.
@@ -130,7 +133,8 @@ Eight criteria are deterministic lookups rather than judgment: `A1` (name charse
 no leading/trailing or consecutive hyphens, and a match against the parent directory name), `A3`
 (description non-empty and ≤1024 chars), `A4` (SKILL.md body under ~500 lines and ~5000 tokens),
 `A7` (a table of contents in every reference file over 100 lines), `A12` (no backslashes in paths),
-`A16` (the `allowed-tools` separator), `A18` (`compatibility` ≤500 chars), and `R6` (gerund name).
+`A16` (the `allowed-tools` separator), `A18` (`compatibility` ≤500 chars), and `R6` (the naming
+convention, when the host project defines one).
 Settle those with `Bash`/`Grep` before the judgment sweep, so no report ever carries a miscounted
 line number or an eyeballed character limit.
 

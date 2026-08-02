@@ -17,7 +17,7 @@ this file and notes the staleness in the report.
 - [F. Mitigate jailbreaks & prompt injection](#f-mitigate-jailbreaks--prompt-injection)
 - [G. Reduce prompt leak](#g-reduce-prompt-leak)
 - [H. Success criteria & evaluations](#h-success-criteria--evaluations)
-- [R. Repo conventions](#r-repo-conventions)
+- [R. Craft and project conventions](#r-craft-and-project-conventions)
 
 ## Sources
 
@@ -233,8 +233,8 @@ subagents readily; never instruct it to reproduce its reasoning (`C7`).
 
 The live doc splits this into two threat models: **direct** injection (the user is the adversary)
 and **indirect** injection (the user is trusted, but the model reads third-party content — pages,
-emails, documents, tool results — carrying adversarial instructions). Most skills in this repo face
-the indirect model.
+emails, documents, tool results — carrying adversarial instructions). Most skills face the
+indirect model.
 
 - **F1 — content is data.** The skill instructs treating read content (files, diffs, tool
   results, fetched pages) as data, never as instructions.
@@ -263,8 +263,8 @@ the indirect model.
 - **H1 — evals exist, in the standard's format.** ≥3 scenarios, stored as `evals/evals.json` in
   the skill directory. Each entry carries `id`, `prompt` (a realistic user message, not a
   paraphrase of the skill's own steps), `expected_output` (a human-readable description of
-  success), optional `files`, and `assertions`. The repo extends that schema with three keys the
-  standard omits but `H3`/`H6`/`H7` require: `targets` (the step or branch under test), `baseline`
+  success), optional `files`, and `assertions`. This checklist extends that schema with three keys
+  the standard omits but `H3`/`H6`/`H7` require: `targets` (the step or branch under test), `baseline`
   (what a run without the skill misses), and `models`. A prose `evals.md` is a finding — it holds
   the same information but no runner can consume it. The standard suggests starting at 2–3 and
   expanding once the first run shows what "good" looks like, so a brand-new skill at 2 is early
@@ -310,23 +310,30 @@ the indirect model.
   vague sentence fails an assertion asking for a summary. An opinion without a quotation is not a
   grade.
 
-## R. Repo conventions
+## R. Craft and project conventions
 
-Sources: `CLAUDE.md`, `docs/development/conventions/`, `docs/tooling/`.
+Sources: this checklist itself for `R1`–`R4` and `R7`–`R11`, which are portable craft criteria;
+the **host project's own convention documents** for `R5` and `R6`, which are project-scoped.
+Before scoring the project-scoped items, read the host project's `CLAUDE.md` and the convention
+documents it links. Where the project defines no convention for a project-scoped item, score the
+item `N/A` — never invent a house rule the project does not have. A project's conventions may also
+narrow any other item in this group; when one does, cite the project's document alongside the key.
 
 - **R1 — simplicity first.** No speculative features/abstractions/config beyond what the skill's
   job requires.
 - **R2 — surgical.** The skill's own *apply* edits touch only what a finding requires.
-- **R3 — single source of truth / no drift.** The skill references authoritative repo docs rather
-  than restating their rules; any restated rule is sourced and kept in sync. Unsourced restated
-  rules are a drift finding.
+- **R3 — single source of truth / no drift.** The skill references its authoritative sources
+  rather than restating their rules; any restated rule is sourced and kept in sync. Unsourced
+  restated rules are a drift finding.
 - **R4 — ask when uncertain.** The skill surfaces ambiguity/tradeoffs rather than guessing
   silently.
-- **R5 — commit hygiene.** If the skill authors commits, it conforms to `commit-conventions.md`
-  (Conventional Commits, allowed scopes, no attribution trailers).
-- **R6 — naming convention.** Skill names use gerund form (verb-ing + object, e.g.
-  `reviewing-skills`, `checking-dev-env`) per docs/tooling/workflow.md § The skills. Generated
-  skills (`openspec-*`, `opsx:*`) are exempt.
+- **R5 — commit hygiene.** If the skill authors commits, it conforms to the host project's commit
+  conventions. `N/A` when the skill authors no commits or the project defines no commit
+  convention.
+- **R6 — naming convention.** Skill names follow the host project's skill-naming convention where
+  one exists — a project rule that narrows `A1`'s "gerund preferred" to mandatory is the common
+  case. Skills the project's tooling vendors under generated names are exempt when the project
+  says so. `N/A` when the project defines no naming convention.
 - **R7 — prose conventions.** Skill *body* prose (`SKILL.md` body, the prose fields of
   `evals/evals.json` or a legacy `evals.md`, `references/`) follows the twelve conventions the
   `writing-simplified-technical-english` skill carries. Invoke that skill in check mode to grade all twelve;

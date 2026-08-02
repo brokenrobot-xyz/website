@@ -125,8 +125,11 @@ vendored names. The `reviewing-skills` skill enforces this as checklist item `R6
   `dependency-update-researcher` run per bump) before recommending them. Delegates verification to
   `running-preflight-checks` and `testing-visual-regression`.
 - **`reviewing-skills`** — review a skill (its SKILL.md, evals, and referenced files) against
-  Anthropic's skill-authoring and prompting best practices plus this repo's conventions, producing a
-  severity-ranked gap analysis and optionally applying approved fixes.
+  Anthropic's skill-authoring and prompting best practices plus the host project's conventions,
+  producing a severity-ranked gap analysis and optionally applying approved fixes. It holds no
+  reference to this repository and is written to be published as a plugin; how this project applies
+  it — which documents its project-scoped criteria resolve to — is recorded in
+  [conventions/skill-conventions.md](conventions/skill-conventions.md).
 - **`writing-simplified-technical-english`** — revise agent-facing prose (skill bodies, agent
   definitions, OpenSpec artifacts, `docs/`) so an agent cannot read a sentence two ways, and check
   prose without editing it. It applies twelve conventions adapted from ASD-STE100 Issue 9 — the
