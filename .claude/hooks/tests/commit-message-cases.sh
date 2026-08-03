@@ -3,11 +3,10 @@
 set -uo pipefail
 
 hook_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-HOOK="$hook_dir/deny-noncompliant-commit-message.sh"
 REPO="$(cd "$hook_dir/../.." && pwd)"
-
-# shellcheck source=../lib/commit-vocabulary.sh
-. "$hook_dir/lib/commit-vocabulary.sh"
+# The hook lives inside the committing-conventionally skill's bundle (scripts/, per the Agent
+# Skills spec), beside the recipe it enforces.
+HOOK="$REPO/.claude/skills/committing-conventionally/scripts/deny-noncompliant-commit-message.sh"
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
@@ -15,12 +14,20 @@ trap 'rm -rf "$tmp"' EXIT
 printf 'docs: add a setup guide\n\nA short why-body explaining the motivation.\n' > "$tmp/good.txt"
 printf 'docs: add a setup guide\n\nBody line.\n\nCo-Authored-By: Someone <x@y.z>\n' > "$tmp/trailer.txt"
 
+# Three synthetic project roots exercise the config resolution: no config at all (the built-in
+# Conventional Commits defaults), a config that only flips attributionTrailers, and a config the
+# hook cannot parse. $REPO exercises the real .brokenrobot/commits.json.
+mkdir -p "$tmp/defaults" "$tmp/allowed/.brokenrobot" "$tmp/broken/.brokenrobot"
+printf '{"attributionTrailers": "allowed"}\n' > "$tmp/allowed/.brokenrobot/commits.json"
+printf 'not json\n' > "$tmp/broken/.brokenrobot/commits.json"
+
 pass=0
 fail=0
+PROJ="$REPO"
 
 run() {
   local expect="$1" label="$2" cmd="$3" out decision
-  out="$(jq -n --arg cmd "$cmd" '{tool_input:{command:$cmd}}' | bash "$HOOK" 2>/dev/null)"
+  out="$(jq -n --arg cmd "$cmd" '{tool_input:{command:$cmd}}' | CLAUDE_PROJECT_DIR="$PROJ" bash "$HOOK" 2>/dev/null)"
   if printf '%s' "$out" | grep -q '"permissionDecision": *"deny"'; then decision=deny; else decision=allow; fi
   if [[ "$decision" == "$expect" ]]; then
     pass=$((pass + 1)); printf 'ok   [%-5s] %s\n' "$expect" "$label"
@@ -87,6 +94,9 @@ EOF
 OUTER
 )"
 
+# --- This repo's .brokenrobot/commits.json: custom `post` type, fixed scope allowlist ------------
+PROJ="$REPO"
+
 run allow "commit -F good file"                 "git commit -F $tmp/good.txt"
 run allow "git -C … commit -a -F good file"      "git -C /repo/path commit -a -F $tmp/good.txt"
 run allow "combined -aF good file"               "git commit -aF $tmp/good.txt"
@@ -115,15 +125,27 @@ run deny  "unknown scope"                         'git commit -m "fix(banana): x
 run deny  "trailing period"                       'git commit -m "fix: something."'
 run deny  "-am bad type"                          'git commit -am "nope: change"'
 
-# The hook's allowlists are an executable copy of commit-conventions.md. Nothing above would catch
-# the two drifting apart, because every case here is written against the hook's own lists.
-vocab_drift="$(commit_vocabulary_drift "$REPO/$COMMIT_VOCAB_DOC" "$HOOK")"
-if [[ -z "$vocab_drift" ]]; then
-  pass=$((pass + 1)); printf 'ok   [%-5s] %s\n' "match" "hook allowlists match commit-conventions.md"
-else
-  fail=$((fail + 1)); printf 'FAIL exp=%-5s got=%-5s :: %s\n     %s\n' "match" "drift" \
-    "hook allowlists match commit-conventions.md" "$vocab_drift"
-fi
+# --- No config: the built-in defaults — vanilla types, no scope allowlist, trailers forbidden ----
+PROJ="$tmp/defaults"
+
+run allow "defaults: vanilla type"               'git commit -m "fix: something"'
+run allow "defaults: any lowercase scope"        'git commit -m "fix(banana): peel"'
+run deny  "defaults: post is not a vanilla type" 'git commit -m "post: publish an article"'
+run deny  "defaults: bad type (wip)"             'git commit -m "wip: something"'
+run deny  "defaults: trailer still forbidden"    'git commit -m "docs: x" -m "Co-Authored-By: A <a@b.c>"'
+run deny  "defaults: trailing period"            'git commit -m "fix: something."'
+
+# --- attributionTrailers: "allowed" — only the trailer rule relaxes -------------------------------
+PROJ="$tmp/allowed"
+
+run allow "allowed: trailer passes"              'git commit -m "docs: x" -m "Co-Authored-By: A <a@b.c>"'
+run deny  "allowed: bad type still denied"       'git commit -m "wip: something"'
+
+# --- Unparseable config: deny commits with a clear reason, leave non-commits alone ----------------
+PROJ="$tmp/broken"
+
+run deny  "broken config: commit denied"         'git commit -m "fix: something"'
+run allow "broken config: non-commit untouched"  'git log --oneline'
 
 printf '\n%d passed, %d failed\n' "$pass" "$fail"
 [[ "$fail" -eq 0 ]]

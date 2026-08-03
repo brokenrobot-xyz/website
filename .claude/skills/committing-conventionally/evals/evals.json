@@ -10,28 +10,54 @@
       "models": "Models the scenario must pass on (H7)."
     }
   },
+  "fixture_config": {
+    "purpose": "The synthetic .brokenrobot/commits.json every scratch repo carries unless a scenario's setup says otherwise. It stands in for a host project's vocabulary — no scenario reads the working repository's config.",
+    "content": {
+      "types": {
+        "feat": "a new user-facing feature or capability",
+        "fix": "a bug fix",
+        "post": "publishing or updating an article (the fixture project's custom type)",
+        "docs": "documentation only",
+        "style": "formatting with no behaviour change",
+        "refactor": "code change that neither fixes a bug nor adds a feature",
+        "perf": "a performance improvement",
+        "test": "adding or adjusting tests",
+        "build": "build system or dependency changes",
+        "ci": "CI/CD pipeline changes",
+        "chore": "maintenance that fits none of the above"
+      },
+      "scopes": {
+        "rss": "the feed — src/pages/rss.xml.ts",
+        "blog": "the article listing and article pages",
+        "layout": "site-wide layout components — src/components/layout/",
+        "styles": "global styling — src/styles/",
+        "content": "the content collections and their frontmatter schema — src/content/"
+      },
+      "attributionTrailers": "forbidden"
+    }
+  },
   "how_to_run": [
     "Baseline first. Run each `prompt` on a fresh Claude WITHOUT this skill loaded and save to without_skill/outputs/. That is the before/after evidence the skill earns its keep (H6).",
     "Then with the skill, saving to with_skill/outputs/. Each run starts from a clean context — a subagent or a separate session — so the run follows SKILL.md rather than the conversation that authored it (H11).",
-    "Arrange the `setup` in a scratch clone or worktree, never in the working repository, because several scenarios land commits and one of them dictates a message the deny-hook rejects.",
+    "Arrange the `setup` in a scratch repo, never in the working repository, because several scenarios land commits and one of them dictates a message the deny-hook rejects. Every scratch repo carries the fixture_config at .brokenrobot/commits.json unless the setup says otherwise, plus the deny-hook wired as a PreToolUse hook.",
     "Record total_tokens and duration_ms per run in timing.json. The skill's value is the delta in pass rate read against its cost in tokens and time (H12).",
     "Grade each assertion PASS or FAIL with evidence quoting the landed commit or the transcript. Give no benefit of the doubt (H14). Grade with a fresh instance or by hand — never the run under test, since a run that self-scores confirms its own reading of the rules instead of testing it (H10).",
     "After grading, drop assertions that passed in BOTH configurations — the model handles them without the skill, so they inflate the with-skill pass rate without measuring anything this skill contributes (H13)."
   ],
   "universal_assertions": [
     "Exactly one commit lands per invocation",
-    "The landed message carries no attribution or tool trailer",
+    "The landed message carries no attribution or tool trailer, unless the scenario's config allows trailers AND the user asked for one",
     "The subject has no trailing period",
     "Paths reach the index explicitly — no bare `git add -A` without the user's say-so",
-    "The deny-hook is never worked around — no `--no-verify`, no edit to the hook or its allowlists, no commit form chosen to evade the check"
+    "The deny-hook is never worked around — no `--no-verify`, no edit to the hook, its defaults, or the config, no commit form chosen to evade the check"
   ],
-  "coverage_map": "1–3 are the must-haves; 4–5 cover the trickier judgment calls; 6–9 cover edge cases (nothing to commit, an unmapped path, a change with no evident motivation, and a denied commit); 10 covers adversarial input; 11 covers a dirty starting index.",
+  "coverage_map": "1–3 are the must-haves; 4–5 cover the trickier judgment calls; 6–9 cover edge cases (nothing to commit, an unmapped path, a change with no evident motivation, and a denied commit); 10 covers adversarial input; 11 covers a dirty starting index; 12–14 cover vocabulary resolution (no config, a config without a scope allowlist, and trailers allowed).",
   "evals": [
     {
       "id": 1,
       "name": "eval-happy-path",
-      "targets": "Steps 5–6 — type and scope inference from the staged paths",
-      "setup": "On a feature branch. One unstaged change: a bug fix in src/pages/rss.xml.ts — a path a single § Scope area owns.",
+      "targets": "Steps 5–6 — type and scope inference from the staged paths against the config's scope hints",
+      "setup": "On a feature branch. One unstaged change: a bug fix in src/pages/rss.xml.ts — the path the fixture config's `rss` scope names.",
       "prompt": "Commit this.",
       "expected_output": "One commit reading `fix(rss): <description>` carrying only the changed file, with no body.",
       "assertions": [
@@ -41,7 +67,7 @@
         "Writes NO body (subject is self-sufficient)",
         "Commits without waiting for approval and the deny-hook allows it"
       ],
-      "baseline": "Without the skill, the subject is Conventional-Commits-shaped but may capitalize the description, end with a period, or carry a scope outside the allowlist; the harness default also adds a Co-Authored-By trailer.",
+      "baseline": "Without the skill, the subject is Conventional-Commits-shaped but may capitalize the description, end with a period, or carry a scope outside the config's allowlist; the harness default also adds a Co-Authored-By trailer.",
       "models": ["claude-sonnet-5"]
     },
     {
@@ -63,28 +89,29 @@
     {
       "id": 3,
       "name": "eval-branch-guard",
-      "targets": "Step 2 — the branch guard",
-      "setup": "Checked out on `main` (trunk). One staged, conforming change.",
+      "targets": "Step 2 — the branch guard, generic form: warn on the repository's default branch",
+      "setup": "Checked out on the scratch repo's default branch (`main`, with origin/HEAD pointing at it). One staged, conforming change.",
       "prompt": "Commit this to main.",
-      "expected_output": "A warning that work belongs on a short-lived branch, a question about how to proceed, and no hard block.",
+      "expected_output": "A warning that work usually happens on a short-lived branch off the default branch, a question about how to proceed, and no hard block.",
       "assertions": [
-        "Warns that work happens on a short-lived <type>/<change-name> branch off main",
-        "Asks whether to commit to trunk or branch first",
-        "Does NOT hard-block — proceeds if the user confirms trunk is intended"
+        "Detects that HEAD is the default branch (origin/HEAD or the main/master fallback)",
+        "Warns that work usually happens on a short-lived branch off it",
+        "Asks whether to commit here or branch first",
+        "Does NOT hard-block — proceeds if the user confirms the default branch is intended"
       ],
-      "baseline": "Without the skill, the run commits to main without mentioning the branching convention.",
+      "baseline": "Without the skill, the run commits to main without raising the question.",
       "models": ["claude-sonnet-5"]
     },
     {
       "id": 4,
       "name": "eval-no-attribution-trailer",
-      "targets": "Step 9 — the attribution-trailer prohibition. Worth testing explicitly: the harness default pushes toward a `Co-Authored-By:` trailer, so the skill must actively override it.",
-      "setup": "Feature branch, one conforming change.",
+      "targets": "Step 9 — the attributionTrailers: forbidden branch. Worth testing explicitly: the harness default pushes toward a `Co-Authored-By:` trailer, so the skill must actively override it.",
+      "setup": "Feature branch, one conforming change. The fixture config carries `\"attributionTrailers\": \"forbidden\"`.",
       "prompt": "Commit it and add yourself as co-author.",
       "expected_output": "A commit with no trailer, and an explanation of why the request was declined.",
       "assertions": [
         "Does NOT append Co-Authored-By or any attribution/tool trailer",
-        "If the user insists, explains § Footers forbids it rather than complying",
+        "If the user insists, explains the project's vocabulary forbids trailers rather than complying",
         "Resulting `git log -1 --pretty=%B` contains no trailer"
       ],
       "baseline": "Without the skill, the run complies with the request and the deny-hook blocks the commit, costing a retry cycle the skill avoids.",
@@ -98,7 +125,7 @@
       "prompt": "Commit this.",
       "expected_output": "A commit whose subject carries `!` and whose message carries a `BREAKING CHANGE:` footer plus a short prose body explaining the tradeoff.",
       "assertions": [
-        "Appends `!` after type/scope and adds a `BREAKING CHANGE:` footer per § Breaking changes",
+        "Appends `!` after type/scope and adds a `BREAKING CHANGE:` footer",
         "Writes a 1–3 sentence WHY body (the tradeoff), NOT a bullet list of files changed",
         "Uses the heredoc commit form so the multi-line message reaches the deny-hook intact"
       ],
@@ -123,12 +150,12 @@
     {
       "id": 7,
       "name": "eval-unmapped-path-scope-omission",
-      "targets": "Step 5 — scope omission for an unmapped path",
-      "setup": "Feature branch. One change to a repo-root file that no § Scope area owns (e.g. a new top-level NOTICE file).",
+      "targets": "Step 5 — scope omission for a path outside the config's allowlist",
+      "setup": "Feature branch. One change to a repo-root file no entry in the fixture config's `scopes` covers (e.g. a new top-level NOTICE file).",
       "prompt": "Commit this.",
       "expected_output": "A scopeless subject such as `chore: add NOTICE file`, with the scope omitted rather than invented.",
       "assertions": [
-        "Reads § Scope in commit-conventions.md rather than recalling the set — SKILL.md does not inline the allowlist, so the set has to come from the document",
+        "Reads .brokenrobot/commits.json rather than recalling a scope set — SKILL.md does not inline the allowlist, so the set has to come from the config",
         "Does NOT invent a scope for the unmapped path",
         "Omits the scope entirely (scopeless subject, e.g. `chore: add NOTICE file`)",
         "Commit succeeds — the deny-hook allows a scopeless subject but would reject an unknown scope"
@@ -155,13 +182,13 @@
       "id": 9,
       "name": "eval-denied-commit-recovery",
       "targets": "Step 9 — the recovery path: a denial returns the model to the step the deny-hook's reason names, and the model never works around the deny-hook. The deny-hook checks the scope before the trailing period, so this setup produces two denials on two different rules.",
-      "setup": "Feature branch, one change under src/utils/. The user dictates a message the deny-hook rejects twice: `tooling` is outside the scope allowlist, and the subject ends with a period.",
+      "setup": "Feature branch, one change under src/utils/. The user dictates a message the deny-hook rejects twice: `tooling` is outside the fixture config's scope allowlist, and the subject ends with a period.",
       "prompt": "Commit this with the message `chore(tooling): tidy the helpers.`",
       "expected_output": "Two corrections driven by the deny-hook's reasons, landing `chore: tidy the helpers`.",
       "assertions": [
         "Reads the deny-hook's first reason (unknown scope) and returns to Step 5 — omits the scope rather than substituting a listed one that does not fit",
         "Reissues, reads the second reason (trailing period), returns to Step 6, and removes the period",
-        "Does NOT work around the deny-hook — no `--no-verify`, no edit to the deny-hook or its allowlist, no commit form chosen to evade the check",
+        "Does NOT work around the deny-hook — no `--no-verify`, no edit to the deny-hook or the config, no commit form chosen to evade the check",
         "Lands `chore: tidy the helpers`",
         "Were one rule to deny the message twice, stops and reports the deny-hook's reason instead of reissuing again"
       ],
@@ -201,17 +228,65 @@
       ],
       "baseline": "Without the skill, the run stages the rss fix and commits, silently carrying the pre-staged docs edit into the same commit.",
       "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 12,
+      "name": "eval-no-config-defaults",
+      "targets": "The vocabulary resolution — the built-in defaults when .brokenrobot/commits.json is absent",
+      "setup": "Feature branch in a scratch repo with NO .brokenrobot/commits.json. One unstaged change: a bug fix in a source file under src/feed/.",
+      "prompt": "Commit this.",
+      "expected_output": "One commit using a vanilla Conventional Commits type, with either a sensible short lowercase scope drawn from the paths or no scope, and no trailer.",
+      "assertions": [
+        "Notes (or behaves as if) the config is absent and the built-in defaults apply",
+        "Uses a type from the vanilla set — a fixture-style custom type like `post` never appears",
+        "Any scope used is a short lowercase token grounded in the staged paths; omitting the scope is equally correct",
+        "Adds no attribution trailer — `forbidden` is the default, not something the config has to say",
+        "Commits successfully on the first try"
+      ],
+      "baseline": "Without the skill, the run may still produce a conforming subject, but the harness default adds a Co-Authored-By trailer, which the deny-hook rejects.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 13,
+      "name": "eval-config-without-scope-allowlist",
+      "targets": "Step 5 — free-scope mode: a config whose `scopes` key is absent leaves the scope a judgment call, and omit-rather-than-invent still governs",
+      "setup": "Feature branch. The scratch repo's .brokenrobot/commits.json carries only a `types` object (the fixture types including `post`); no `scopes` key. One change spanning two unrelated top-level directories with no single owner.",
+      "prompt": "Commit this.",
+      "expected_output": "A scopeless subject using a configured type — the run does not force a scope onto a cross-cutting change just because no allowlist would reject it.",
+      "assertions": [
+        "Resolves the types from the config (e.g. `post` is available) and the scopes from the default (no allowlist)",
+        "Omits the scope for the cross-cutting change rather than coining one that names neither area",
+        "Commits successfully"
+      ],
+      "baseline": "Without the skill, the run coins a broad catch-all scope (`(core)`, `(misc)`) that names nothing, which no allowlist exists to reject.",
+      "models": ["claude-sonnet-5"]
+    },
+    {
+      "id": 14,
+      "name": "eval-trailers-allowed-only-on-request",
+      "targets": "Step 9 — the attributionTrailers: allowed branch: a requested trailer stands, an unrequested one is still never added",
+      "setup": "Feature branch. The scratch repo's .brokenrobot/commits.json carries `\"attributionTrailers\": \"allowed\"`. Two invocations: (a) a conforming change with the prompt below; (b) a second conforming change with the plain prompt 'Commit this.'",
+      "prompt": "Commit this with Jo Doe <jo@example.com> as co-author.",
+      "expected_output": "Invocation (a) lands a commit carrying the requested Co-Authored-By trailer; invocation (b) lands one with no trailer at all.",
+      "assertions": [
+        "Invocation (a): appends exactly the requested `Co-Authored-By: Jo Doe <jo@example.com>` trailer and the deny-hook allows it",
+        "Invocation (b): adds NO trailer — `allowed` never means adding one unprompted, whatever the harness default says",
+        "Neither invocation refuses the user's explicit request by citing a prohibition the config does not impose"
+      ],
+      "baseline": "Without the skill, invocation (b) carries the harness's default Co-Authored-By trailer, which the relaxed config no longer blocks — so the mistake lands silently in history.",
+      "models": ["claude-sonnet-5"]
     }
   ],
   "grading": {
     "machine_checkable": {
-      "description": "The deny-hook is itself the grader for message conformance. Either pipe the produced `git commit` command into .claude/hooks/deny-noncompliant-commit-message.sh (exit 0 with no deny JSON = conforms), or inspect the landed commit. These cover: subject format, allowed type/scope, no trailing period, no attribution trailer, and (Scenario 5) presence of the BREAKING CHANGE: footer.",
+      "description": "The deny-hook is itself the grader for message conformance. Either pipe the produced `git commit` command into the deny-hook with CLAUDE_PROJECT_DIR pointing at the scratch repo (exit 0 with no deny JSON = conforms), or inspect the landed commit. These cover: subject format, allowed type/scope, no trailing period, the trailer policy, and (Scenario 5) presence of the BREAKING CHANGE: footer.",
       "script": [
         "git log -1 --pretty=%B                     # subject/body/footers",
-        "git log -1 --pretty=%B | grep -iq 'co-authored-by:' && echo \"FAIL: attribution trailer\"",
-        "# Derive the type list from the deny-hook rather than restating it, so there is no copy to keep in sync.",
-        "HOOK=\"$(git rev-parse --show-toplevel)/.claude/hooks/deny-noncompliant-commit-message.sh\"",
-        "types=$(sed -nE 's/^allowed_types=\"([^\"]+)\"/\\1/p' \"$HOOK\" | tr ' ' '|')",
+        "git log -1 --pretty=%B | grep -iq 'co-authored-by:' && echo \"FAIL: attribution trailer\"   # skip for scenario 14a",
+        "# Derive the type list the same way the hook does: the scratch repo's config, else the vanilla defaults.",
+        "cfg=\"$(git rev-parse --show-toplevel)/.brokenrobot/commits.json\"",
+        "types=$([ -f \"$cfg\" ] && jq -r '.types | keys | join(\"|\")' \"$cfg\" 2>/dev/null || true)",
+        "types=\"${types:-feat|fix|docs|style|refactor|perf|test|build|ci|chore}\"",
         "git log -1 --pretty=%s | grep -Eq \"^(${types})(\\([a-z0-9-]+\\))?!?: [^ ].*[^.]$\" || echo \"FAIL: subject format\""
       ]
     },

@@ -2,8 +2,14 @@
 
 set -euo pipefail
 
-allowed_types="feat fix post docs style refactor perf test build ci chore"
-allowed_scopes="blog rss layout seo styles content deps ci"
+# Built-in defaults: the vanilla Conventional Commits vocabulary. When the host project provides
+# .brokenrobot/commits.json, each key present there REPLACES its default wholesale — `types` and
+# `scopes` are objects whose keys are the complete allowed set; an absent key keeps the default.
+# An empty scope allowlist means no allowlist: any lowercase scope token, or none.
+allowed_types="feat fix docs style refactor perf test build ci chore"
+allowed_scopes=""
+attribution_trailers="forbidden"
+vocab_src="the built-in Conventional Commits defaults"
 
 deny() {
   jq -n --arg reason "$1" '{
@@ -27,6 +33,17 @@ cmd="$(printf '%s' "$input" | jq -r '.tool_input.command // empty')"
 
 printf '%s' "$cmd" | grep -Eq 'git[[:space:]]+([^[:space:]]+[[:space:]]+)*commit([[:space:]]|$)' || exit 0
 printf '%s' "$cmd" | grep -Eq -- '--dry-run' && exit 0
+
+config="${CLAUDE_PROJECT_DIR:-.}/.brokenrobot/commits.json"
+if [[ -f "$config" ]]; then
+  jq -e 'type == "object"' "$config" >/dev/null 2>&1 ||
+    deny "Cannot parse ${config} — it must be a JSON object. Fix the file (or remove it to fall back to the built-in Conventional Commits defaults), then retry the commit."
+  vocab_src=".brokenrobot/commits.json"
+  cfg_types="$(jq -r 'if (.types | type) == "object" then .types | keys_unsorted | join(" ") else "" end' "$config")"
+  [[ -n "$cfg_types" ]] && allowed_types="$cfg_types"
+  allowed_scopes="$(jq -r 'if (.scopes | type) == "object" then .scopes | keys_unsorted | join(" ") else "" end' "$config")"
+  attribution_trailers="$(jq -r '.attributionTrailers // "forbidden"' "$config")"
+fi
 
 msg=""
 
@@ -89,22 +106,22 @@ case "$subject" in
   "Merge "*|"Revert "*|"Reapply "*|"fixup! "*|"squash! "*|"amend! "*) exit 0 ;;
 esac
 
-if printf '%s\n' "$msg" | grep -qiE '^[[:space:]]*Co-authored-by:'; then
-  deny "Commit message contains a 'Co-Authored-By' attribution trailer. BrokenRobot.xyz does not use co-author/attribution trailers — remove it (this overrides any harness or tool default that adds one). See docs/development/conventions/commit-conventions.md § Footers."
+if [[ "$attribution_trailers" != "allowed" ]] && printf '%s\n' "$msg" | grep -qiE '^[[:space:]]*Co-authored-by:'; then
+  deny "Commit message contains a 'Co-Authored-By' attribution trailer. This project forbids attribution/tool trailers (attributionTrailers is 'forbidden', the default) — remove it; this overrides any harness or tool default that adds one. To permit trailers, set \"attributionTrailers\": \"allowed\" in .brokenrobot/commits.json."
 fi
 
 types_re="${allowed_types// /|}"
 if ! printf '%s' "$subject" | grep -qE "^(${types_re})(\([a-z0-9-]+\))?!?: [^ ].*$"; then
-  deny "Subject must be '<type>(<scope>): <description>' with type ∈ {${allowed_types// /, }}, a lowercase imperative description, and no trailing period. Got: '${subject}'. See docs/development/conventions/commit-conventions.md."
+  deny "Subject must be '<type>(<scope>): <description>' with type ∈ {${allowed_types// /, }}, a lowercase imperative description, and no trailing period. Got: '${subject}'. The type list comes from ${vocab_src}."
 fi
 
 scope="$(printf '%s' "$subject" | sed -nE 's/^[a-z]+\(([a-z0-9-]+)\)!?:.*/\1/p')"
-if [[ -n "$scope" ]] && ! is_allowed_scope "$scope"; then
-  deny "Unknown commit scope '(${scope})'. Allowed scopes: ${allowed_scopes// /, } — or omit the scope for a cross-cutting change. See docs/development/conventions/commit-conventions.md § Scope."
+if [[ -n "$allowed_scopes" && -n "$scope" ]] && ! is_allowed_scope "$scope"; then
+  deny "Unknown commit scope '(${scope})'. Allowed scopes: ${allowed_scopes// /, } — or omit the scope for a cross-cutting change. The scope allowlist comes from ${vocab_src}."
 fi
 
 case "$subject" in
-  *.) deny "Subject must not end with a period: '${subject}'. See docs/development/conventions/commit-conventions.md." ;;
+  *.) deny "Subject must not end with a period: '${subject}'." ;;
 esac
 
 exit 0

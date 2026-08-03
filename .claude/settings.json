@@ -230,7 +230,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/deny-noncompliant-commit-message.sh\""
+                        "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/skills/committing-conventionally/scripts/deny-noncompliant-commit-message.sh\""
                     },
                     {
                         "type": "command",
