@@ -1,7 +1,7 @@
 ---
 name: committing-conventionally
 description: Stages working-tree changes and authors one Conventional-Commits commit, resolving the commit vocabulary from the host project's .brokenrobot/commits.json when present and from built-in defaults when not. Use whenever the user asks to commit work.
-compatibility: Requires git and jq — the deny-hook that validates every commit message calls jq.
+compatibility: Requires git and Node.js — the deny-hook that validates every commit message runs on Node, which is not installed by default on every machine.
 allowed-tools: Bash(git:*) Bash(cat:*) Read
 model: claude-sonnet-5
 hooks:
@@ -9,7 +9,7 @@ hooks:
     - matcher: "Bash"
       hooks:
         - type: command
-          command: 'bash "${CLAUDE_PROJECT_DIR}/.claude/skills/committing-conventionally/scripts/deny-noncompliant-commit-message.sh"'
+          command: 'node "${CLAUDE_PROJECT_DIR}/.claude/skills/committing-conventionally/scripts/deny-noncompliant-commit-message.mjs"'
 ---
 
 # Author a conforming git commit
@@ -17,7 +17,7 @@ hooks:
 Turn the current working-tree changes into **one** [Conventional
 Commits](https://www.conventionalcommits.org/) commit that satisfies the project's commit
 vocabulary by construction. This skill is the positive counterpart to the `PreToolUse` deny-hook
-bundled beside it (`scripts/deny-noncompliant-commit-message.sh`), which only *blocks* bad
+bundled beside it (`scripts/deny-noncompliant-commit-message.mjs`), which only *blocks* bad
 messages — follow this recipe and the commit sails past the deny-hook on the first try.
 
 **One invocation → one commit.** If the tree holds unrelated changes, commit one logical commit

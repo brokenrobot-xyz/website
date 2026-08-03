@@ -285,7 +285,7 @@
         "git log -1 --pretty=%B | grep -iq 'co-authored-by:' && echo \"FAIL: attribution trailer\"   # skip for scenario 14a",
         "# Derive the type list the same way the hook does: the scratch repo's config, else the vanilla defaults.",
         "cfg=\"$(git rev-parse --show-toplevel)/.brokenrobot/commits.json\"",
-        "types=$([ -f \"$cfg\" ] && jq -r '.types | keys | join(\"|\")' \"$cfg\" 2>/dev/null || true)",
+        "types=$([ -f \"$cfg\" ] && node -p \"Object.keys(require('$cfg').types||{}).join('|')\" 2>/dev/null || true)",
         "types=\"${types:-feat|fix|docs|style|refactor|perf|test|build|ci|chore}\"",
         "git log -1 --pretty=%s | grep -Eq \"^(${types})(\\([a-z0-9-]+\\))?!?: [^ ].*[^.]$\" || echo \"FAIL: subject format\""
       ]
