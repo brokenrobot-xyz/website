@@ -1,6 +1,6 @@
 ---
 name: reviewing-claude-skills
-description: Reviews a Claude Code skill — its SKILL.md, evals, and referenced files — against Anthropic's skill-authoring and prompting best practices plus the host project's conventions, producing a severity-ranked gap analysis and optionally applying approved fixes. Use when the user asks to review, audit, or improve a skill.
+description: Reviews a Claude Code skill — its SKILL.md, evals, and referenced files — against skill-authoring and prompting best practices plus the host project's conventions, producing a severity-ranked gap analysis and optionally applying approved fixes. Use when the user asks to review, audit, or improve a skill.
 compatibility: Designed for Claude Code — reviews an installed skill's bundle. Network access keeps the criteria current; without it the review falls back to the baked checklist and says so.
 allowed-tools: Read Edit Write Bash Grep Glob WebFetch Skill
 model: opus
