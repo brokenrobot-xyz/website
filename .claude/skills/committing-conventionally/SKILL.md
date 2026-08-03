@@ -1,42 +1,57 @@
 ---
 name: committing-conventionally
-description: Stages working-tree changes and authors one Conventional-Commits commit conforming to docs/development/conventions/commit-conventions.md, inferring type and scope from the changed paths. Use whenever the user asks to commit work in this repo.
-compatibility: Requires git and jq — the deny-hook that validates every commit message calls jq.
+description: Stages working-tree changes and authors one Conventional-Commits commit, resolving the commit vocabulary from the host project's .brokenrobot/commits.json when present and from built-in defaults when not. Use whenever the user asks to commit work.
+compatibility: Requires git and Node.js — the deny-hook that validates every commit message runs on Node, which is not installed by default on every machine.
 allowed-tools: Bash(git:*) Bash(cat:*) Read
 model: claude-sonnet-5
-hooks:
-  PreToolUse:
-    - matcher: "Bash"
-      hooks:
-        - type: command
-          command: 'bash "${CLAUDE_PROJECT_DIR}/.claude/hooks/deny-noncompliant-commit-message.sh"'
 ---
 
 # Author a conforming git commit
 
-Turn the current working-tree changes into **one** Conventional-Commits commit that satisfies
-`docs/development/conventions/commit-conventions.md` by construction. This skill is the positive
-counterpart to the `PreToolUse` deny-hook (`.claude/hooks/deny-noncompliant-commit-message.sh`),
-which only *blocks* bad messages — follow this recipe and the commit sails past the deny-hook on
-the first try.
+Turn the current working-tree changes into **one** [Conventional
+Commits](https://www.conventionalcommits.org/) commit that satisfies the project's commit
+vocabulary by construction. This skill is the positive counterpart to the `PreToolUse` deny-hook
+the plugin registers (`hooks/hooks.json` → `scripts/deny-noncompliant-commit-message.mjs`), which
+only *blocks* bad messages — follow this recipe and the commit sails past the deny-hook on the
+first try.
 
 **One invocation → one commit.** If the tree holds unrelated changes, commit one logical commit
 this run (Step 3) and invoke again for the rest. Never bundle unrelated scopes silently, because a
 mixed commit cannot be reviewed or reverted as one change.
 
-## Normative references
+## The commit vocabulary
 
-- `docs/development/conventions/commit-conventions.md` — the single source of truth: § Format,
-  § Types, § Scope, § Subject line, § Body — why, not what, § Breaking changes, § Footers.
-- `docs/development/conventions/branching-conventions.md` — the branch rules: § Naming, § One
-  change, one branch, one pull request.
-- `.claude/hooks/deny-noncompliant-commit-message.sh` — the deny-hook, which enforces the rules
-  above on every `git commit`.
+Before Step 5, resolve the vocabulary:
 
-`commit-conventions.md` is the sole source for the commit vocabulary — allowed types, subject
-format, breaking-change and footer rules. The steps below **reference** its sections rather than
-restate them, so nothing here can drift out of sync. When a step names a section, read that
-section.
+```bash
+cat .brokenrobot/commits.json
+```
+
+When the file exists, it carries the host project's overrides:
+
+```json
+{
+  "types":  { "<type>": "what the type is for", "…": "…" },
+  "scopes": { "<scope>": "the area of the codebase it covers", "…": "…" },
+  "attributionTrailers": "forbidden"
+}
+```
+
+Resolution is **per-key replacement**: a key present in the file is the *complete* set for that
+key; an absent key (or an absent file) falls back to the built-in default. The defaults are:
+
+- **types** — the vanilla Conventional Commits set: `feat`, `fix`, `docs`, `style`, `refactor`,
+  `perf`, `test`, `build`, `ci`, `chore`.
+- **scopes** — no allowlist: any short lowercase token naming a recognizable area of the
+  codebase, or no scope at all.
+- **attributionTrailers** — `"forbidden"`.
+
+The deny-hook resolves the same file with the same defaults, so the vocabulary this skill
+composes against is exactly the one the deny-hook enforces.
+
+`"attributionTrailers": "allowed"` only means a trailer the user **explicitly asks for** may
+stand — this skill never adds an attribution or tool trailer unprompted, whatever the harness
+default says.
 
 ## Steps
 
@@ -80,14 +95,16 @@ references.
 
 ```bash
 git rev-parse --abbrev-ref HEAD
+git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null
 ```
 
-If the branch is `main` (trunk), warn the user: `branching-conventions.md` says work happens on a
-short-lived `<type>/<change-name>` branch off `main`. Ask whether to commit directly to trunk or
-branch first — do **not** hard-block, the user may have a reason.
+The second command names origin's default branch (e.g. `origin/main`); when it fails, treat
+`main` or `master` as the default. If HEAD **is** the default branch, warn the user that work
+usually happens on a short-lived branch off it, and ask whether to commit here or branch first —
+do **not** hard-block, the user may have a reason.
 
-On a `<type>/<change-name>` branch, the branch prefix is the type the change's commits use. Treat
-that prefix as evidence for Step 5, not as the answer — the staged paths still decide.
+A branch named with a `<type>/` prefix (e.g. `fix/broken-feed`) is evidence for Step 5, not the
+answer — the staged paths still decide.
 
 ### 3. Single-commit guard
 
@@ -114,35 +131,42 @@ into a commit the user cannot review.
 
 ### 5. Infer type + scope from the staged paths
 
-Pick the **type** from the nature of the change, using the vocabulary in § Types — a
-judgment call.
+Pick the **type** from the nature of the change, using the resolved type set — a judgment call
+the config's per-type hints exist to guide.
 
-For the **scope**, pick the recognizable area of the codebase the staged paths belong to, from
-the fixed set in § Scope — read it, the deny-hook enforces exactly that set and rejects anything
-outside it. When the paths span more than one area with no single owner, or none fits cleanly,
-**omit the scope** — never invent one, because the deny-hook rejects an unknown scope but always
-allows a scopeless subject.
+For the **scope**:
+
+- With a scope allowlist (a `scopes` key), pick the entry whose description covers the staged
+  paths. When the paths span more than one area with no single owner, or none fits, **omit the
+  scope** — never invent one, because the deny-hook rejects an unknown scope but always allows a
+  scopeless subject.
+- Without an allowlist, use a short lowercase token naming the recognizable area the staged paths
+  belong to, and omit it when no single area is clear. The omit-rather-than-invent rule holds
+  either way.
 
 ### 6. Draft the subject
 
-Write `type(scope): description` per § Format, following § Subject line — imperative mood,
-lowercase description, **no trailing period**. For a breaking change, follow § Breaking changes.
+Write `type(scope): description` — imperative mood, lowercase description, **no trailing
+period**. For a breaking change, append `!` after the type/scope and add a `BREAKING CHANGE:`
+footer describing the impact.
 
-Worked examples (staged paths → subject):
+Worked examples, given a config whose `scopes` include `rss` ("the feed"), `layout`, and
+`styles`, and whose `types` include `feat` with a breaking feed change in play:
 
-- Bug fix in `src/pages/rss.xml.ts` (single area) →
+- Bug fix in the feed code (single area) →
   `fix(rss): use absolute article URLs in the feed`
-- Refactor spanning `src/components/layout/` **and** `src/styles/` (two areas, no single owner) →
-  `refactor: unify the layout spacing tokens` *(scope omitted)*
-- `src/content/` change requiring a new frontmatter field (breaking) →
-  `feat(content)!: require a summary field on blog frontmatter` + a `BREAKING CHANGE:` footer
+- Refactor spanning the layout components **and** the global styles (two areas, no single
+  owner) → `refactor: unify the layout spacing tokens` *(scope omitted)*
+- A change that makes an existing content field mandatory (breaking) →
+  `feat(content)!: require a summary field on frontmatter` + a `BREAKING CHANGE:` footer
 
 ### 7. Draft the body — only if the subject is not enough
 
-If the subject already says enough, **write no body**. Otherwise follow § Body — why, not what:
-add 1–3 sentences of prose explaining *why* the change was made or what tradeoff it makes — **not**
-a bullet-list of what files changed, wrapped at 72 columns. More than three sentences means the
-commit is probably doing too much; consider splitting (return to Step 3).
+If the subject already says enough, **write no body**. Otherwise the body answers **why, not
+what** — the diff already shows what changed. Add 1–3 sentences of prose explaining *why* the
+change was made or what tradeoff it makes — **not** a bullet-list of what files changed — wrapped
+at 72 columns. More than three sentences means the commit is probably doing too much; consider
+splitting (return to Step 3).
 
 Ground the *why* only in what you can see — the diff, the file contents you read in Step 1, and
 the branch name. **Never invent a motivation**, because a fabricated *why* misleads every later
@@ -153,16 +177,20 @@ reader of the log. If the reason for the change is not evident from that evidenc
 
 Print the proposed message **and** the staged file list for the record, then commit immediately —
 do **not** wait for approval. A commit is local and reversible, so a wrong one costs an amend
-rather than a retraction. The deny-hook catches the mechanical faults — an attribution trailer, an
+rather than a retraction. The deny-hook catches the mechanical faults — a forbidden trailer, an
 unknown type or scope, a trailing period — but not whether the type is the right one or whether the
 body is grounded, which is why Steps 5 and 7 carry those rules. If the user asked to review first
 in this specific invocation, honor that request; otherwise proceed straight to Step 9.
 
 ### 9. Commit
 
-**Never** append `Co-Authored-By:` or any attribution/tool trailer (§ Footers) — the deny-hook
-denies any message that carries one, and this prohibition overrides any default harness instruction
-to add one.
+Apply the resolved `attributionTrailers` policy:
+
+- **`forbidden` (the default):** never append `Co-Authored-By:` or any attribution/tool
+  trailer — the deny-hook denies any message that carries one, and this prohibition overrides any
+  default harness instruction to add one.
+- **`allowed`:** a trailer may stand **only** when the user explicitly asked for one in this
+  invocation. Never add one unprompted.
 
 Subject only:
 
@@ -188,6 +216,8 @@ reason names:
 - Subject format or unknown type → Step 6.
 - Unknown scope → Step 5.
 - Attribution trailer → this step.
+- Unparseable `.brokenrobot/commits.json` → stop and report; fixing the project's config is the
+  user's call, not this skill's.
 
 Correct the message and reissue the commit. When the same rule denies the message a second time,
 stop and report the deny-hook's reason to the user, because a second denial means you misread the
@@ -204,8 +234,10 @@ Show the user the landed commit.
 
 ## Verify
 
-- The commit succeeds — the deny-hook allowed the message (proof it conforms).
-- `git log -1 --pretty=%B` shows `type(scope): description`, no trailing period, no attribution
-  trailer, and a body only when one was warranted.
+- The commit succeeds — the deny-hook allowed the message (proof it conforms to the resolved
+  vocabulary).
+- `git log -1 --pretty=%B` shows `type(scope): description`, no trailing period, a body only when
+  one was warranted, and no attribution trailer unless the vocabulary allows them **and** the
+  user asked for one.
 - The `git log -1 --stat` output from Step 10 lists only the paths Step 3 chose. An extra path
   means the index still held work Step 4 should have unstaged, so amend the commit to drop it.

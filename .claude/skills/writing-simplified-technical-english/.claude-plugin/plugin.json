@@ -1,0 +1,11 @@
+{
+  "name": "writing-simplified-technical-english",
+  "description": "Revises agent-facing prose — skills, agent definitions, specs, and technical docs — so an agent cannot read a sentence two ways, applying twelve conventions adapted from ASD-STE100 Simplified Technical English.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Tamas Mezei",
+    "url": "https://www.brokenrobot.xyz"
+  },
+  "license": "MIT",
+  "keywords": ["writing", "simplified-technical-english", "documentation", "prompting", "clarity"]
+}

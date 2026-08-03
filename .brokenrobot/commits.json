@@ -1,0 +1,26 @@
+{
+    "types": {
+        "feat": "a new user-facing feature or capability",
+        "fix": "a bug fix",
+        "post": "publishing or updating a blog article (this site's custom type)",
+        "docs": "documentation only (e.g. the files in docs/, the README)",
+        "style": "formatting/whitespace with no behaviour change",
+        "refactor": "code change that neither fixes a bug nor adds a feature",
+        "perf": "a change that improves performance",
+        "test": "adding or adjusting tests",
+        "build": "build system or dependency changes",
+        "ci": "CI/CD pipeline changes",
+        "chore": "maintenance that doesn't fit the above (e.g. routine upkeep)"
+    },
+    "scopes": {
+        "blog": "the blog experience — article listing and article pages under src/",
+        "rss": "the feed — src/pages/rss.xml.ts and its tests",
+        "layout": "site-wide layout and chrome — src/components/layout/, headers, footers, navigation",
+        "seo": "metadata, sitemap, and structured data",
+        "styles": "global styling and design tokens — src/styles/",
+        "content": "the content collections and their frontmatter schema — src/content/",
+        "deps": "dependency updates — package.json and the lockfile",
+        "ci": "the CI/CD pipeline — .github/workflows/"
+    },
+    "attributionTrailers": "forbidden"
+}

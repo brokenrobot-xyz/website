@@ -11,9 +11,13 @@ built. These docs cover _how we work on it_.
   write, run, and reach on the network, and why.
 - [code-intelligence.md](code-intelligence.md) — the code-intelligence tools (typescript-lsp plugin
   and the Codegraph MCP server): how they're pinned, enabled, and used across worktrees.
-- [conventions/writing-conventions.md](conventions/writing-conventions.md) — how to write the prose
-  inside `.claude/skills/` so an agent reads it unambiguously. Enforced by `reviewing-skills` as
-  checklist items `R7`–`R11`.
+- [conventions/writing-conventions.md](conventions/writing-conventions.md) — how this project applies
+  the `writing-simplified-technical-english` skill, which carries the conventions themselves: which prose
+  they govern here, the local carve-outs, and how `reviewing-claude-skills` enforces them as checklist
+  items `R7`–`R11`.
+- [conventions/skill-conventions.md](conventions/skill-conventions.md) — how this project applies
+  the `reviewing-claude-skills` skill, which carries the review criteria themselves: which project
+  documents the project-scoped criteria (`R5`–`R6`) resolve to here.
 
 ## The pieces (in `.claude/`)
 

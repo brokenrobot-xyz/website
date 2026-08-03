@@ -168,7 +168,7 @@
 
             "Skill(checking-dev-env)",
             "Skill(committing-conventionally)",
-            "Skill(reviewing-skills)",
+            "Skill(reviewing-claude-skills)",
             "Skill(running-preflight-checks)",
             "Skill(updating-dependencies)",
 
@@ -228,10 +228,6 @@
             {
                 "matcher": "Bash",
                 "hooks": [
-                    {
-                        "type": "command",
-                        "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/deny-noncompliant-commit-message.sh\""
-                    },
                     {
                         "type": "command",
                         "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/deny-git-push.sh\""

@@ -76,7 +76,7 @@ entry matches, say exactly that and reference the doc as a whole rather than imp
 
 Order the guide dependency-first: git/jq → version manager → Node → npm/dependencies → global
 language server → codegraph index → Claude Code configuration → Docker → committed-pin drift
-(codegraph pins, commit vocabulary). Then tailor the guide. Drop every area already ✓. Skip
+(codegraph pins). Then tailor the guide. Drop every area already ✓. Skip
 alternatives the scan disproved: when the scan detected asdf, do not suggest installing fnm.
 
 ## Report
