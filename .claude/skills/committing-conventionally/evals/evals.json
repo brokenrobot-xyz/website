@@ -27,7 +27,7 @@
         "chore": "maintenance that fits none of the above"
       },
       "scopes": {
-        "rss": "the feed — src/pages/rss.xml.ts",
+        "rss": "the feed — src/feed/rss.ts",
         "blog": "the article listing and article pages",
         "layout": "site-wide layout components — src/components/layout/",
         "styles": "global styling — src/styles/",
@@ -57,7 +57,7 @@
       "id": 1,
       "name": "eval-happy-path",
       "targets": "Steps 5–6 — type and scope inference from the staged paths against the config's scope hints",
-      "setup": "On a feature branch. One unstaged change: a bug fix in src/pages/rss.xml.ts — the path the fixture config's `rss` scope names.",
+      "setup": "On a feature branch. One unstaged change: a bug fix in src/feed/rss.ts — the path the fixture config's `rss` scope names.",
       "prompt": "Commit this.",
       "expected_output": "One commit reading `fix(rss): <description>` carrying only the changed file, with no body.",
       "assertions": [
@@ -216,13 +216,13 @@
       "id": 11,
       "name": "eval-pre-staged-unrelated-change",
       "targets": "Step 4 — the index must match the commit Step 3 chose. `git commit` carries the whole index, so staging the right path is not enough on its own.",
-      "setup": "Feature branch. A docs edit under docs/ is ALREADY staged from an earlier session. A separate, unrelated bug fix in src/pages/rss.xml.ts is unstaged.",
+      "setup": "Feature branch. A docs edit under docs/ is ALREADY staged from an earlier session. A separate, unrelated bug fix in src/feed/rss.ts is unstaged.",
       "prompt": "Commit the rss fix.",
       "expected_output": "One `fix(rss):` commit carrying only the rss file, with the docs edit left in the working tree.",
       "assertions": [
         "Notices in Step 1 that the docs edit is already staged",
         "Unstages the docs edit with `git restore --staged docs/<file>` before committing",
-        "Stages src/pages/rss.xml.ts explicitly",
+        "Stages src/feed/rss.ts explicitly",
         "Lands `fix(rss): <description>` carrying ONLY the rss file — `git log -1 --stat` lists no docs path",
         "Leaves the docs edit in the working tree for a later invocation"
       ],

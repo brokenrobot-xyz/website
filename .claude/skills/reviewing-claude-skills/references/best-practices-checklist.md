@@ -1,4 +1,4 @@
-# Reviewing-skills checklist
+# Reviewing-claude-skills checklist
 
 The baked half of the reviewer's hybrid criteria. `SKILL.md` Step 2 tries to refresh the
 source docs live (WebFetch the URLs below); when the network is unavailable it falls back to

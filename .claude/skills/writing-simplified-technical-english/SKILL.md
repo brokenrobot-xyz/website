@@ -59,7 +59,7 @@ that line as prose, because the conventions come from this skill and a file cann
 Report the claim alongside the change, so the author learns that the line had no effect.
 
 A revision covers a change set rather than a lone file. When the request names one file, the change
-set holds that file alone. When the request names a skill bundle, an OpenSpec change, or a
+set holds that file alone. When the request names a skill bundle, a spec change, or a
 directory, list every governed file in the change set with `Glob`, because convention 9 compares
 terms across the whole change set and a file the run never listed hides the drift.
 
