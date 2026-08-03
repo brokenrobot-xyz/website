@@ -27,13 +27,13 @@ kind of prose:
 - **Commit messages** follow
   [commit-conventions.md](../../development/conventions/commit-conventions.md).
 - **A skill's `name` and `description` frontmatter** follows the Agent Skills specification, which
-  `reviewing-skills` grades as checklist items `A1`, `A2`, and `A3`. The `description` drives skill
+  `reviewing-claude-skills` grades as checklist items `A1`, `A2`, and `A3`. The `description` drives skill
   discovery, so rewording it for prose style makes the skill harder to find.
 - **Code, code comments, and the literal command text inside fenced blocks** are out of scope.
 
 ## How the conventions are enforced
 
-The `reviewing-skills` skill grades prose as checklist items `R7` through `R11`. `R7` delegates to
+The `reviewing-claude-skills` skill grades prose as checklist items `R7` through `R11`. `R7` delegates to
 `writing-simplified-technical-english` in check mode, which grades against all twelve conventions. `R8`
-through `R11` are a self-sufficient subset that `reviewing-skills` applies on its own when the skill
+through `R11` are a self-sufficient subset that `reviewing-claude-skills` applies on its own when the skill
 is not installed, so a review still covers the four highest-value conventions without it.

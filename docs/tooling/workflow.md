@@ -102,7 +102,7 @@ Procedure skills the agents (or you) invoke, alongside the `openspec-*` lifecycl
 **Naming convention:** skill names use **gerund form** — verb-ing plus object, e.g.
 `checking-dev-env`, `running-preflight-checks` — per Anthropic's skill-authoring guidance
 (preferred form; lowercase/hyphens only). Generated skills (`openspec-*`, `opsx:*`) keep their
-vendored names. The `reviewing-skills` skill enforces this as checklist item `R6`.
+vendored names. The `reviewing-claude-skills` skill enforces this as checklist item `R6`.
 
 - **`testing-visual-regression`** — run/update Playwright visual + a11y in light **and** dark (in the
   devcontainer), with the baseline-review steps. Knows the both-theme dependency on the dark
@@ -124,7 +124,7 @@ vendored names. The `reviewing-skills` skill enforces this as checklist item `R6
   patch/minor/major, apply patches directly, and research minor/major bumps (one
   `dependency-update-researcher` run per bump) before recommending them. Delegates verification to
   `running-preflight-checks` and `testing-visual-regression`.
-- **`reviewing-skills`** — review a skill (its SKILL.md, evals, and referenced files) against
+- **`reviewing-claude-skills`** — review a skill (its SKILL.md, evals, and referenced files) against
   Anthropic's skill-authoring and prompting best practices plus the host project's conventions,
   producing a severity-ranked gap analysis and optionally applying approved fixes. It holds no
   reference to this repository and is written to be published as a plugin; how this project applies

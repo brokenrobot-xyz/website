@@ -1,5 +1,5 @@
 {
-  "name": "reviewing-skills",
+  "name": "reviewing-claude-skills",
   "description": "Reviews a Claude Code skill — its SKILL.md, evals, and referenced files — against skill-authoring and prompting best practices plus the host project's conventions, producing a severity-ranked gap analysis with optional fixes.",
   "version": "1.0.0",
   "author": {

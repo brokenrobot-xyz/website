@@ -168,7 +168,7 @@
 
             "Skill(checking-dev-env)",
             "Skill(committing-conventionally)",
-            "Skill(reviewing-skills)",
+            "Skill(reviewing-claude-skills)",
             "Skill(running-preflight-checks)",
             "Skill(updating-dependencies)",
 

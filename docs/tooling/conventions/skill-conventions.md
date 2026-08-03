@@ -1,6 +1,6 @@
 # Skill conventions
 
-The review criteria live in the **`reviewing-skills`** skill, which is self-contained and portable
+The review criteria live in the **`reviewing-claude-skills`** skill, which is self-contained and portable
 so that it can be shared with other projects. This document records how this project applies that
 skill. Invoke the skill by name; never reference a path into its bundle, because a plugin's install
 directory is version-keyed and changes on every update.

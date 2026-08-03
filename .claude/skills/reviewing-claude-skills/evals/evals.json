@@ -1,5 +1,5 @@
 {
-  "skill_name": "reviewing-skills",
+  "skill_name": "reviewing-claude-skills",
   "format": {
     "standard": "https://agentskills.io/skill-creation/evaluating-skills",
     "extension_keys": {
@@ -31,7 +31,7 @@
       "description": "The universal assertions above, plus each scenario's locator claims. Cited keys grep directly against the checklist.",
       "script": [
         "# every criterion key cited in the report must exist in the checklist",
-        "# run from the reviewing-skills bundle root, so the path holds wherever the skill is installed",
+        "# run from the reviewing-claude-skills bundle root, so the path holds wherever the skill is installed",
         "CL=references/best-practices-checklist.md",
         "grep -oE '\\b[A-HR][0-9]{1,2}\\b' report.md | sort -u | while read -r k; do",
         "  grep -q \"^- \\*\\*$k —\" \"$CL\" || echo \"FAIL: $k is not a checklist criterion\"",
