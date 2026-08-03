@@ -230,10 +230,6 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/skills/committing-conventionally/scripts/deny-noncompliant-commit-message.mjs\""
-                    },
-                    {
-                        "type": "command",
                         "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/deny-git-push.sh\""
                     }
                 ]
