@@ -1,9 +1,11 @@
 # Writing conventions
 
-The conventions themselves live in the **`writing-simplified-technical-english`** skill, which is
-self-contained and portable so that it can be shared with other projects. This document records how
-this project applies that skill. Invoke the skill by name; never reference a path into its bundle,
-because a plugin's install directory is version-keyed and changes on every update.
+The conventions themselves live in the **`writing-simplified-technical-english`** skill, an
+external plugin from
+[brokenrobot-xyz/agent-skills](https://github.com/brokenrobot-xyz/agent-skills) installed via the
+marketplace config in `.claude/settings.json`. This document records how this project applies that
+skill. Invoke the skill by name; never reference a path into its bundle, because a plugin's install
+directory is version-keyed and changes on every update.
 
 - **`references/conventions.md`** in that skill holds the twelve conventions, the traceability to
   ASD-STE100 Issue 9, and the copyright note.

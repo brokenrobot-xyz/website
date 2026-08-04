@@ -1,7 +1,8 @@
 # Skill conventions
 
-The review criteria live in the **`reviewing-claude-skills`** skill, which is self-contained and portable
-so that it can be shared with other projects. This document records how this project applies that
+The review criteria live in the **`reviewing-claude-skills`** skill, an external plugin from
+[brokenrobot-xyz/agent-skills](https://github.com/brokenrobot-xyz/agent-skills) installed via the
+marketplace config in `.claude/settings.json`. This document records how this project applies that
 skill. Invoke the skill by name; never reference a path into its bundle, because a plugin's install
 directory is version-keyed and changes on every update.
 
@@ -15,7 +16,8 @@ project's own convention documents. The lists below name the documents they reso
 - **`R5` — commit hygiene** resolves to
   [commit-conventions.md](../../development/conventions/commit-conventions.md): Conventional
   Commits, the allowed scopes, and no attribution trailers.
-- **`R6` — naming convention** resolves to [workflow.md § The skills](../workflow.md#the-skills-claudeskills):
+- **`R6` — naming convention** resolves to
+  [workflow.md § The skills](../workflow.md#the-skills-claudeskills-and-marketplace-plugins):
   skill names use gerund form (verb-ing + object, e.g. `running-preflight-checks`). Generated
   skills (`openspec-*`, `opsx:*`) keep their vendored names and are exempt.
 
