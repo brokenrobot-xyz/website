@@ -182,6 +182,7 @@
             "Skill(reviewing-claude-skills:reviewing-claude-skills)",
             "Skill(running-preflight-checks)",
             "Skill(updating-dependencies)",
+            "Skill(writing-simplified-technical-english:writing-simplified-technical-english)",
 
             "mcp__playwright",
             "mcp__chrome-devtools",
