@@ -8,8 +8,19 @@
         "OPENSPEC_TELEMETRY": "0",
         "SHARP_IGNORE_GLOBAL_LIBVIPS": "1"
     },
+    "extraKnownMarketplaces": {
+        "brokenrobot-xyz": {
+            "source": {
+                "source": "github",
+                "repo": "brokenrobot-xyz/agent-skills"
+            }
+        }
+    },
     "enabledPlugins": {
-        "typescript-lsp@claude-plugins-official": true
+        "typescript-lsp@claude-plugins-official": true,
+        "committing-conventionally@brokenrobot-xyz": true,
+        "writing-simplified-technical-english@brokenrobot-xyz": true,
+        "reviewing-claude-skills@brokenrobot-xyz": true
     },
     "sandbox": {
         "enabled": true,
@@ -167,8 +178,8 @@
             "Bash(bash .claude/hooks/lib/dev-env-checks.sh)",
 
             "Skill(checking-dev-env)",
-            "Skill(committing-conventionally)",
-            "Skill(reviewing-claude-skills)",
+            "Skill(committing-conventionally:committing-conventionally)",
+            "Skill(reviewing-claude-skills:reviewing-claude-skills)",
             "Skill(running-preflight-checks)",
             "Skill(updating-dependencies)",
 

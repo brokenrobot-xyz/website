@@ -12,8 +12,10 @@ The official [`typescript-lsp`](https://github.com/anthropics/claude-plugins-off
 plugin adds go-to-definition, find-references, and error-checking for `.ts/.tsx/.js/.jsx`.
 
 - **Enabled** via `enabledPlugins` in [`.claude/settings.json`](../../.claude/settings.json)
-  (committed). The `claude-plugins-official` marketplace is built into Claude Code, so no marketplace
-  registration (`extraKnownMarketplaces`) is needed — that's only for custom/third-party sources.
+  (committed). The `claude-plugins-official` marketplace is built into Claude Code, so this plugin
+  needs no marketplace registration (`extraKnownMarketplaces`) — that's only for custom/third-party
+  sources such as the [brokenrobot-xyz/agent-skills](https://github.com/brokenrobot-xyz/agent-skills)
+  marketplace the skill plugins come from (see [workflow.md](workflow.md)).
 - The plugin launches a fixed `typescript-language-server --stdio` from `PATH` — the command is set
   in the marketplace manifest and is **not** project-configurable. Claude Code's launch `PATH` does
   **not** include the repo's `node_modules/.bin`, so the server must be installed **globally on the
