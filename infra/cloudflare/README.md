@@ -29,11 +29,28 @@ level. Creating a second returns:
 root rulesets for phase http_request_redirect
 ```
 
-Terraform now owns the `http_request_redirect` entry point. Consequences:
+Every Bulk Redirect Rule in the account — for every site — lands in that one ruleset,
+and a Terraform `cloudflare_ruleset` owns its `rules` list outright: the API `PUT`
+replaces the whole array, so rules it does not declare are deleted. One ruleset that
+only one stack can own does not fit a module instantiated once per site.
 
-- **`rules` is authoritative.** A Bulk Redirect added through the dashboard lands in
-  this same ruleset and will be removed on the next apply. Manage redirects here or
-  not at all.
+So the two halves are split by who can own them:
+
+|                                    | Owner                            |
+| ---------------------------------- | -------------------------------- |
+| Bulk Redirect **Rule** (all sites) | Created by hand in the dashboard |
+| Bulk Redirect **List** + items     | This module, one List per site   |
+
+Lists are not singletons, so each site keeps its own in Terraform. Only the Rules are
+manual, and only because they share the ruleset.
+
+Consequences:
+
+- **A new site needs one manual step.** Terraform creates its List; you then add a
+  Rule pointing at that List by hand. Applying before the Rule exists is harmless —
+  the List simply redirects nothing until a Rule references it.
+- **Never reintroduce a `cloudflare_ruleset` for this phase.** It will fail with 20217
+  if a Rule already exists, and silently delete every other site's Rule if it does not.
 - **The dashboard shows rules, not rulesets.** An empty entry point renders as an
   empty Bulk Redirects page — indistinguishable from no ruleset at all. Only the API
   can tell them apart:
@@ -80,12 +97,17 @@ content-hashed filenames, which `public/` does not use.
 
 Related-looking operations need separate grants, and a missing one fails late:
 
-| Operation                      | Permission                  | Scope   |
-| ------------------------------ | --------------------------- | ------- |
-| Bulk redirect list and items   | Account Filter Lists → Edit | Account |
-| Account-level redirect ruleset | Bulk URL Redirects → Edit   | Account |
-| Cache purge from CI            | Zone → Cache Purge → Purge  | Zone    |
-| Pages deploy                   | Cloudflare Pages → Edit     | Account |
+| Operation                    | Permission                  | Scope   |
+| ---------------------------- | --------------------------- | ------- |
+| Bulk Redirect List and items | Account Filter Lists → Edit | Account |
+| Cache purge from CI          | Zone → Cache Purge → Purge  | Zone    |
+| Pages deploy                 | Cloudflare Pages → Edit     | Account |
+
+The Terraform token deliberately does **not** carry _Bulk URL Redirects → Edit_. That
+grant covers the account redirect ruleset, which Terraform no longer manages (see
+above), and withholding it makes the split enforceable rather than merely documented —
+a stray `cloudflare_ruleset` fails on permissions instead of deleting another site's
+Bulk Redirect Rule.
 
 Reading the failure:
 

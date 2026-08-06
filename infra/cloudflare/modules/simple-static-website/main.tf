@@ -44,6 +44,10 @@ resource "cloudflare_dns_record" "apex_placeholder" {
 #
 # The *.pages.dev hostname is served outside this zone, so zone rulesets cannot
 # match it. Bulk Redirects run at the account level, which is why they can.
+#
+# This module owns the Bulk Redirect List only. The Bulk Redirect Rule that
+# points at it is created by hand -- see the README: every Rule in the account
+# shares one entry point ruleset, so no per-site module can own it.
 resource "cloudflare_list" "pages_dev_redirect" {
   account_id  = var.cloudflare_account_id
   name        = "${replace(var.apex_domain_name, ".", "_")}_pages_dev_redirect"
@@ -66,30 +70,6 @@ resource "cloudflare_list_item" "pages_dev_to_www" {
     preserve_path_suffix  = true
     preserve_query_string = true
   }
-}
-
-resource "cloudflare_ruleset" "pages_dev_to_www" {
-  account_id = var.cloudflare_account_id
-  name       = "Redirect pages.dev to www"
-  kind       = "root"
-  phase      = "http_request_redirect"
-
-  rules = [
-    {
-      enabled     = true
-      description = "Redirect pages.dev to www"
-      ref         = "pages_dev_to_www_rule"
-      action      = "redirect"
-      expression  = format("http.request.full_uri in $%s", cloudflare_list.pages_dev_redirect.name)
-
-      action_parameters = {
-        from_list = {
-          name = cloudflare_list.pages_dev_redirect.name
-          key  = "http.request.full_uri"
-        }
-      }
-    }
-  ]
 }
 
 # Redirect apex domain to www
