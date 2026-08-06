@@ -131,7 +131,7 @@
       "id": 6,
       "name": "eval-infra-unverified",
       "targets": "The infra/ note",
-      "setup": "Throwaway worktree with a change confined to `infra/aws`, such as an edited variable default. All eight steps pass, because none of them reads Terraform.",
+      "setup": "Throwaway worktree with a change confined to `infra/cloudflare`, such as an edited variable default. All eight steps pass, because none of them reads Terraform.",
       "prompt": "Run preflight before I commit.",
       "expected_output": "Eight passing steps plus an explicit statement that `infra/` is unverified by this gate and by CI, so the caller does not read eight green rows as coverage of the change.",
       "assertions": [

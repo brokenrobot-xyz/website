@@ -56,15 +56,15 @@ does with them:
   the build with its third-party-resource check (`thirdparty:check`), and the e2e suite — the same
   gates the `running-preflight-checks` and `testing-visual-regression` skills run locally.
 - **`infra/` is unverified, in CI as well as locally.** The verify job has Terraform steps, but each
-  `run:` starts its own shell, so its `cd infra/aws` and `cd infra/cloudflare` steps do not carry and
+  `run:` starts its own shell, so its `cd infra/cloudflare` step does not carry and
   `terraform fmt -check` and `terraform validate` execute against the repo root, where there is no
   Terraform to check. Terraform is not part of the local toolchain either, so a change under `infra/`
   reaches production having been read by a human and nothing else. Fixing the workflow (a
   `working-directory:` on each step) is a planned change.
-- **Merge to `main` deploys.** No release branches; the deploy jobs ship to production on every merge
-  — see [tech-stack](../tech-stack.md) for the targets.
-- **The release gate** (the third human gate) is meant to be a required approval on the `Production`
-  and `Cloudflare` GitHub Environments. It is not yet configured — a planned change.
+- **Merge to `main` deploys.** No release branches; the deploy job ships to production on every merge
+  — see [tech-stack](../tech-stack.md) for the target.
+- **The release gate** (the third human gate) is meant to be a required approval on the `Cloudflare`
+  GitHub Environment. It is not yet configured — a planned change.
 
 ## The agents (`.claude/agents/`)
 
@@ -162,7 +162,7 @@ Project-scoped and committed, so the team shares them:
   knowledge graph over the workspace, queried instead of grep/read loops. How it's pinned, enabled, and
   used across worktrees lives in [code-intelligence.md](code-intelligence.md).
 - **`terraform`** — HashiCorp's official `terraform-mcp-server` (Docker, pinned `:0.5.2`, `--toolsets=registry`).
-  Public Terraform Registry docs — AWS/Cloudflare provider and module lookup — for authoring `infra/`. Docs
+  Public Terraform Registry docs — Cloudflare provider and module lookup — for authoring `infra/`. Docs
   lookup only; CI still runs `fmt`/`validate`. Needs Docker running.
 - **`github`** — GitHub's official `github-mcp-server` (Docker, pinned `:v1.2.0`), forced **read-only**
   (`GITHUB_READ_ONLY=1`) with the `context,repos,issues,pull_requests,actions` toolsets. Lets the agent
