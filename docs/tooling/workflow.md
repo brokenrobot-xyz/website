@@ -55,12 +55,13 @@ does with them:
   `lint:check` / `type:check` / `specs:check` / `designmd:check` / `tokens:check` in the verify job,
   the build with its third-party-resource check (`thirdparty:check`), and the e2e suite — the same
   gates the `running-preflight-checks` and `testing-visual-regression` skills run locally.
-- **`infra/` is unverified, in CI as well as locally.** The verify job has Terraform steps, but each
-  `run:` starts its own shell, so its `cd infra/cloudflare` step does not carry and
-  `terraform fmt -check` and `terraform validate` execute against the repo root, where there is no
-  Terraform to check. Terraform is not part of the local toolchain either, so a change under `infra/`
-  reaches production having been read by a human and nothing else. Fixing the workflow (a
-  `working-directory:` on each step) is a planned change.
+- **`infra/` is verified in CI, but not by the local gate.** The verify job runs Terraform's
+  `fmt -check -recursive`, `init -backend=false`, and `validate` steps against `infra/cloudflare`
+  via `working-directory:`, so formatting and configuration validity are enforced on every pull
+  request. What that does not cover is what an apply would do — no plan runs — so a change that is
+  valid and wrong still reaches production on a human read alone. The `running-preflight-checks`
+  gate skips Terraform entirely, though the devcontainer pins Terraform 1.15.8 to match CI, so a
+  local run is possible today.
 - **Merge to `main` deploys.** No release branches; the deploy job ships to production on every merge
   — see [tech-stack](../tech-stack.md) for the target.
 - **The release gate** (the third human gate) is meant to be a required approval on the `Cloudflare`

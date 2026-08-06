@@ -22,7 +22,7 @@ npm run build            # astro build — static output
 npm run thirdparty:check # scans dist/; exit 2 means dist/ is missing or half-written — report as `not run`
 ```
 
-Report each step as pass/fail from its own exit status. For a failing step, quote its first error, as `file:line` + message where the step reports one. A step that never ran is `not run`, not pass. Open with the overall verdict: red when any step failed or is `not run`. Report failures — do not fix anything; the caller reviews and fixes. If the change touches `infra/`, note that neither this gate nor CI verifies `infra/`.
+Report each step as pass/fail from its own exit status. For a failing step, quote its first error, as `file:line` + message where the step reports one. A step that never ran is `not run`, not pass. Open with the overall verdict: red when any step failed or is `not run`. Report failures — do not fix anything; the caller reviews and fixes. If the change touches `infra/`, note that this gate does not verify `infra/` — CI does, with `terraform fmt`/`init`/`validate`, but no plan runs there either.
 
 For example:
 

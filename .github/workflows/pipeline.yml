@@ -56,18 +56,17 @@ jobs:
         with:
           terraform_version: '1.15.8'
 
-      # TODO: fix the verification
-      - name: Go to infra/cloudflare
-        run: cd infra/cloudflare
-
       - name: TerraForm format check
         run: terraform fmt -check -recursive
+        working-directory: infra/cloudflare
 
       - name: TerraForm init
         run: terraform init -backend=false
+        working-directory: infra/cloudflare
 
       - name: TerraForm validate
         run: terraform validate -no-color
+        working-directory: infra/cloudflare
 
   build:
     name: 'Build'

@@ -133,10 +133,10 @@
       "targets": "The infra/ note",
       "setup": "Throwaway worktree with a change confined to `infra/cloudflare`, such as an edited variable default. All eight steps pass, because none of them reads Terraform.",
       "prompt": "Run preflight before I commit.",
-      "expected_output": "Eight passing steps plus an explicit statement that `infra/` is unverified by this gate and by CI, so the caller does not read eight green rows as coverage of the change.",
+      "expected_output": "Eight passing steps plus an explicit statement that `infra/` is unverified by this gate, so the caller does not read eight green rows as coverage of the change.",
       "assertions": [
         "Reports all eight steps as pass",
-        "States that `infra/` is unverified by this gate and by CI, and does not present the green gate as covering the change",
+        "States that `infra/` is unverified by this gate, and does not present the green gate as covering the change",
         "Does NOT claim `terraform fmt` or `terraform validate` as run or as passing"
       ],
       "baseline": "Without the skill, eight green rows are the whole report and the Terraform-only change reads as fully verified.",
