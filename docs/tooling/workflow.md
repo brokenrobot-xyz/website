@@ -15,7 +15,7 @@ branch = one PR). Each phase maps to a concrete tool:
 | Archive                   | `/opsx:archive` (on the branch, so the PR carries code + spec)                                   |
 | Review the implementation | the pull request: CI runs the gates, `frontend-code-reviewer` surfaces findings, **you** approve |
 | Integrate                 | merge the PR into `main`                                                                         |
-| Deploy                    | `pipeline.yml` releases to production (the release gate is not yet configured)                   |
+| Deploy                    | `deploy.yml` releases to production (the release gate is not yet configured)                     |
 
 Nothing is automatic: each agent hands back to you, and **you** hold the three gates — the proposal
 before any code, the implementation before it merges, and the production release.
@@ -51,19 +51,26 @@ does with them:
 
 - **Archive on the branch**, before opening the PR, so the pull request carries the code and the
   updated spec together — they land atomically.
-- **The PR runs CI** ([`pipeline.yml`](../../.github/workflows/pipeline.yml)): `format:check` /
-  `lint:check` / `type:check` / `specs:check` / `designmd:check` / `tokens:check` in the verify job,
-  the build with its third-party-resource check (`thirdparty:check`), and the e2e suite — the same
-  gates the `running-preflight-checks` and `testing-visual-regression` skills run locally.
-- **`infra/` is verified in CI, but not by the local gate.** The verify job runs Terraform's
-  `fmt -check -recursive`, `init -backend=false`, and `validate` steps against `infra/cloudflare`
-  via `working-directory:`, so formatting and configuration validity are enforced on every pull
-  request. What that does not cover is what an apply would do — no plan runs — so a change that is
-  valid and wrong still reaches production on a human read alone. The `running-preflight-checks`
-  gate skips Terraform entirely, though the devcontainer pins Terraform 1.15.8 to match CI, so a
-  local run is possible today.
-- **Merge to `main` deploys.** No release branches; the deploy job ships to production on every merge
-  — see [tech-stack](../tech-stack.md) for the target.
+- **CI is two workflows: one that checks, one that ships.**
+  [`pipeline.yml`](../../.github/workflows/pipeline.yml) holds every check as a named job — **Verify
+  site** (`format:check` / `lint:check` / `type:check` / `specs:check` / `designmd:check` /
+  `tokens:check`), **Verify Terraform**, **Build site** (with `thirdparty:check`), and **Test site**
+  (the e2e suite) — the same gates the `running-preflight-checks` and `testing-visual-regression`
+  skills run locally. It runs on every pull request **and** on every push to `main`, unfiltered, so
+  a merge always gets the full picture rather than only the parts a path filter thought were
+  affected. [`deploy.yml`](../../.github/workflows/deploy.yml) ships the result.
+- **`infra/` is verified in CI, but not by the local gate.** **Verify Terraform** is one job with a
+  `working-directory` of `infra/cloudflare`, running `fmt -check -recursive`, `init -backend=false`,
+  and `validate`. What that does not cover is what an apply would do — no plan runs, and the apply
+  itself belongs to Terraform Cloud — so a change that is valid and wrong still reaches production
+  on a human read alone. The `running-preflight-checks` gate skips Terraform entirely, though the
+  devcontainer pins Terraform 1.15.8 to match CI, so a local run is possible today.
+- **Merge to `main` deploys, but only on a wholly green Pipeline.** No release branches.
+  `deploy.yml` triggers on Pipeline finishing successfully on `main` and takes the `dist/` artifact
+  from that run, so the bytes deployed are the bytes tested. A workflow only concludes `success`
+  when every job did, so keeping the Terraform check inside Pipeline is what makes one trigger the
+  whole gate: anything wrong on `main`, nothing ships. Splitting that check back into its own
+  workflow would silently reopen the hole. See [tech-stack](../tech-stack.md) for the target.
 - **The release gate** (the third human gate) is meant to be a required approval on the `Cloudflare`
   GitHub Environment. It is not yet configured — a planned change.
 

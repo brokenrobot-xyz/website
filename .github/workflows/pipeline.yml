@@ -13,8 +13,8 @@ env:
   BROKENROBOT_PORT: 8080
 
 jobs:
-  verify:
-    name: 'Verify'
+  verify-site:
+    name: 'Verify site'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -51,6 +51,24 @@ jobs:
       - name: DESIGN token drift check
         run: npm run tokens:check
 
+  verify-terraform:
+    name: 'Verify Terraform'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    # Every step in this job is Terraform, so the directory belongs to the job
+    # rather than to each step. A `cd` in a `run:` would not carry — each step
+    # starts its own shell.
+    defaults:
+      run:
+        working-directory: infra/cloudflare
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v6
+
       - name: Set up TerraForm
         uses: hashicorp/setup-terraform@v4
         with:
@@ -58,18 +76,15 @@ jobs:
 
       - name: TerraForm format check
         run: terraform fmt -check -recursive
-        working-directory: infra/cloudflare
 
       - name: TerraForm init
         run: terraform init -backend=false
-        working-directory: infra/cloudflare
 
       - name: TerraForm validate
         run: terraform validate -no-color
-        working-directory: infra/cloudflare
 
-  build:
-    name: 'Build'
+  build-site:
+    name: 'Build site'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
 
@@ -99,10 +114,10 @@ jobs:
           path: dist/
           retention-days: 3
 
-  test:
-    name: 'Test'
+  test-site:
+    name: 'Test site'
     runs-on: ubuntu-24.04
-    needs: build
+    needs: build-site
     timeout-minutes: 10
 
     steps:
@@ -137,40 +152,3 @@ jobs:
           name: e2e-test-reports
           path: reports/tests/e2e/
           retention-days: 3
-
-  deploy-to-cloudflare:
-    name: 'Deploy to Cloudflare'
-    runs-on: ubuntu-24.04
-    needs: [verify, build, test]
-    if: github.ref == 'refs/heads/main'
-    timeout-minutes: 10
-    environment: Cloudflare
-    concurrency:
-      group: Cloudflare
-      cancel-in-progress: false
-    permissions:
-      contents: read
-      deployments: write
-
-    steps:
-      - name: Download dist
-        uses: actions/download-artifact@v7
-        with:
-          name: dist
-          path: dist/
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ./dist --project-name=${{ secrets.CLOUDFLARE_PROJECT_NAME }} --branch=main
-
-      - name: Purge the Cloudflare cache
-        run: |
-          curl --fail-with-body --silent --show-error \
-            --request POST \
-            --header "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-            --header "Content-Type: application/json" \
-            --data '{"purge_everything":true}' \
-            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache"

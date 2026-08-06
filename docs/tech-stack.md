@@ -38,11 +38,15 @@ design overhaul.
 
 - `astro build` produces a fully **static** `dist/`. HTML is compressed, stylesheets are
   **always inlined**, and images use responsive styles (see `astro.config.ts`).
-- **CI/CD** runs in GitHub Actions (`.github/workflows/pipeline.yml`): a `verify` →
-  `build` → `test` sequence (format, lint, type-check, OpenSpec validation, then build, then
-  Playwright), followed by deployment from `main`.
+- **CI/CD** runs in GitHub Actions as two workflows. `pipeline.yml` carries every check as a job —
+  **Verify site** (format, lint, type-check, OpenSpec validation, DESIGN lint and token drift),
+  **Verify Terraform** (`fmt`/`init`/`validate` over `infra/cloudflare`), **Build site**, and
+  **Test site** (Playwright) — running unfiltered on pull requests and on `main`. `deploy.yml`
+  does the shipping.
 - **Delivery:** the built site is published to **Cloudflare Pages** on every merge to `main`, and
-  the deploy job then purges the Cloudflare edge cache. The job targets the `Cloudflare` GitHub
+  the deploy job then purges the Cloudflare edge cache. `deploy.yml` triggers on a successful
+  Pipeline run — success meaning _every_ job passed, so a single failing check anywhere stops the
+  release — and reuses that run's `dist/` artifact. It targets the `Cloudflare` GitHub
   Environment; the release gate — a required approval on that environment — is intended but
   **not yet configured** (see [development-workflow](development-workflow.md)).
 

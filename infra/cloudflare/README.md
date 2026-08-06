@@ -173,14 +173,32 @@ This is a scheduling problem, not drift — the same apply re-run with no deploy
 succeeds with no changes. It is _not_ the perpetual-diff bug reported upstream
 (cloudflare/terraform-provider-cloudflare#5928); that would still show a diff when idle.
 
-Both sides are now path-scoped so the two never fire on the same push: the Terraform
-Cloud workspace only triggers on `infra/cloudflare/`, and `deploy.yml` only triggers on
-`public/`. Scoping the workspace alone would not have been enough — `deploy.yml`
-previously ran on Pipeline's success, and Pipeline runs on every push, so an infra-only
-push still deployed and still raced.
+Only the Terraform Cloud side is scoped. The workspace triggers on `infra/cloudflare/`
+alone; the GitHub side deliberately is not. `pipeline.yml` runs unfiltered on every push to
+`main` so that a merge always gets full integration coverage, and `deploy.yml` runs whenever
+that Pipeline succeeds — including after an infra-only merge, whose deploy can still overlap
+an apply.
 
-Keep the two path filters disjoint. A single push touching both trees brings the race
-back.
+**This race is knowingly accepted, not closed.** The failure is a retryable apply error, not
+a bad deploy or an outage; the fix is to re-run the apply with nothing in flight. Buying
+immunity would mean path-filtering the GitHub side, and that trade was rejected: it costs
+full coverage on merge, adds a silent "why didn't this deploy?" failure mode, and makes a
+path filter load-bearing for correctness without looking it.
+
+What limits the exposure instead:
+
+- **`deploy.yml` waits for the whole of Pipeline**, so the upload begins minutes after the
+  push rather than seconds — usually after a small apply has already finished.
+- **`cancel-in-progress: false`** queues deploys rather than interleaving them.
+- **Keep infra changes on their own commits.** An infra-only commit builds a byte-identical
+  `dist/`, so the deploy it triggers changes nothing — but it is still an upload, and an
+  upload is what mutates `latest_deployment`.
+
+One trap worth naming, since the sibling stormbound.cc repo does the opposite: the mirror of
+the Terraform Cloud filter is **not** a `paths: ['public/**']` trigger. That works there
+because `public/` is the whole site, checked in and deployed as-is. Here Astro builds from
+`src/`, so the same filter would stop every article and component change from ever
+deploying.
 
 ## Zone-wide configuration belongs to the `domain` module
 

@@ -1,0 +1,72 @@
+name: Deploy
+
+# Pipeline's conclusion is `success` only when every one of its jobs passed —
+# Verify site, Verify Terraform, Build site, Test site. Triggering on that one
+# workflow is therefore the entire gate: if anything on `main` is wrong, nothing
+# ships. Keeping the Terraform check inside Pipeline rather than in a workflow of
+# its own is what makes that true, so do not split it back out.
+#
+# `workflow_run` fires once per matching run, not once when several finish, so
+# listing a second workflow here would deploy twice per push instead of waiting
+# for both — and the run triggered by the other workflow would have no `dist`
+# artifact to download.
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Pipeline run ID to take the dist artifact from'
+        required: true
+  workflow_run:
+    workflows: ['Pipeline']
+    types:
+      - completed
+    branches:
+      - main
+
+jobs:
+  deploy-to-cloudflare:
+    name: 'Deploy to Cloudflare'
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    timeout-minutes: 10
+    environment: Cloudflare
+    # Queue rather than cancel: a run cancelled between the upload and the purge
+    # leaves the edge serving the previous deployment for up to the zone TTL.
+    concurrency:
+      group: Cloudflare
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      deployments: write
+      # The artifact belongs to the Pipeline run, not to this one, so reading it
+      # needs an explicit grant plus the run id and a token below.
+      actions: read
+
+    steps:
+      # Pipeline keeps `dist/` for 3 days, so a manual re-run is bounded by that
+      # retention window.
+      - name: Download dist
+        uses: actions/download-artifact@v7
+        with:
+          name: dist
+          path: dist/
+          run-id: ${{ github.event.workflow_run.id || github.event.inputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ./dist --project-name=${{ secrets.CLOUDFLARE_PROJECT_NAME }} --branch=main
+
+      # The zone caches at the edge with a one-year TTL, so a deployment is not
+      # visible on the custom domain until that cache is dropped.
+      - name: Purge the Cloudflare cache
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            --header "Content-Type: application/json" \
+            --data '{"purge_everything":true}' \
+            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache"
