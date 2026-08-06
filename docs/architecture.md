@@ -143,12 +143,20 @@ each one.
    and styles and **no `unsafe-inline`**, so an injected inline script does not run. Because the
    hashes are per-page and follow the content, only the build can produce this layer — and
    because it lives in the HTML, it travels unchanged to any host.
-2. **An edge header**, defined in three places that must stay identical: the Terraform variable
-   `content_security_policy` (AWS CloudFront — production), `nginx.conf` (Kubernetes), and
-   `server.headers` in `astro.config.ts` (what `astro preview`, and therefore the Playwright
-   suite, serves). This layer carries what a `<meta>` element cannot express —
-   `frame-ancestors` — and additionally covers non-HTML responses and host-generated error
-   pages, starting from the first byte rather than from the meta tag.
+2. **An edge header**, defined in four places that must stay byte-identical: the
+   `Content-Security-Policy` header in `infra/cloudflare/modules/domain/main.tf` (Cloudflare —
+   production), the Terraform variable `content_security_policy` (AWS CloudFront — the previous
+   host, kept for reference), `nginx.conf` (Kubernetes), and `server.headers` in
+   `astro.config.ts` (what `astro preview`, and therefore the Playwright suite, serves). This
+   layer carries what a `<meta>` element cannot express — `frame-ancestors` — and additionally
+   covers non-HTML responses and host-generated error pages, starting from the first byte rather
+   than from the meta tag.
+
+    A fourth copy is a fourth chance to drift, and the drift is quiet: the site keeps rendering
+    because the inline CSS survives, while fonts and every bundled script fail. When the
+    Cloudflare stack was first stood up it carried a single-layer policy copied from another
+    site, which intersected with the `<meta>` layer to block `font-src` outright and admit no
+    script at all. Check all four when changing any.
 
 The header keeps `'unsafe-inline'` on `script-src`/`style-src` **deliberately**: a static header
 cannot carry per-page hashes, so without it this layer would block the very inline scripts the
@@ -170,3 +178,25 @@ Two consequences worth knowing:
 
 Astro's CSP does not work in `dev` (the Vite dev server injects its own inline assets) — verify
 with `npm run build` and `npm run serve`.
+
+### The one third-party script
+
+`script-src` names exactly one external host, `https://static.cloudflareinsights.com`, in **both**
+layers: the Cloudflare Web Analytics beacon, injected at the edge by `auto_install` on
+`cloudflare_web_analytics_site`. Three things about it are easy to get wrong:
+
+- **`npm run thirdparty:check` cannot see it.** The guardrail scans `dist/`, and the beacon is
+  added by the edge after the build, so `scriptDirective.resources` in `astro.config.ts` is the
+  only place this dependency is written down. Nothing fails if it is removed — analytics just
+  goes quiet.
+- **The host is named without a path.** The beacon is served from a versioned URL,
+  `/beacon.min.js/v<id>`. A CSP source whose path does not end in `/` must match exactly, so
+  naming the file would block every version of it.
+- **`connect-src` needs nothing.** Because the beacon is auto-installed rather than embedded, it
+  reports to the same-origin `/cdn-cgi/rum`, which `connect-src 'self'` already covers. A
+  manually embedded beacon would post to `cloudflareinsights.com` instead and would need that
+  host added.
+
+Astro's `scriptDirective.resources` **replaces** its default sources rather than extending them,
+so `'self'` is repeated in that list. Dropping it there would block every bundled script on the
+site while leaving the beacon working — a confusing failure worth recognizing.

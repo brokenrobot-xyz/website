@@ -11,9 +11,9 @@ zone. Zone-level rulesets — the apex→www redirect, the response headers, the
 rule — are invisible to it. Anything that has to act on the Pages hostname must be
 **account-level**.
 
-That is why the pages.dev→www redirect is a Bulk Redirect (`cloudflare_list` +
-`cloudflare_list_item` + an account-level `cloudflare_ruleset`) rather than another
-entry in the zone's redirect ruleset.
+That is why the pages.dev→www redirect is a Bulk Redirect — a `cloudflare_list` and a
+`cloudflare_list_item` here, plus a hand-made Bulk Redirect Rule in the account entry
+point (see below) — rather than another entry in the zone's redirect ruleset.
 
 `include_subdomains = true` on the list item is load-bearing: every
 `wrangler pages deploy` mints a `<hash>.brokenrobot-xyz.pages.dev` URL, so closing only
@@ -44,6 +44,22 @@ So the two halves are split by who can own them:
 Lists are not singletons, so each site keeps its own in Terraform. Only the Rules are
 manual, and only because they share the ruleset.
 
+The split follows the provider's own resource inventory. As of v5.22.0:
+
+| Concept            | Resources                                        | Splittable?                                         |
+| ------------------ | ------------------------------------------------ | --------------------------------------------------- |
+| Bulk Redirect List | `cloudflare_list` **and** `cloudflare_list_item` | Yes — one item is one resource, and the API appends |
+| Bulk Redirect Rule | `cloudflare_ruleset` only                        | No — there is no `cloudflare_ruleset_rule`          |
+
+A Rule is not an addressable object. It is an element inside the entry point ruleset's
+`rules` array, and the only handle on that array is the whole ruleset. That is the
+entire reason the two halves are owned differently — not a preference.
+
+The alternative was considered and rejected: one stack could own the ruleset and declare
+**every** site's rule. That works, but it puts each site's redirect in another site's
+repository, and every new site becomes a pull request against that repo. Two dashboard
+clicks per site, once, is the cheaper trade.
+
 Consequences:
 
 - **A new site needs one manual step.** Terraform creates its List; you then add a
@@ -59,6 +75,28 @@ Consequences:
     curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
       "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/rulesets/phases/http_request_redirect/entrypoint"
     ```
+
+    `10003 could not find entrypoint ruleset` means no ruleset exists. Anything else,
+    including an empty `rules` array, means one does.
+
+### Adding the Rule for a site
+
+After the site's apply has created its List: dashboard → account home → **Bulk
+Redirects** → Create Bulk Redirect Rule.
+
+- **Name** — `<apex domain> — pages.dev to custom domain`. Rules from every site share
+  one flat table, so the domain leads.
+- **List** — the site's `<apex_domain>_pages_dev_redirect`.
+
+A Rule cannot be created empty; referencing a List is the only thing it does. Creating
+the first Rule is also what brings the entry point ruleset back into existence.
+
+Then confirm `include_subdomains` is doing its job, which is the one item flag nothing
+else exercises:
+
+```
+curl -sI https://<hash>.<project>.pages.dev/ | grep -i '^location'
+```
 
 ## Edge caching hides deployments
 

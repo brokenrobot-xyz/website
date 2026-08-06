@@ -35,7 +35,24 @@ export default defineConfig({
                 "manifest-src 'none'",
                 "frame-src 'none'",
                 "child-src 'none'"
-            ]
+            ],
+            // The site's one third-party script: the Cloudflare Web Analytics beacon, injected at
+            // the edge by `auto_install` on cloudflare_web_analytics_site. It never appears in
+            // `dist/`, so `npm run thirdparty:check` cannot see it -- this list is the only place
+            // the dependency is visible.
+            //
+            // `resources` REPLACES Astro's defaults rather than extending them, so 'self' must be
+            // repeated here or every bundled script stops loading. The generated hashes are still
+            // appended.
+            //
+            // Host only, no path: the beacon is served from a versioned URL
+            // (`/beacon.min.js/v<id>`), and a CSP source whose path does not end in `/` must match
+            // exactly, so naming the file would block it. No `connect-src` entry is needed --
+            // because the beacon is auto-installed it reports to the same-origin `/cdn-cgi/rum`,
+            // which `connect-src 'self'` above already covers.
+            scriptDirective: {
+                resources: ["'self'", 'https://static.cloudflareinsights.com']
+            }
         }
     },
     compressHTML: true,
@@ -176,7 +193,7 @@ export default defineConfig({
             // Mirrors the edge header in nginx.conf so `astro preview` (and the Playwright suite,
             // which runs against it) exercises the same two-layer policy as production. Keep the
             // two in sync; the strict, hash-based half is the <meta> policy from `security.csp`.
-            'Content-Security-Policy': `default-src 'none'; child-src 'none'; connect-src 'self'; font-src 'self'; frame-src 'none'; img-src 'self'; manifest-src 'none'; media-src 'none'; object-src 'none'; script-src 'self' 'unsafe-inline'; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; style-src-attr 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none';`,
+            'Content-Security-Policy': `default-src 'none'; child-src 'none'; connect-src 'self'; font-src 'self'; frame-src 'none'; img-src 'self'; manifest-src 'none'; media-src 'none'; object-src 'none'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; style-src-attr 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none';`,
             'Permissions-Policy': `accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), display-capture=(), document-domain=(), encrypted-media=(), gamepad=(), geolocation=(), gyroscope=(), fullscreen=(self), magnetometer=(), microphone=(), midi=(), payment=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), speaker-selection=(), usb=(), web-share=(), xr-spatial-tracking=()`,
             'Referrer-Policy': `same-origin`,
             'Strict-Transport-Security': `max-age=63072000; includeSubDomains; preload`,
