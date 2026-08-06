@@ -59,12 +59,12 @@ does with them:
   skills run locally. It runs on every pull request **and** on every push to `main`, unfiltered, so
   a merge always gets the full picture rather than only the parts a path filter thought were
   affected. [`deploy.yml`](../../.github/workflows/deploy.yml) ships the result.
-- **`infra/` is verified in CI, but not by the local gate.** **Verify Terraform** is one job with a
+- **`infra/` is checked, but only shallowly.** **Verify Terraform** is one job with a
   `working-directory` of `infra/cloudflare`, running `fmt -check -recursive`, `init -backend=false`,
-  and `validate`. What that does not cover is what an apply would do — no plan runs, and the apply
-  itself belongs to Terraform Cloud — so a change that is valid and wrong still reaches production
-  on a human read alone. The `running-preflight-checks` gate skips Terraform entirely, though the
-  devcontainer pins Terraform 1.15.8 to match CI, so a local run is possible today.
+  and `validate`; `running-preflight-checks` runs the same `fmt` and `validate` locally as its
+  `terraform:check` step, against the devcontainer's Terraform 1.15.8 pin. What neither covers is
+  what an apply would do — no plan runs, and the apply itself belongs to Terraform Cloud — so a
+  change that is well-formed, valid, and wrong still reaches production on a human read alone.
 - **Merge to `main` deploys, but only on a wholly green Pipeline.** No release branches.
   `deploy.yml` triggers on Pipeline finishing successfully on `main` and takes the `dist/` artifact
   from that run, so the bytes deployed are the bytes tested. A workflow only concludes `success`
