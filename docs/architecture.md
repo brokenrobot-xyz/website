@@ -178,3 +178,25 @@ Two consequences worth knowing:
 
 Astro's CSP does not work in `dev` (the Vite dev server injects its own inline assets) — verify
 with `npm run build` and `npm run serve`.
+
+### The one third-party script
+
+`script-src` names exactly one external host, `https://static.cloudflareinsights.com`, in **both**
+layers: the Cloudflare Web Analytics beacon, injected at the edge by `auto_install` on
+`cloudflare_web_analytics_site`. Three things about it are easy to get wrong:
+
+- **`npm run thirdparty:check` cannot see it.** The guardrail scans `dist/`, and the beacon is
+  added by the edge after the build, so `scriptDirective.resources` in `astro.config.ts` is the
+  only place this dependency is written down. Nothing fails if it is removed — analytics just
+  goes quiet.
+- **The host is named without a path.** The beacon is served from a versioned URL,
+  `/beacon.min.js/v<id>`. A CSP source whose path does not end in `/` must match exactly, so
+  naming the file would block every version of it.
+- **`connect-src` needs nothing.** Because the beacon is auto-installed rather than embedded, it
+  reports to the same-origin `/cdn-cgi/rum`, which `connect-src 'self'` already covers. A
+  manually embedded beacon would post to `cloudflareinsights.com` instead and would need that
+  host added.
+
+Astro's `scriptDirective.resources` **replaces** its default sources rather than extending them,
+so `'self'` is repeated in that list. Dropping it there would block every bundled script on the
+site while leaving the beacon working — a confusing failure worth recognizing.
