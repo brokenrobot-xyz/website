@@ -17,6 +17,8 @@ jobs:
     name: 'Verify'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout the repository
@@ -52,28 +54,17 @@ jobs:
       - name: Set up TerraForm
         uses: hashicorp/setup-terraform@v4
         with:
-          terraform_version: '1.15.3'
+          terraform_version: '1.15.8'
 
-      - name: Go to infra/aws
-        run: cd infra/aws
-
-      - name: TerraForm format check
-        run: terraform fmt -check
-
-      - name: TerraForm init
-        run: terraform init
-
-      - name: TerraForm validate
-        run: terraform validate -no-color
-
+      # TODO: fix the verification
       - name: Go to infra/cloudflare
         run: cd infra/cloudflare
 
       - name: TerraForm format check
-        run: terraform fmt -check
+        run: terraform fmt -check -recursive
 
       - name: TerraForm init
-        run: terraform init
+        run: terraform init -backend=false
 
       - name: TerraForm validate
         run: terraform validate -no-color
@@ -148,37 +139,6 @@ jobs:
           path: reports/tests/e2e/
           retention-days: 3
 
-  deploy-to-aws:
-    name: 'Deploy to AWS'
-    runs-on: ubuntu-24.04
-    needs: [verify, build, test]
-    if: github.ref == 'refs/heads/main'
-    timeout-minutes: 10
-    environment: Production
-    concurrency:
-      group: Production
-      cancel-in-progress: true
-
-    steps:
-      - name: Download dist
-        uses: actions/download-artifact@v7
-        with:
-          name: dist
-          path: dist/
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v5
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Deploy to AWS S3
-        run: aws s3 sync dist/ s3://${{ secrets.AWS_S3_BUCKET_NAME }} --delete
-
-      - name: Invalidate AWS CloudFront cache
-        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
-
   deploy-to-cloudflare:
     name: 'Deploy to Cloudflare'
     runs-on: ubuntu-24.04
@@ -188,7 +148,7 @@ jobs:
     environment: Cloudflare
     concurrency:
       group: Cloudflare
-      cancel-in-progress: true
+      cancel-in-progress: false
     permissions:
       contents: read
       deployments: write
@@ -201,8 +161,17 @@ jobs:
           path: dist/
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy ./dist --project-name=${{ secrets.CLOUDFLARE_PROJECT_NAME }} --branch=main
+
+      - name: Purge the Cloudflare cache
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            --header "Content-Type: application/json" \
+            --data '{"purge_everything":true}' \
+            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache"
