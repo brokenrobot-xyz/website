@@ -143,12 +143,20 @@ each one.
    and styles and **no `unsafe-inline`**, so an injected inline script does not run. Because the
    hashes are per-page and follow the content, only the build can produce this layer — and
    because it lives in the HTML, it travels unchanged to any host.
-2. **An edge header**, defined in three places that must stay identical: the Terraform variable
-   `content_security_policy` (AWS CloudFront — production), `nginx.conf` (Kubernetes), and
-   `server.headers` in `astro.config.ts` (what `astro preview`, and therefore the Playwright
-   suite, serves). This layer carries what a `<meta>` element cannot express —
-   `frame-ancestors` — and additionally covers non-HTML responses and host-generated error
-   pages, starting from the first byte rather than from the meta tag.
+2. **An edge header**, defined in four places that must stay byte-identical: the
+   `Content-Security-Policy` header in `infra/cloudflare/modules/domain/main.tf` (Cloudflare —
+   production), the Terraform variable `content_security_policy` (AWS CloudFront — the previous
+   host, kept for reference), `nginx.conf` (Kubernetes), and `server.headers` in
+   `astro.config.ts` (what `astro preview`, and therefore the Playwright suite, serves). This
+   layer carries what a `<meta>` element cannot express — `frame-ancestors` — and additionally
+   covers non-HTML responses and host-generated error pages, starting from the first byte rather
+   than from the meta tag.
+
+    A fourth copy is a fourth chance to drift, and the drift is quiet: the site keeps rendering
+    because the inline CSS survives, while fonts and every bundled script fail. When the
+    Cloudflare stack was first stood up it carried a single-layer policy copied from another
+    site, which intersected with the `<meta>` layer to block `font-src` outright and admit no
+    script at all. Check all four when changing any.
 
 The header keeps `'unsafe-inline'` on `script-src`/`style-src` **deliberately**: a static header
 cannot carry per-page hashes, so without it this layer would block the very inline scripts the

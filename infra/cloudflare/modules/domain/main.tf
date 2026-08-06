@@ -108,13 +108,21 @@ resource "cloudflare_ruleset" "security_and_performance_response_headers" {
             operation = "set"
             value     = "same-origin"
           }
-          # script-src covers the Web Analytics beacon; because it is
-          # auto-installed the beacon posts to the same-origin /cdn-cgi/rum,
-          # hence connect-src 'self' rather than the Cloudflare host.
-          # style-src allows the inline styles in index.html and 404.html.
+          # Second of the two CSP layers -- see docs/architecture.md. Astro emits the
+          # strict, hash-based <meta> policy into every page; this header carries what a
+          # <meta> element cannot (frame-ancestors), covers non-HTML responses and error
+          # pages, and applies from the first byte.
+          #
+          # Browsers enforce both, so a resource must satisfy each. That makes this the
+          # permissive half: 'unsafe-inline' on script-src/style-src is deliberate and is
+          # NOT a weakening -- a static header cannot carry per-page hashes, so without it
+          # this layer would block the very inline scripts the <meta> layer already vetted,
+          # starting with the theme-init script that runs before the parser reaches <meta>.
+          #
+          # Keep byte-identical to nginx.conf and server.headers in astro.config.ts.
           "Content-Security-Policy" = {
             operation = "set"
-            value     = "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; script-src https://static.cloudflareinsights.com; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+            value     = "default-src 'none'; child-src 'none'; connect-src 'self'; font-src 'self'; frame-src 'none'; img-src 'self'; manifest-src 'none'; media-src 'none'; object-src 'none'; script-src 'self' 'unsafe-inline'; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; style-src-attr 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none';"
           }
         }
       }
