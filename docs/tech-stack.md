@@ -42,7 +42,8 @@ design overhaul.
   **Verify site** (format, lint, type-check, OpenSpec validation, DESIGN lint and token drift),
   **Verify Terraform** (`fmt`/`init`/`validate` over `infra/cloudflare`), **Build site**, and
   **Test site** (Playwright) — running unfiltered on pull requests and on `main`. `deploy.yml`
-  does the shipping.
+  does the shipping. Every third-party action is pinned to a commit SHA with its release in a
+  trailing comment, so a moved tag cannot change what runs.
 - **Delivery:** the built site is published to **Cloudflare Pages** on every merge to `main`, and
   the deploy job then purges the Cloudflare edge cache. `deploy.yml` triggers on a successful
   Pipeline run — success meaning _every_ job passed, so a single failing check anywhere stops the
