@@ -77,7 +77,10 @@ spec is archived on the branch, and you have approved the implementation.
 
 [`pipeline.yml`](../../../.github/workflows/pipeline.yml) runs on pushes to `main` and on pull
 requests targeting `main`. No other branch triggers it, so a change is checked when it opens a pull
-request and again when it lands.
+request and again when it lands. It is not path-filtered: a merge gets the full picture, not only
+the parts a filter judged affected.
 
-The deploy jobs are gated on `github.ref == 'refs/heads/main'`. They are skipped for pull requests
-and run only after the merge — which is what "every merge deploys" means in practice.
+[`deploy.yml`](../../../.github/workflows/deploy.yml) has no branch trigger at all — it runs when
+Pipeline finishes successfully on `main`, and a workflow only succeeds when every job did, so a
+single red check anywhere holds the release. Pull requests never reach it. That is what "every merge
+deploys" means in practice.

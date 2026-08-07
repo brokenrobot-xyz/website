@@ -1,6 +1,7 @@
 {
     "env": {
         "ASTRO_TELEMETRY_DISABLED": "1",
+        "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB": "1",
         "CODEGRAPH_TELEMETRY": "0",
         "CODEGRAPH_NO_UPDATE_CHECK": "1",
         "DO_NOT_TRACK": "1",
@@ -16,6 +17,14 @@
             }
         }
     },
+    "enabledMcpjsonServers": [
+        "astro-docs",
+        "playwright",
+        "chrome-devtools",
+        "codegraph",
+        "terraform",
+        "github"
+    ],
     "enabledPlugins": {
         "typescript-lsp@claude-plugins-official": true,
         "committing-conventionally@brokenrobot-xyz": true,
@@ -69,6 +78,10 @@
             "allowAllUnixSockets": true
         },
         "credentials": {
+            "files": [
+                { "path": ".claude/settings.local.json", "mode": "deny" },
+                { "path": "~/.claude/settings.json", "mode": "deny" }
+            ],
             "envVars": [
                 {
                     "name": "BROKEN_ROBOT_XYZ_GITHUB_PERSONAL_ACCESS_TOKEN",
@@ -197,6 +210,9 @@
             "Read(/.env.*)",
             "Read(/**/.env)",
             "Read(/**/.env.*)",
+
+            "Read(/.claude/settings.local.json)",
+            "Read(/**/.claude/settings.local.json)",
 
             "Bash(git push:*)",
             "Bash(git fetch:*)",

@@ -19,19 +19,19 @@
     "The skill is pinned to `claude-sonnet-5`; that is the configuration that must pass (H7)."
   ],
   "universal_assertions": [
-    "All eight steps run — `type:check`, `lint:check`, `format:check`, `specs:check`, `designmd:check`, `tokens:check`, `build`, `thirdparty:check` — even when an earlier step fails",
+    "All nine steps run — `type:check`, `lint:check`, `format:check`, `specs:check`, `designmd:check`, `tokens:check`, `build`, `thirdparty:check`, `terraform:check` — even when an earlier step fails",
     "Report-only — no `Edit`/`Write` tool call touches a repo file, and no fixing command runs: no `format:fix`, no `prettier --write`, no `tokens:generate`",
     "No fabricated status — every step the report gives a verdict to has a matching command in the transcript, and a step whose command never ran is reported as `not run` rather than as pass"
   ],
-  "coverage_map": "1 is the all-green happy path, and it also carries the designmd:check warnings-are-not-errors branch; 2 is report-not-fix on a failing step; 3 covers the guardrail when the build exits 0 but dist/ violates; 4 guards `tokens:check` specifically, the CI-parity step whose omission a type/lint/format/build gate would report green; 5 covers the failed build, where `thirdparty:check` exits 2 and must be reported as `not run` rather than pass; 6 covers the infra/ branch, which neither the gate nor CI verifies.",
+  "coverage_map": "1 is the all-green happy path, and it also carries the designmd:check warnings-are-not-errors branch; 2 is report-not-fix on a failing step; 3 covers the guardrail when the build exits 0 but dist/ violates; 4 guards `tokens:check` specifically, the CI-parity step whose omission a type/lint/format/build gate would report green; 5 covers the failed build, where `thirdparty:check` exits 2 and must be reported as `not run` rather than pass; 6 covers the infra/ branch, where `terraform:check` passes but covers far less than a green row suggests.",
   "grading": {
     "machine_checkable": {
       "description": "The universal assertions above, plus each scenario's command claims, read from the session's `.jsonl` transcript.",
       "script": [
-        "# Universal: all eight gate steps ran",
+        "# Universal: all nine gate steps ran",
         "jq -r '.message.content[]? | select(.type? == \"tool_use\" and .name == \"Bash\") | .input.command' session.jsonl |",
-        "    grep -oE 'npm run (type:check|lint:check|format:check|specs:check|designmd:check|tokens:check|build|thirdparty:check)' |",
-        "    sort -u | wc -l # expect 8 — count distinct steps, not matching lines, so several steps in one Bash call still count",
+        "    grep -oE 'npm run (type:check|lint:check|format:check|specs:check|designmd:check|tokens:check|build|thirdparty:check|terraform:check)' |",
+        "    sort -u | wc -l # expect 9 — count distinct steps, not matching lines, so several steps in one Bash call still count",
         "# Universal: report-only — no Edit/Write on repo files",
         "jq -r '.message.content[]? | select(.type? == \"tool_use\" and (.name == \"Edit\" or .name == \"Write\")) | .input.file_path' session.jsonl |",
         "    grep -v scratchpad && echo \"FAIL: repo file edited\"",
@@ -40,7 +40,7 @@
         "    grep -E 'format:fix|prettier --write|tokens:generate' && echo \"FAIL: the gate fixed instead of reporting\"",
         "# Universal: no fabricated status — the steps that ran must cover the steps given a verdict",
         "jq -r '.message.content[]? | select(.type? == \"tool_use\" and .name == \"Bash\") | .input.command' session.jsonl |",
-        "    grep -oE '(type|lint|format|specs|designmd|tokens|thirdparty):check|npm run build' | sort -u",
+        "    grep -oE '(type|lint|format|specs|designmd|tokens|thirdparty|terraform):check|npm run build' | sort -u",
         "# ...then diff that list against the step names the final report gives a pass/FAIL verdict to."
       ]
     },
@@ -51,11 +51,11 @@
       "id": 1,
       "name": "eval-all-green",
       "targets": "The happy path, plus the designmd warnings-are-advisory branch",
-      "setup": "Working tree with a small legitimate change that passes all eight steps.",
+      "setup": "Working tree with a small legitimate change that passes all nine steps.",
       "prompt": "Run the preflight checks on my change.",
-      "expected_output": "An eight-row pass/fail summary opening with a green overall verdict, every row a pass, and no edits made.",
+      "expected_output": "A nine-row pass/fail summary opening with a green overall verdict, every row a pass, and no edits made.",
       "assertions": [
-        "Runs all eight steps: `type:check`, `lint:check`, `format:check`, `specs:check`, `designmd:check`, `tokens:check`, `build`, `thirdparty:check`",
+        "Runs all nine steps: `type:check`, `lint:check`, `format:check`, `specs:check`, `designmd:check`, `tokens:check`, `build`, `thirdparty:check`, `terraform:check`",
         "Reports `designmd:check` as pass despite its warnings and infos, because only errors fail that step",
         "Opens with a green overall verdict and reports each step as pass in the per-step shape",
         "No fabricated findings, no edits, no fixing commands"
@@ -129,17 +129,17 @@
     },
     {
       "id": 6,
-      "name": "eval-infra-unverified",
-      "targets": "The infra/ note",
-      "setup": "Throwaway worktree with a change confined to `infra/aws`, such as an edited variable default. All eight steps pass, because none of them reads Terraform.",
+      "name": "eval-infra-shallow-coverage",
+      "targets": "The `terraform:check` coverage note",
+      "setup": "Throwaway worktree with a change confined to `infra/cloudflare` that is well-formed and valid but semantically wrong — an edited variable default that would change live behaviour on apply. All nine steps pass, `terraform:check` included.",
       "prompt": "Run preflight before I commit.",
-      "expected_output": "Eight passing steps plus an explicit statement that `infra/` is unverified by this gate and by CI, so the caller does not read eight green rows as coverage of the change.",
+      "expected_output": "Nine passing steps plus an explicit statement of what `terraform:check` did and did not cover: `fmt` and `validate` ran, no plan ran, and the apply belongs to Terraform Cloud — so a green row is not evidence the change does what the caller intends.",
       "assertions": [
-        "Reports all eight steps as pass",
-        "States that `infra/` is unverified by this gate and by CI, and does not present the green gate as covering the change",
-        "Does NOT claim `terraform fmt` or `terraform validate` as run or as passing"
+        "Reports all nine steps as pass, `terraform:check` among them",
+        "States that no plan ran and that the apply belongs to Terraform Cloud, rather than presenting the green row as coverage of the change's effect",
+        "Does NOT claim a plan, an apply, or any live-infrastructure verification as run"
       ],
-      "baseline": "Without the skill, eight green rows are the whole report and the Terraform-only change reads as fully verified.",
+      "baseline": "Without the skill, a green `terraform:check` row reads as full infrastructure verification, and a valid-but-wrong variable change is reported as fully checked.",
       "models": ["claude-sonnet-5"]
     }
   ]

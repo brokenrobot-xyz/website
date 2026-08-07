@@ -38,17 +38,22 @@ design overhaul.
 
 - `astro build` produces a fully **static** `dist/`. HTML is compressed, stylesheets are
   **always inlined**, and images use responsive styles (see `astro.config.ts`).
-- **CI/CD** runs in GitHub Actions (`.github/workflows/pipeline.yml`): a `verify` →
-  `build` → `test` sequence (format, lint, type-check, OpenSpec validation, then build, then
-  Playwright), followed by deployment from `main`.
-- **Dual-cloud delivery:** the built site is published to both **AWS** (S3 sync + CloudFront
-  invalidation) and **Cloudflare Pages**, on every merge to `main`. The deploy jobs target the
-  `Production` and `Cloudflare` GitHub Environments; the release gate — a required approval on those
-  environments — is intended but **not yet configured** (see [development-workflow](development-workflow.md)).
+- **CI/CD** runs in GitHub Actions as two workflows. `pipeline.yml` carries every check as a job —
+  **Verify site** (format, lint, type-check, OpenSpec validation, DESIGN lint and token drift),
+  **Verify Terraform** (`fmt`/`init`/`validate` over `infra/cloudflare`), **Build site**, and
+  **Test site** (Playwright) — running unfiltered on pull requests and on `main`. `deploy.yml`
+  does the shipping. Every third-party action is pinned to a commit SHA with its release in a
+  trailing comment, so a moved tag cannot change what runs.
+- **Delivery:** the built site is published to **Cloudflare Pages** on every merge to `main`, and
+  the deploy job then purges the Cloudflare edge cache. `deploy.yml` triggers on a successful
+  Pipeline run — success meaning _every_ job passed, so a single failing check anywhere stops the
+  release — and reuses that run's `dist/` artifact. It targets the `Cloudflare` GitHub
+  Environment; the release gate — a required approval on that environment — is intended but
+  **not yet configured** (see [development-workflow](development-workflow.md)).
 
 ## Infrastructure & tooling
 
-- **Infrastructure as code:** Terraform under `infra/` (AWS, Cloudflare) plus Kubernetes
+- **Infrastructure as code:** Terraform under `infra/` (Cloudflare) plus Kubernetes
   manifests. CI also runs `terraform fmt`/`validate`.
 - **Container:** a `Dockerfile` serves `dist/` via unprivileged Nginx.
 - **Dev container:** a reproducible environment with Node and Terraform pre-installed.

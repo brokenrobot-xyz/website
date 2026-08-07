@@ -13,8 +13,8 @@ env:
   BROKENROBOT_PORT: 8080
 
 jobs:
-  verify:
-    name: 'Verify'
+  verify-site:
+    name: 'Verify site'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -22,10 +22,10 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: '.node-version'
           cache: 'npm'
@@ -51,14 +51,28 @@ jobs:
       - name: DESIGN token drift check
         run: npm run tokens:check
 
+  verify-terraform:
+    name: 'Verify Terraform'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    # Every step in this job is Terraform, so the directory belongs to the job
+    # rather than to each step. A `cd` in a `run:` would not carry — each step
+    # starts its own shell.
+    defaults:
+      run:
+        working-directory: infra/cloudflare
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - name: Set up TerraForm
-        uses: hashicorp/setup-terraform@v4
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
         with:
           terraform_version: '1.15.8'
-
-      # TODO: fix the verification
-      - name: Go to infra/cloudflare
-        run: cd infra/cloudflare
 
       - name: TerraForm format check
         run: terraform fmt -check -recursive
@@ -69,17 +83,17 @@ jobs:
       - name: TerraForm validate
         run: terraform validate -no-color
 
-  build:
-    name: 'Build'
+  build-site:
+    name: 'Build site'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: '.node-version'
           cache: 'npm'
@@ -94,30 +108,30 @@ jobs:
         run: npm run thirdparty:check
 
       - name: Upload dist
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dist
           path: dist/
           retention-days: 3
 
-  test:
-    name: 'Test'
+  test-site:
+    name: 'Test site'
     runs-on: ubuntu-24.04
-    needs: build
+    needs: build-site
     timeout-minutes: 10
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: '.node-version'
           cache: 'npm'
 
       - name: Download dist
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dist
           path: dist/
@@ -132,46 +146,9 @@ jobs:
         run: node_modules/.bin/playwright test
 
       - name: Upload e2e test reports
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: e2e-test-reports
           path: reports/tests/e2e/
           retention-days: 3
-
-  deploy-to-cloudflare:
-    name: 'Deploy to Cloudflare'
-    runs-on: ubuntu-24.04
-    needs: [verify, build, test]
-    if: github.ref == 'refs/heads/main'
-    timeout-minutes: 10
-    environment: Cloudflare
-    concurrency:
-      group: Cloudflare
-      cancel-in-progress: false
-    permissions:
-      contents: read
-      deployments: write
-
-    steps:
-      - name: Download dist
-        uses: actions/download-artifact@v7
-        with:
-          name: dist
-          path: dist/
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ./dist --project-name=${{ secrets.CLOUDFLARE_PROJECT_NAME }} --branch=main
-
-      - name: Purge the Cloudflare cache
-        run: |
-          curl --fail-with-body --silent --show-error \
-            --request POST \
-            --header "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-            --header "Content-Type: application/json" \
-            --data '{"purge_everything":true}' \
-            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache"
