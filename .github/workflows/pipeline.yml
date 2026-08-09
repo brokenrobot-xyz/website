@@ -51,6 +51,9 @@ jobs:
       - name: DESIGN token drift check
         run: npm run tokens:check
 
+      - name: Hook suites
+        run: npm run hooks:check
+
   verify-terraform:
     name: 'Verify Terraform'
     runs-on: ubuntu-24.04
