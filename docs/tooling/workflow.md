@@ -234,23 +234,31 @@ Unlike the other servers, `github` needs a credential. Keep it read-only and out
 
 Rather than living in the `spec-architect` prompt, the proposal/task shaping is baked into OpenSpec's
 own customization, so the standard `/opsx:propose` flow (any agent, not just `spec-architect`) produces
-it. One source of truth:
+it. The split is deliberate: **all project-specific prose lives in `openspec/config.yaml`** (upgrade-proof
+— OpenSpec's supported extension points), and **the schema fork stays upstream-verbatim except two
+template seeds** (cheap to reconcile):
 
 - **`openspec/config.yaml` → `context`** — the site's enduring guardrails, injected into every
   artifact's generation. Their canonical home is the project docs ([architecture](../architecture.md),
   [coding-conventions](../development/conventions/coding-conventions.md), [vision](../vision.md)); `config.yaml` points the
   propose flow at them rather than redefining them.
-- **`openspec/schemas/frontend-change/`** — a project-local schema (forked from `spec-driven`). Its
-  `templates/tasks.md` pre-seeds the mandatory **Verify** section, and its `tasks` instruction
-  carries the **primitives-first** rule (a slice that uses a `.btn`/`.tag`/`.card`/… primitive must
-  establish it first — the foundation shipped tokens only). `config.yaml` selects it via
-  `schema: frontend-change`.
+- **`openspec/config.yaml` → `rules`** — per-artifact constraints, appended to that artifact's
+  composed instructions as a `<rules>` block: the proposal's **Non-Goals** and blog-prose scope
+  check, the specs domain flavor, and the tasks **primitives-first** rule (a slice that uses a
+  `.btn`/`.tag`/`.card`/… primitive must establish it first — the foundation shipped tokens only).
+- **`openspec/schemas/frontend-change/`** — a project-local schema. Its `schema.yaml` is a verbatim
+  copy of the built-in `spec-driven` schema except the `name:` and `description:` lines, and only
+  two of its templates diverge: `templates/proposal.md` adds the **Non-Goals** heading and
+  `templates/tasks.md` pre-seeds the mandatory **Verify** group. `config.yaml` selects it via
+  `schema: frontend-change`. (OpenSpec has no schema inheritance — a project schema must be a
+  complete copy, which is why the fork exists at all: templates only load from the schema's own
+  directory.)
 - **`openspec/config.yaml` → `operations`** — advisory guidance attached to the **apply** and
   **archive** operations only, so branch/hand-off rules reach `/opsx:apply` and delta-merge rules
   reach `/opsx:archive` without padding every artifact's context. Read it back with
-  `openspec instructions apply|archive`. Each entry must be a **string**: quote any bullet
-  containing a `key: value` pair, or YAML parses it as a map and OpenSpec silently drops the whole
-  list with a warning on stderr.
+  `openspec instructions apply|archive`. Each `rules`/`guidance` entry must be a **string**: quote
+  any bullet containing a `key: value` pair, or YAML parses it as a map and OpenSpec silently drops
+  the whole list with a warning on stderr.
 
 `openspec instructions tasks --change <name>` prints the composed result (template + schema
 instruction + context). The seeded Verify section is:
@@ -266,12 +274,21 @@ instruction + context). The seeded Verify section is:
 This shapes _generation_. Structural validity is also **enforced** in CI: the `verify` job runs
 `npm run specs:check` (`openspec validate --all --strict`), so malformed proposals or spec deltas
 fail a PR. The _content_ rules above (the Verify section, primitives-first) are generation-shaped
-only — not hard-checked — so the `frontend-code-reviewer` and your review are the backstop. The schema
-fork is OpenSpec-experimental: it's pinned in the repo and needs reconciling when OpenSpec updates its
-upstream templates. Last reconciled against **1.8.0** — diff
-`node_modules/@fission-ai/openspec/schemas/spec-driven/` against the fork after a CLI upgrade and
-re-apply the three deliberate divergences (`Non-Goals`, primitives-first, the Verify group) on top of
-whatever upstream added.
+only — not hard-checked — so the `frontend-code-reviewer` and your review are the backstop.
+
+The schema fork is OpenSpec-experimental and needs reconciling when OpenSpec updates its upstream
+schema. Because the fork is upstream-verbatim, that's mechanical (last done against **1.8.0**):
+
+1. `cp node_modules/@fission-ai/openspec/schemas/spec-driven/schema.yaml openspec/schemas/frontend-change/schema.yaml`,
+   then restore the `name: frontend-change` and `description:` lines.
+2. Diff the four templates against `node_modules/@fission-ai/openspec/schemas/spec-driven/templates/`;
+   `design.md` and `spec.md` should stay identical, `proposal.md` keeps only the added **Non-Goals**
+   section, `tasks.md` keeps only the appended **Verify** group and its keep-last comment.
+3. `config.yaml` (`context`/`rules`/`operations`) is untouched by upgrades — but skim the release
+   notes for new config capabilities worth adopting.
+4. Verify with a throwaway change: `openspec new change probe`, then
+   `openspec instructions proposal|tasks --change probe` must show the `<rules>` block and the
+   seeded Verify group; delete the change and run `npm run specs:check`.
 
 ## Setup
 

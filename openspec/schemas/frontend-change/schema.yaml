@@ -12,9 +12,8 @@ artifacts:
       Sections:
       - **Why**: 1-2 sentences on the problem or opportunity. What problem does this solve? Why now?
       - **What Changes**: Bullet list of changes. Be specific about new capabilities, modifications, or removals. Mark breaking changes with **BREAKING**.
-      - **Non-Goals**: What this change explicitly does NOT do, to keep scope tight.
       - **Capabilities**: Identify which specs will be created or modified:
-        - **New Capabilities**: List capabilities being introduced. Each becomes a new `specs/<capability-path>/spec.md`. Use kebab-case for path segments you introduce (e.g., `tags-index` or `blog/tags-index`) and follow the project's existing spec organization — `openspec/specs/` is flat today, so do not add a domain level without reason.
+        - **New Capabilities**: List capabilities being introduced. Each becomes a new `specs/<capability-path>/spec.md`. Use kebab-case for path segments you introduce (e.g., `user-auth` or `identity/user-auth`) and follow the project's existing spec organization.
         - **Modified Capabilities**: List existing capabilities whose REQUIREMENTS are changing. Only include if spec-level behavior changes (not just implementation details). Each needs a delta spec file. Use the exact existing path under `openspec/specs/`. Leave empty if no requirement changes.
       - **Impact**: Affected code, APIs, dependencies, or systems.
 
@@ -26,31 +25,18 @@ artifacts:
       modified) or explicitly opt out of specs: `openspec validate` rejects a
       change with zero deltas unless the change's `.openspec.yaml` sets
       `skip_specs: true`. Use `skip_specs: true` only when no spec-level
-      behavior changes (pure refactor, tooling, docs, dependency bumps) - specs
-      describe behavior, so if behavior does not change, no spec should change
-      either. Do not invent a requirement just to satisfy validation.
-
-      If the change retires a capability - its REMOVED entries take the last
-      requirement a capability has - set `retire_capabilities: true` in the
-      change's `.openspec.yaml` so archive deletes that capability's main spec
-      instead of aborting. Call it out in **What Changes**; the deletion is
-      recoverable only from git.
+      behavior changes (pure refactor, tooling, docs) - specs describe
+      behavior, so if behavior does not change, no spec should change either.
+      Do not invent a requirement just to satisfy validation.
 
       Keep it concise (1-2 pages). Focus on the "why" not the "how" -
       implementation details belong in design.md.
 
       This is the foundation - specs, design, and tasks all build on this.
-
-      Honor the site's enduring constraints from the project context (static output, strict CSP,
-      both-themes first-class, the interactivity ladder, stable /blog/ permalinks + rss.xml).
-
-      Scope check: authoring or editing blog article PROSE (src/content/blog/**) is NOT an OpenSpec
-      change — say so and stop if that is the real request. Blog *infrastructure* (components, the
-      content schema, remark plugins, RSS) IS in scope.
     requires: []
 
   - id: specs
-    generates: specs/**/*.md
+    generates: "specs/**/*.md"
     description: Detailed specifications for the change
     template: spec.md
     instruction: |
@@ -59,14 +45,14 @@ artifacts:
       A spec is a behavior contract, not an implementation plan.
 
       Good spec content:
-      - Observable behavior visitors or downstream consumers (feeds, crawlers) rely on
+      - Observable behavior users or downstream systems rely on
       - Inputs, outputs, and error conditions
-      - External constraints (accessibility, CSP, performance, compatibility)
+      - External constraints (security, privacy, reliability, compatibility)
       - Scenarios that can be tested or explicitly validated
 
       Avoid in specs:
-      - Component or function names
-      - Library or framework choices (Astro page vs. Preact island, which client directive)
+      - Internal class/function names
+      - Library or framework choices
       - Step-by-step implementation details
       - Detailed execution plans (those belong in design.md or tasks.md)
 
@@ -74,8 +60,9 @@ artifacts:
       visible behavior, it likely does not belong in the spec.
 
       Create one spec file per capability listed in the proposal's Capabilities section.
-      `<capability-path>` is the spec directory relative to `specs/`. Preserve the full path:
-      - New capabilities: use the exact path from the proposal at `specs/<capability-path>/spec.md`. Any path segment newly introduced in the proposal must be kebab-case.
+      `<capability-path>` is the spec directory relative to `specs/` (for example,
+      `user-auth` or `identity/user-auth`). Preserve the full path:
+      - New capabilities: use the exact path from the proposal at `specs/<capability-path>/spec.md`. Any path segment newly introduced in the proposal must be kebab-case. Follow the project's existing organization; do not add a new domain level when the project uses a flat layout.
       - Modified capabilities: use the exact existing path from `openspec/specs/<capability-path>/` when creating the delta at `specs/<capability-path>/spec.md`. Do not move or rename the capability.
 
       There must be at least one spec file unless the change's `.openspec.yaml`
@@ -112,32 +99,29 @@ artifacts:
       3. Paste under `## MODIFIED Requirements` and edit to reflect new behavior
       4. Ensure header text matches exactly (whitespace-insensitive)
 
-      Common pitfall: Using MODIFIED with partial content loses detail. `openspec validate`
-      fails when a MODIFIED requirement drops a scenario the main spec still has, naming the
-      scenarios to copy back. If adding new concerns without changing existing behavior,
-      use ADDED instead.
+      Common pitfall: Using MODIFIED with partial content loses detail at archive time.
+      If adding new concerns without changing existing behavior, use ADDED instead.
 
       Example (a new capability, so it opens with `## Purpose`):
       ```
       ## Purpose
 
-      Gives readers a browsable index of every tag used across the blog, so posts stay
-      discoverable without a search backend.
+      Lets users take their data out of the product in a portable format.
 
       ## ADDED Requirements
 
-      ### Requirement: Tag index page
-      The site SHALL render a `/tags/` page listing every tag with its post count.
+      ### Requirement: User can export data
+      The system SHALL allow users to export their data in CSV format.
 
-      #### Scenario: Visiting the tag index
-      - **WHEN** a visitor opens `/tags/`
-      - **THEN** the page lists each tag linking to its filtered view
+      #### Scenario: Successful export
+      - **WHEN** user clicks "Export" button
+      - **THEN** system downloads a CSV file with all user data
 
       ## REMOVED Requirements
 
-      ### Requirement: Flat category list
-      **Reason**: Replaced by the tag index
-      **Migration**: Link to `/tags/` instead of the old `/categories` page
+      ### Requirement: Legacy export
+      **Reason**: Replaced by new export system
+      **Migration**: Use new export endpoint at /api/v2/export
       ```
 
       Specs should be testable - each scenario is a potential test case.
@@ -192,8 +176,6 @@ artifacts:
 
       **IMPORTANT: Follow the template below exactly.** The apply phase parses
       checkbox format to track progress. Tasks not using `- [ ]` won't be tracked.
-      Nested checkboxes count toward progress too, so nest a sub-task only when it
-      is genuinely separate work rather than a note on its parent.
 
       Guidelines:
       - Group related tasks under ## numbered headings
@@ -216,24 +198,12 @@ artifacts:
 
       Reference specs for what needs to be built, design for how to build it.
       Each task should be verifiable - you know when it's done.
-
-      This site's tasks follow two extra rules:
-
-      - **Primitives-first ordering.** The repo ships design tokens only; the prototype's primitives
-      (.btn, .tag, .eyebrow, .card, .section-head, code-block chrome, reading-progress bar, scroll
-      cue) are not in the repo yet. A slice that uses a primitive MUST establish it in an earlier
-      task. Never reference a primitive the codebase does not define.
-
-      - **A mandatory Verify group, kept last** (already seeded in the template): both-theme visual
-      + a11y snapshots, then the preflight gate steps, then a manual preview pass. Renumber it to
-      follow your work groups; do not drop or weaken its items.
     requires:
       - specs
       - design
 
 apply:
-  requires:
-    - tasks
+  requires: [tasks]
   tracks: tasks.md
   instruction: |
     Read context files, work through pending tasks, mark complete as you go.
