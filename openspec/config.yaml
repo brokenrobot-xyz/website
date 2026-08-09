@@ -34,6 +34,7 @@ rules:
     - Fill the template's "## Non-Goals" section — what this change explicitly does NOT do, to keep scope tight.
     - Authoring or editing blog article prose is not a valid change — say so and stop if that is the real request.
     - "If the change's REMOVED entries take a capability's last requirement, set `retire_capabilities: true` in the change's `.openspec.yaml` and call it out in **What Changes** — archive then deletes that capability's main spec, recoverable only from git."
+    - When another change under `openspec/changes/` must merge before this change, name that change by its exact directory name in **Impact** and state what it blocks — a slice that assumes work an unmerged change has not delivered yet fails at implementation.
   specs:
     - The observable behavior that matters here is what visitors and downstream consumers (feeds, crawlers) rely on; the external constraints that matter are accessibility, CSP, performance, and compatibility.
     - Keep implementation choices out of specs — Astro page vs. Preact island, client directives, component or function names.

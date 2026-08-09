@@ -8,7 +8,7 @@ branch = one PR). Each phase maps to a concrete tool:
 | Phase                     | How it's run                                                                                     |
 | ------------------------- | ------------------------------------------------------------------------------------------------ |
 | Explore                   | `/opsx:explore` (or the `openspec-explore` skill)                                                |
-| Propose                   | `spec-architect` agent / `/opsx:propose`                                                         |
+| Propose                   | `/opsx:propose` (or the `openspec-propose` skill)                                                |
 | Review the proposal       | **you** read and approve the change folder                                                       |
 | Implement                 | `frontend-engineer` agent / `/opsx:apply`, on a `<type>/<change-name>` branch                    |
 | Verify                    | `frontend-qa-engineer` agent + `running-preflight-checks` skill                                  |
@@ -19,6 +19,11 @@ branch = one PR). Each phase maps to a concrete tool:
 
 Nothing is automatic: each agent hands back to you, and **you** hold the three gates — the proposal
 before any code, the implementation before it merges, and the production release.
+
+Planning has no agent by design: the propose flow asks clarifying questions and **you** hold the
+proposal gate, so it runs in the main thread where you can answer and steer. The shaping it applies
+lives in OpenSpec's own configuration — see
+[How the proposer is customized](#how-the-proposer-is-customized).
 
 ## OpenSpec — the artifacts and commands
 
@@ -90,14 +95,9 @@ does with them:
 
 ## The agents (`.claude/agents/`)
 
-Five role-based subagents, each with focused instructions and tool access. Invoke them with the
+Four role-based subagents, each with focused instructions and tool access. Invoke them with the
 Agent/Task tool, or let the main session delegate.
 
-- **`spec-architect`** (opus) — the architecture-aware proposer. Reads the specs, docs, and codebase
-  and drives the propose flow to write a change (`proposal.md`, `tasks.md`, optional `design.md`,
-  spec deltas). It deliberately does **not** carry the guardrails or the task structure itself — the
-  `frontend-change` schema and `config.yaml` inject those (see below), so there's one source of truth.
-  Writes only under `openspec/`; never application code.
 - **`frontend-engineer`** (sonnet) — applies an agreed change's `tasks.md`: Astro/Preact/CSS to
   the repo's conventions (scoped `<style>` + `@reference`, token utilities, path aliases,
   `InternalLink`/`ExternalLink`). Surgical edits under `src/`; stops at the Verify step.
@@ -232,9 +232,9 @@ Unlike the other servers, `github` needs a credential. Keep it read-only and out
 
 ## How the proposer is customized
 
-Rather than living in the `spec-architect` prompt, the proposal/task shaping is baked into OpenSpec's
-own customization, so the standard `/opsx:propose` flow (any agent, not just `spec-architect`) produces
-it. The split is deliberate: **all project-specific prose lives in `openspec/config.yaml`** (upgrade-proof
+The proposal/task shaping lives in OpenSpec's own customization, so any agent running the standard
+`/opsx:propose` flow produces it — no prompt carries it. The split is deliberate: **all
+project-specific prose lives in `openspec/config.yaml`** (upgrade-proof
 — OpenSpec's supported extension points), and **the schema fork stays upstream-verbatim except two
 template seeds** (cheap to reconcile):
 
@@ -243,9 +243,11 @@ template seeds** (cheap to reconcile):
   [coding-conventions](../development/conventions/coding-conventions.md), [vision](../vision.md)); `config.yaml` points the
   propose flow at them rather than redefining them.
 - **`openspec/config.yaml` → `rules`** — per-artifact constraints, appended to that artifact's
-  composed instructions as a `<rules>` block: the proposal's **Non-Goals** and blog-prose scope
-  check, the specs domain flavor, and the tasks **primitives-first** rule (a slice that uses a
-  `.btn`/`.tag`/`.card`/… primitive must establish it first — the foundation shipped tokens only).
+  composed instructions as a `<rules>` block. Read `config.yaml` for the current set; it shapes the
+  proposal (**Non-Goals**, the blog-prose scope check, cross-change dependencies, and the
+  `retire_capabilities` marker described above), the specs (domain flavor), and the tasks
+  (**primitives-first** — a slice that uses a `.btn`/`.tag`/`.card`/… primitive must establish it
+  first, since the foundation shipped tokens only).
 - **`openspec/schemas/frontend-change/`** — a project-local schema. Its `schema.yaml` is a verbatim
   copy of the built-in `spec-driven` schema except the `name:` and `description:` lines, and only
   two of its templates diverge: `templates/proposal.md` adds the **Non-Goals** heading and
