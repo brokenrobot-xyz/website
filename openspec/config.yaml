@@ -24,3 +24,22 @@ context: |
   Out of scope for OpenSpec: authoring or editing blog article prose under src/content/blog/**
   (written directly, not specced). Blog *infrastructure* — components, the content schema, remark
   plugins, the RSS feed — IS in scope.
+
+# Per-operation guidance (OpenSpec 1.7+) — appended to the composed instructions for the apply and
+# archive operations only, so it reaches `/opsx:apply` and `/opsx:archive` without bloating every
+# artifact's context. Read it back with `openspec instructions apply|archive`.
+operations:
+  apply:
+    guidance:
+      - Work on the change's own `<type>/<change-name>` branch. Never push — pushing is a human-only gate.
+      - Stop at the Verify group. Run neither the snapshot suite nor the gate yourself; hand Verify to the frontend-qa-engineer agent (testing-visual-regression) and the running-preflight-checks skill.
+      - Leave the manual-preview checkbox for the human at the review gate, even when the automated Verify items pass.
+      - Establish a design-system primitive before any task uses it — the repo ships tokens, not primitives.
+  archive:
+    guidance:
+      - Archive on the change's branch, before opening the pull request, so the PR carries the code and the updated spec together.
+      - A MODIFIED requirement must carry the full requirement block, every scenario included; a dropped scenario now fails `openspec validate`, not just archive.
+      # Quoted: the inner "key: value" would otherwise parse as a YAML map and the whole
+      # guidance list would be dropped with a warning.
+      - "Archiving a change whose REMOVED entries take a capability's last requirement needs `retire_capabilities: true` in that change's `.openspec.yaml`. The spec deletion is recoverable only from git."
+      - Run `npm run specs:check` after archiving — CI gates on the same command.

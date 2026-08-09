@@ -61,7 +61,7 @@
     "devDependencies": {
         "@axe-core/playwright": "4.12.1",
         "@devcontainers/cli": "0.88.0",
-        "@fission-ai/openspec": "1.6.0",
+        "@fission-ai/openspec": "1.8.0",
         "@google/design.md": "0.3.0",
         "@playwright/test": "1.62.0",
         "@typescript-eslint/eslint-plugin": "8.65.0",
