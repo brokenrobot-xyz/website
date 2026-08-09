@@ -27,9 +27,12 @@
     ],
     "enabledPlugins": {
         "typescript-lsp@claude-plugins-official": true,
-        "committing-conventionally@brokenrobot-xyz": true,
+
+        "prompt-quality-criteria@brokenrobot-xyz": true,
         "writing-simplified-technical-english@brokenrobot-xyz": true,
-        "reviewing-claude-skills@brokenrobot-xyz": true
+        "committing-conventionally@brokenrobot-xyz": true,
+        "reviewing-claude-skills@brokenrobot-xyz": true,
+        "reviewing-claude-subagents@brokenrobot-xyz": true
     },
     "sandbox": {
         "enabled": true,
@@ -191,11 +194,14 @@
             "Bash(bash .claude/hooks/lib/dev-env-checks.sh)",
 
             "Skill(checking-dev-env)",
-            "Skill(committing-conventionally:committing-conventionally)",
-            "Skill(reviewing-claude-skills:reviewing-claude-skills)",
             "Skill(running-preflight-checks)",
             "Skill(updating-dependencies)",
+
+            "Skill(prompt-quality-criteria:prompt-quality-criteria)",
             "Skill(writing-simplified-technical-english:writing-simplified-technical-english)",
+            "Skill(committing-conventionally:committing-conventionally)",
+            "Skill(reviewing-claude-skills:reviewing-claude-skills)",
+            "Skill(reviewing-claude-subagents:reviewing-claude-subagents)",
 
             "mcp__playwright",
             "mcp__chrome-devtools",
