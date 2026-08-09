@@ -144,6 +144,7 @@ npm run lint:check                   # ESLint clean
 npm run format:check                 # Prettier clean
 npm run build                        # production build succeeds
 typescript-language-server --version # global LSP present
+openspec --version                   # matches the @fission-ai/openspec pin in package.json
 npm run codegraph:status             # "Index is up to date"
 ```
 
@@ -181,6 +182,13 @@ Run `npm ci` from the checkout — see [Install](#install). Inside a Claude Code
 
 One global install per machine: `npm i -g typescript-language-server typescript` — the why is in
 [Code-intelligence tools](#code-intelligence-tools-claude-code).
+
+### ✗ openspec missing · ✗ openspec is … but package.json pins …
+
+One global install per machine, matching the `@fission-ai/openspec` version pinned in
+[`package.json`](../package.json): `npm i -g @fission-ai/openspec@<pinned version>`. The why — the
+`/opsx` commands launch a bare `openspec` from your shell `PATH` — and the one-time machine-global
+settings that go with it are in [tooling/workflow.md § Setup](tooling/workflow.md#setup).
 
 ### ✗ typescript-lsp plugin not enabled
 
