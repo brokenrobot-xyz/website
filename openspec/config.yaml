@@ -2,8 +2,9 @@ schema: frontend-change
 
 # Project context — shown to the AI when creating any artifact (proposal, specs, design, tasks).
 # These are the site's enduring constraints; honor them in every change. See docs/ for detail.
-# Workflow structure (the tasks Verify section, primitives-first ordering, etc.) lives in the
-# frontend-change schema's templates and instructions, not here.
+# All project-specific prose lives in this file (context, rules, operations). The frontend-change
+# schema fork stays upstream-verbatim except its name/description and two template seeds (the
+# proposal Non-Goals heading, the tasks Verify group) — see docs/tooling/workflow.md.
 context: |
   brokenrobot.xyz is a static, ad-free, CSP-strict personal site: Astro with Preact islands,
   self-hosted fonts, and first-class light/dark theming. Honor these enduring constraints in
@@ -24,3 +25,38 @@ context: |
   Out of scope for OpenSpec: authoring or editing blog article prose under src/content/blog/**
   (written directly, not specced). Blog *infrastructure* — components, the content schema, remark
   plugins, the RSS feed — IS in scope.
+
+# Per-artifact rules — appended to the composed instructions of that artifact only. Any bullet
+# containing an inner "key: value" must be quoted, or YAML parses it as a map and the whole list
+# is dropped with a warning on stderr.
+rules:
+  proposal:
+    - Fill the template's "## Non-Goals" section — what this change explicitly does NOT do, to keep scope tight.
+    - Authoring or editing blog article prose is not a valid change — say so and stop if that is the real request.
+    - "If the change's REMOVED entries take a capability's last requirement, set `retire_capabilities: true` in the change's `.openspec.yaml` and call it out in **What Changes** — archive then deletes that capability's main spec, recoverable only from git."
+  specs:
+    - The observable behavior that matters here is what visitors and downstream consumers (feeds, crawlers) rely on; the external constraints that matter are accessibility, CSP, performance, and compatibility.
+    - Keep implementation choices out of specs — Astro page vs. Preact island, client directives, component or function names.
+  tasks:
+    - "Primitives-first ordering: the repo ships design tokens only — the prototype's primitives (.btn, .tag, .eyebrow, .card, .section-head, code-block chrome, reading-progress bar, scroll cue) are not in the codebase yet. A slice that uses a primitive MUST establish it in an earlier task; never reference a primitive the codebase does not define."
+    - Keep the template's seeded Verify group last — renumber it to follow the work groups; do not drop or weaken its items.
+    - Nested checkboxes count toward tracked progress; nest a sub-task only when it is genuinely separate work rather than a note on its parent.
+
+# Per-operation guidance (OpenSpec 1.7+) — appended to the composed instructions for the apply and
+# archive operations only, so it reaches `/opsx:apply` and `/opsx:archive` without bloating every
+# artifact's context. Read it back with `openspec instructions apply|archive`.
+operations:
+  apply:
+    guidance:
+      - Work on the change's own `<type>/<change-name>` branch. Never push — pushing is a human-only gate.
+      - Stop at the Verify group. Run neither the snapshot suite nor the gate yourself; hand Verify to the frontend-qa-engineer agent (testing-visual-regression) and the running-preflight-checks skill.
+      - Leave the manual-preview checkbox for the human at the review gate, even when the automated Verify items pass.
+      - Establish a design-system primitive before any task uses it — the repo ships tokens, not primitives.
+  archive:
+    guidance:
+      - Archive on the change's branch, before opening the pull request, so the PR carries the code and the updated spec together.
+      - A MODIFIED requirement must carry the full requirement block, every scenario included; a dropped scenario now fails `openspec validate`, not just archive.
+      # Quoted: the inner "key: value" would otherwise parse as a YAML map and the whole
+      # guidance list would be dropped with a warning.
+      - "Archiving a change whose REMOVED entries take a capability's last requirement needs `retire_capabilities: true` in that change's `.openspec.yaml`. The spec deletion is recoverable only from git."
+      - Run `npm run specs:check` after archiving — CI gates on the same command.

@@ -1,7 +1,7 @@
 ---
 name: checking-dev-env
-description: Checks whether this machine is ready to develop brokenrobot.xyz — toolchain versions against the pins, dependencies, the Codegraph index, Claude Code integration (typescript-lsp plugin, codegraph MCP, node version manager), and Docker/devcontainer availability — and turns any failure into an ordered, hand-holding setup guide with exact commands. Use when setting up a new machine or worktree, when the SessionStart report shows ✗ lines, or when builds or tools misbehave and the environment is suspect. Diagnoses only, never installs or changes anything; pair with running-preflight-checks for the code-quality half.
-compatibility: Requires bash to run the scan script; every tool it probes may legitimately be absent, which is a finding rather than a failure. Without jq the codegraph and Claude Code integration areas report "not checked" instead of a verdict.
+description: Checks whether this machine is ready to develop brokenrobot.xyz — toolchain versions against the pins (including the global openspec CLI), dependencies, the Codegraph index, Claude Code integration (typescript-lsp plugin, codegraph MCP, node version manager), and Docker/devcontainer availability — and turns any failure into an ordered, hand-holding setup guide with exact commands. Use when setting up a new machine or worktree, when the SessionStart report shows ✗ lines, or when builds or tools misbehave and the environment is suspect. Diagnoses only, never installs or changes anything; pair with running-preflight-checks for the code-quality half.
+compatibility: Requires bash to run the scan script; every tool it probes may legitimately be absent, which is a finding rather than a failure. Without jq the codegraph and Claude Code integration areas report "not checked" instead of a verdict, and the openspec check falls back to presence-only.
 allowed-tools: Read Bash Skill
 model: claude-sonnet-5
 context: fork
@@ -9,7 +9,7 @@ agent: general-purpose
 background: false
 metadata:
     author: brokenrobot.xyz
-    version: '1.3'
+    version: '1.4'
 ---
 
 Audit this checkout's development environment and, when anything is missing, hand the user an
@@ -75,8 +75,8 @@ checkout, and a wrong fix costs the user more than an unanswered ✗ line. When 
 entry matches, say exactly that and reference the doc as a whole rather than improvising.
 
 Order the guide dependency-first: git/jq → version manager → Node → npm/dependencies → global
-language server → codegraph index → Claude Code configuration → Docker → committed-pin drift
-(codegraph pins). Then tailor the guide. Drop every area already ✓. Skip
+language server → global openspec CLI → codegraph index → Claude Code configuration → Docker →
+committed-pin drift (codegraph pins). Then tailor the guide. Drop every area already ✓. Skip
 alternatives the scan disproved: when the scan detected asdf, do not suggest installing fnm.
 
 ## Report

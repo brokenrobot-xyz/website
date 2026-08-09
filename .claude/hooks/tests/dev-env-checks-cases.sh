@@ -69,6 +69,11 @@ STUB
 
 printf '#!/usr/bin/env bash\nexit 0\n' >"${shim}/typescript-language-server"
 printf '#!/usr/bin/env bash\nexit 0\n' >"${shim}/fnm"
+
+# Stub openspec: answers --version with the fixture pin below — an arbitrary value, since the
+# probe compares it against the fixture package.json, not the repo's.
+OS_PIN="9.1.0"
+printf '#!/usr/bin/env bash\n[ "$1" = "--version" ] && echo "%s"\n' "${OS_PIN}" >"${shim}/openspec"
 chmod +x "${shim}"/*
 
 # A checkout every probe calls healthy; the cases below break one thing at a time and restore it.
@@ -76,7 +81,8 @@ node_ver="$(node --version)"
 node_ver="${node_ver#v}"
 printf '%s\n' "${node_ver}" >"${proj}/.node-version"
 printf '{"mcpServers":{"codegraph":{"command":"npx","args":["-y","@colbymchenry/codegraph@%s"]}}}\n' "${CG_PIN}" >"${proj}/.mcp.json"
-printf '{"scripts":{"codegraph:status":"npx -y @colbymchenry/codegraph@%s status"}}\n' "${CG_PIN}" >"${proj}/package.json"
+printf '{"scripts":{"codegraph:status":"npx -y @colbymchenry/codegraph@%s status"},"devDependencies":{"@fission-ai/openspec":"%s"}}\n' \
+    "${CG_PIN}" "${OS_PIN}" >"${proj}/package.json"
 printf '{"v":1}\n' >"${proj}/package-lock.json"
 mkdir -p "${proj}/.codegraph" "${proj}/node_modules/.bin" "${proj}/.claude"
 git hash-object "${proj}/package-lock.json" >"${proj}/node_modules/.session-start-stamp"
@@ -152,6 +158,17 @@ check "a missing language server exits 1" "1" "${rc}"
 contains "and is reported" "✗ typescript-language-server missing" "${out}"
 printf '#!/usr/bin/env bash\nexit 0\n' >"${shim}/typescript-language-server"
 chmod +x "${shim}/typescript-language-server"
+
+# The controlled PATH makes this case host-independent — a globally installed openspec on the
+# machine running the suite can never satisfy the probe.
+rm "${shim}/openspec"
+out="$(run)"
+rc=$?
+check "a missing openspec cli exits 1" "1" "${rc}"
+contains "and is reported with the pinned install" "✗ openspec missing" "${out}"
+contains "naming the fixture pin" "@fission-ai/openspec@${OS_PIN}" "${out}"
+printf '#!/usr/bin/env bash\n[ "$1" = "--version" ] && echo "%s"\n' "${OS_PIN}" >"${shim}/openspec"
+chmod +x "${shim}/openspec"
 
 printf '{"v":2}\n' >"${proj}/package-lock.json"
 out="$(run)"

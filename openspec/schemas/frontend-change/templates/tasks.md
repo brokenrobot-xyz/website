@@ -1,4 +1,4 @@
-## 1. <!-- First work group — establish any design-system primitives this slice needs BEFORE using them -->
+## 1. <!-- Task Group Name -->
 
 - [ ] 1.1 <!-- Task description -->
 - [ ] 1.2 <!-- Task description -->
@@ -6,6 +6,7 @@
 ## 2. <!-- Task Group Name -->
 
 - [ ] 2.1 <!-- Task description -->
+- [ ] 2.2 <!-- Task description -->
 
 <!--
   Keep the Verify group LAST and renumber it to follow your work groups (e.g. ## 5. Verify).

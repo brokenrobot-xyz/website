@@ -29,11 +29,25 @@ slash commands:
 - **`/opsx:propose "<idea>"`** — reads the specs and codebase, then writes a change folder under
   `openspec/changes/<name>/`: `proposal.md` (why + scope), `tasks.md` (the work), an optional
   `design.md`, and spec deltas under `specs/`.
+- **`/opsx:update`** — revises an existing change's plan in place and reconciles the sibling
+  artifacts, without crossing into implementation. Use it when review moves the goalposts.
 - **`/opsx:apply`** — implements the tasks against the agreed proposal.
+- **`/opsx:sync`** — reconciles a change's spec deltas with what was actually built, before archiving.
 - **`/opsx:archive`** — merges the change's spec deltas into the living `openspec/specs/` tree and
   moves the change to `openspec/changes/archive/`.
 
 `openspec list` and `openspec validate` inspect changes and specs from the CLI.
+
+Two per-change markers live in `openspec/changes/<name>/.openspec.yaml` and change what validation
+and archive will accept:
+
+- **`skip_specs: true`** — the change deliberately has no spec deltas (a pure refactor, tooling, docs,
+  or a dependency bump). Without it `openspec validate` rejects a zero-delta change. Reach for it
+  instead of inventing a requirement to satisfy the validator; specs describe behavior, so if no
+  behavior changes, no spec should.
+- **`retire_capabilities: true`** — the change's `REMOVED` entries take a capability's last
+  requirement, and archive should delete that capability's `spec.md` rather than abort. It is opt-in
+  because the deletion is recoverable only from git.
 
 ```
 openspec/
@@ -220,17 +234,31 @@ Unlike the other servers, `github` needs a credential. Keep it read-only and out
 
 Rather than living in the `spec-architect` prompt, the proposal/task shaping is baked into OpenSpec's
 own customization, so the standard `/opsx:propose` flow (any agent, not just `spec-architect`) produces
-it. One source of truth:
+it. The split is deliberate: **all project-specific prose lives in `openspec/config.yaml`** (upgrade-proof
+— OpenSpec's supported extension points), and **the schema fork stays upstream-verbatim except two
+template seeds** (cheap to reconcile):
 
 - **`openspec/config.yaml` → `context`** — the site's enduring guardrails, injected into every
   artifact's generation. Their canonical home is the project docs ([architecture](../architecture.md),
   [coding-conventions](../development/conventions/coding-conventions.md), [vision](../vision.md)); `config.yaml` points the
   propose flow at them rather than redefining them.
-- **`openspec/schemas/frontend-change/`** — a project-local schema (forked from `spec-driven`). Its
-  `templates/tasks.md` pre-seeds the mandatory **Verify** section, and its `tasks` instruction
-  carries the **primitives-first** rule (a slice that uses a `.btn`/`.tag`/`.card`/… primitive must
-  establish it first — the foundation shipped tokens only). `config.yaml` selects it via
-  `schema: frontend-change`.
+- **`openspec/config.yaml` → `rules`** — per-artifact constraints, appended to that artifact's
+  composed instructions as a `<rules>` block: the proposal's **Non-Goals** and blog-prose scope
+  check, the specs domain flavor, and the tasks **primitives-first** rule (a slice that uses a
+  `.btn`/`.tag`/`.card`/… primitive must establish it first — the foundation shipped tokens only).
+- **`openspec/schemas/frontend-change/`** — a project-local schema. Its `schema.yaml` is a verbatim
+  copy of the built-in `spec-driven` schema except the `name:` and `description:` lines, and only
+  two of its templates diverge: `templates/proposal.md` adds the **Non-Goals** heading and
+  `templates/tasks.md` pre-seeds the mandatory **Verify** group. `config.yaml` selects it via
+  `schema: frontend-change`. (OpenSpec has no schema inheritance — a project schema must be a
+  complete copy, which is why the fork exists at all: templates only load from the schema's own
+  directory.)
+- **`openspec/config.yaml` → `operations`** — advisory guidance attached to the **apply** and
+  **archive** operations only, so branch/hand-off rules reach `/opsx:apply` and delta-merge rules
+  reach `/opsx:archive` without padding every artifact's context. Read it back with
+  `openspec instructions apply|archive`. Each `rules`/`guidance` entry must be a **string**: quote
+  any bullet containing a `key: value` pair, or YAML parses it as a map and OpenSpec silently drops
+  the whole list with a warning on stderr.
 
 `openspec instructions tasks --change <name>` prints the composed result (template + schema
 instruction + context). The seeded Verify section is:
@@ -246,9 +274,21 @@ instruction + context). The seeded Verify section is:
 This shapes _generation_. Structural validity is also **enforced** in CI: the `verify` job runs
 `npm run specs:check` (`openspec validate --all --strict`), so malformed proposals or spec deltas
 fail a PR. The _content_ rules above (the Verify section, primitives-first) are generation-shaped
-only — not hard-checked — so the `frontend-code-reviewer` and your review are the backstop. The schema
-fork is OpenSpec-experimental: it's pinned in the repo and may need reconciling when OpenSpec updates
-its upstream templates.
+only — not hard-checked — so the `frontend-code-reviewer` and your review are the backstop.
+
+The schema fork is OpenSpec-experimental and needs reconciling when OpenSpec updates its upstream
+schema. Because the fork is upstream-verbatim, that's mechanical (last done against **1.8.0**):
+
+1. `cp node_modules/@fission-ai/openspec/schemas/spec-driven/schema.yaml openspec/schemas/frontend-change/schema.yaml`,
+   then restore the `name: frontend-change` and `description:` lines.
+2. Diff the four templates against `node_modules/@fission-ai/openspec/schemas/spec-driven/templates/`;
+   `design.md` and `spec.md` should stay identical, `proposal.md` keeps only the added **Non-Goals**
+   section, `tasks.md` keeps only the appended **Verify** group and its keep-last comment.
+3. `config.yaml` (`context`/`rules`/`operations`) is untouched by upgrades — but skim the release
+   notes for new config capabilities worth adopting.
+4. Verify with a throwaway change: `openspec new change probe`, then
+   `openspec instructions proposal|tasks --change probe` must show the `<rules>` block and the
+   seeded Verify group; delete the change and run `npm run specs:check`.
 
 ## Setup
 
@@ -258,8 +298,23 @@ dev-only (not part of the build or runtime), and `audit:check` omits devDependen
 
 For **interactive** authoring the `opsx` slash commands call `openspec` directly on your `PATH`, so
 also install the CLI on the host (`npm install -g @fission-ai/openspec`, Node ≥ 20.19). Its Claude
-Code integration lives in `.claude/skills/`; run `openspec init --tools claude` (or `openspec update`
-after a CLI upgrade) to install or refresh it. The customized schema (`openspec/schemas/frontend-change/`)
-and the rest of the `openspec/` tree are committed to the repository.
+Code integration lives in `.claude/skills/` and `.claude/commands/opsx/`; run
+`openspec init --tools claude` (or `openspec update` after a CLI upgrade) to install or refresh it.
+The customized schema (`openspec/schemas/frontend-change/`) and the rest of the `openspec/` tree are
+committed to the repository.
+
+Two settings live in the **machine-global** config (`~/.config/openspec/config.json`), not the repo,
+so each machine sets them once:
+
+- **`openspec config profile core`** — installs the full six-workflow set (propose, explore, apply,
+  update, sync, archive). Without it a machine that once generated a subset is pinned to a `custom`
+  profile, and `openspec update` keeps regenerating only those workflows.
+- **`openspec config set telemetry.enabled false`** — turns off anonymous telemetry **and** the npm
+  update check `openspec update` otherwise performs. Worth setting: the update check writes to that
+  global config on every run, which fails outright under the agent sandbox (see
+  [sandbox.md](sandbox.md)).
+
+Regenerating the Claude integration is a **host** job for the same reason — the sandbox denies writes
+to both `.claude/skills/` and `~/.config/`, so `openspec update` has to be run by you, not the agent.
 
 The local sandbox that constrains the agents is documented in [sandbox.md](sandbox.md).

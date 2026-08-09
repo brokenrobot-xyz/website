@@ -87,6 +87,14 @@ chmod +x "${shim}/npx"
 printf '#!/usr/bin/env bash\nexit 0\n' >"${shim}/typescript-language-server"
 chmod +x "${shim}/typescript-language-server"
 
+# Stub openspec: the sanity check compares its --version against the fixture package.json pin (an
+# arbitrary value — the probe never reads the repo's). OPENSPEC_VERSION fakes a drifted global
+# install. The missing case lives in the dev-env-checks suite, whose PATH is fully controlled;
+# here the shim only prefixes the host PATH, so removing the stub would not be host-independent.
+OS_PIN="9.1.0"
+printf '#!/usr/bin/env bash\n[ "$1" = "--version" ] && echo "${OPENSPEC_VERSION:-%s}"\n' "${OS_PIN}" >"${shim}/openspec"
+chmod +x "${shim}/openspec"
+
 export PATH="${shim}:${PATH}"
 export CLAUDE_PROJECT_DIR="${proj}"
 
@@ -97,8 +105,8 @@ node_ver="${node_ver#v}"
 printf '%s\n' "${node_ver}" >"${proj}/.node-version"
 mcp_json() { printf '{"mcpServers":{"codegraph":{"command":"npx","args":["-y","@colbymchenry/codegraph@%s"]}}}\n' "$1" >"${proj}/.mcp.json"; }
 mcp_json "${CG_PIN}"
-printf '{"scripts":{"codegraph:init":"npx -y @colbymchenry/codegraph@%s init","codegraph:status":"npx -y @colbymchenry/codegraph@%s status"}}\n' \
-    "${CG_PIN}" "${CG_PIN}" >"${proj}/package.json"
+printf '{"scripts":{"codegraph:init":"npx -y @colbymchenry/codegraph@%s init","codegraph:status":"npx -y @colbymchenry/codegraph@%s status"},"devDependencies":{"@fission-ai/openspec":"%s"}}\n' \
+    "${CG_PIN}" "${CG_PIN}" "${OS_PIN}" >"${proj}/package.json"
 
 pass=0
 fail=0
@@ -250,6 +258,10 @@ out="$(run)"
 contains "a drifted codegraph pin is reported" "codegraph pins drifted" "${out}"
 contains "and problems point at the checking-dev-env skill" "(run the checking-dev-env skill for a fix guide)" "${out}"
 mcp_json "${CG_PIN}"
+
+out="$(OPENSPEC_VERSION=0.0.1 run)"
+contains "a drifted global openspec is reported against the package.json pin" \
+    "openspec is 0.0.1 but package.json pins ${OS_PIN}" "${out}"
 
 # --- environment guards ---
 

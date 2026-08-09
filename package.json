@@ -26,6 +26,7 @@
         "designmd:check": "design.md lint DESIGN.md && design.md lint DESIGN.dark.md",
         "thirdparty:check": "node scripts/check-third-party-resources.mjs",
         "terraform:check": "terraform -chdir=infra/cloudflare fmt -check -recursive && terraform -chdir=infra/cloudflare validate -no-color",
+        "hooks:check": "for t in .claude/hooks/tests/*-cases.sh; do echo \"== $t\"; bash \"$t\" || exit 1; done",
         "test:e2e:check": "devcontainer exec --workspace-folder . bash -lc 'export BROKENROBOT_PORT=\"${BROKENROBOT_PORT:-8080}\"; npm run build && node_modules/.bin/playwright test'",
         "test:e2e:update": "devcontainer exec --workspace-folder . bash -lc 'export BROKENROBOT_PORT=\"${BROKENROBOT_PORT:-8080}\"; npm run build && node_modules/.bin/playwright test --update-snapshots'",
         "dc:up": "devcontainer up --workspace-folder . && devcontainer exec --workspace-folder . bash -lc 'test -x node_modules/.bin/astro || (sudo chown vscode:vscode node_modules && npm install && npm run install:playwright)'",
@@ -61,7 +62,7 @@
     "devDependencies": {
         "@axe-core/playwright": "4.12.1",
         "@devcontainers/cli": "0.88.0",
-        "@fission-ai/openspec": "1.6.0",
+        "@fission-ai/openspec": "1.8.0",
         "@google/design.md": "0.3.0",
         "@playwright/test": "1.62.0",
         "@typescript-eslint/eslint-plugin": "8.65.0",
