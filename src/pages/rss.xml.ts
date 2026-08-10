@@ -2,7 +2,7 @@ import rss from '@astrojs/rss';
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 
-import { SITE_METADATA } from '../consts';
+import { SITE_METADATA } from '@consts';
 
 export const GET: APIRoute = async ({ site }) => {
     const posts = await getCollection('blog');

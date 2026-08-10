@@ -6,7 +6,7 @@ import PageLayout from '@layouts/PageLayout.astro';
 import CompactBlogPosts from '@components/blog-posts/CompactBlogPosts.astro';
 import InternalLink from '@components/links/InternalLink.astro';
 
-import { SITE_METADATA } from '../consts';
+import { SITE_METADATA } from '@consts';
 
 const posts = (await getCollection('blog'))
     .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf())

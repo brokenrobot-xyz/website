@@ -18,8 +18,9 @@ Extends `astro/tsconfigs/strictest`. Notable, ESLint-enforced rules:
 ## Imports
 
 Enforced order (`eslint-plugin-import`): builtin → external → internal → parent → sibling →
-index, with `exports-last`. Prefer the path aliases (`@components`, `@layouts`, `@assets`,
-`@styles`) over deep relative paths.
+index, with `exports-last`. Use the path aliases (`@assets`, `@components`, `@consts`, `@layouts`,
+`@styles`) rather than parent-relative paths — `no-restricted-imports` rejects any `../` import,
+because a relative path silently breaks when the file moves. Sibling (`./`) imports are fine.
 
 ## Formatting (Prettier)
 
