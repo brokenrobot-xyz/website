@@ -52,9 +52,15 @@ const target = join(repoRoot, 'src', 'styles', 'tokens.generated.css');
 const SKIP_COLORS = new Set(['primary']);
 
 const THEMES = [
-    { file: 'DESIGN.md', selector: ':root' },
-    { file: 'DESIGN.dark.md', selector: "html[data-theme='dark']" }
+    { file: 'DESIGN.md', selector: ':root', mode: 'light' },
+    { file: 'DESIGN.dark.md', selector: "html[data-theme='dark']", mode: 'dark' }
 ];
+
+// `<meta name="theme-color">` takes a literal colour — it cannot read a CSS custom property — so
+// BaseLayout hard-codes the light and dark `--bg` values. Nothing regenerates those two literals,
+// so `--check` compares them against the tokens; without this the browser chrome silently keeps the
+// old background after a DESIGN file changes.
+const layout = join(repoRoot, 'src', 'layouts', 'BaseLayout.astro');
 
 function colorsFor(file) {
     const json = execFileSync(process.execPath, [cli, 'export', '--format', 'json-tailwind', join(repoRoot, file)], {
@@ -69,12 +75,37 @@ function block(selector, colors) {
     return `    ${selector} {\n${lines}\n    }`;
 }
 
+function themeColorMetas() {
+    const html = readFileSync(layout, 'utf8');
+    const found = {};
+    for (const [meta] of html.matchAll(/<meta\b[^>]*name="theme-color"[^>]*\/>/g)) {
+        const mode = /media="\(prefers-color-scheme:\s*(light|dark)\)"/.exec(meta)?.[1];
+        const content = /content="([^"]+)"/.exec(meta)?.[1];
+        if (mode !== undefined && content !== undefined) {
+            found[mode] = content;
+        }
+    }
+    return found;
+}
+
+function themeColorDrift(themes) {
+    const metas = themeColorMetas();
+    return themes.flatMap(({ mode, colors }) => {
+        const bg = colors.find(([name]) => name === 'bg')?.[1];
+        if (bg === undefined || metas[mode] === bg) {
+            return [];
+        }
+        return [`  ${mode}: theme-color is ${metas[mode] ?? '(missing)'}, --bg is ${bg}`];
+    });
+}
+
 const header =
     '/* AUTO-GENERATED — do not edit.\n' +
     '   Source of truth: DESIGN.md (light) and DESIGN.dark.md (dark).\n' +
     '   Regenerate with `npm run tokens:generate`. */\n';
 
-const body = THEMES.map(({ file, selector }) => block(selector, colorsFor(file))).join('\n\n');
+const themes = THEMES.map(({ file, selector, mode }) => ({ selector, mode, colors: colorsFor(file) }));
+const body = themes.map(({ selector, colors }) => block(selector, colors)).join('\n\n');
 const output = `${header}\n@layer base {\n${body}\n}\n`;
 
 if (process.argv.includes('--check')) {
@@ -88,7 +119,15 @@ if (process.argv.includes('--check')) {
         console.error('tokens.generated.css is out of date. Run `npm run tokens:generate` and commit the result.');
         process.exit(1);
     }
-    console.log('tokens.generated.css is up to date.');
+    const drift = themeColorDrift(themes);
+    if (drift.length > 0) {
+        console.error(
+            `BaseLayout.astro theme-color meta tags do not match the --bg tokens:\n${drift.join('\n')}\n` +
+                'Update the `content` values in src/layouts/BaseLayout.astro to match.'
+        );
+        process.exit(1);
+    }
+    console.log('tokens.generated.css is up to date, and the theme-color metas match --bg.');
 } else {
     writeFileSync(target, output);
     console.log(`Wrote ${target}`);
