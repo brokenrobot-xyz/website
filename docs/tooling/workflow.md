@@ -10,7 +10,7 @@ branch = one PR). Each phase maps to a concrete tool:
 | Explore                   | `/opsx:explore` (or the `openspec-explore` skill)                                                |
 | Propose                   | `/opsx:propose` (or the `openspec-propose` skill)                                                |
 | Review the proposal       | **you** read and approve the change folder                                                       |
-| Implement                 | `frontend-engineer` agent / `/opsx:apply`, on a `<type>/<change-name>` branch                    |
+| Implement                 | `/opsx:apply` (or the `openspec-apply-change` skill), on a `<type>/<change-name>` branch         |
 | Verify                    | `frontend-qa-engineer` agent + `running-preflight-checks` skill                                  |
 | Archive                   | `/opsx:archive` (on the branch, so the PR carries code + spec)                                   |
 | Review the implementation | the pull request: CI runs the gates, `frontend-code-reviewer` surfaces findings, **you** approve |
@@ -95,12 +95,15 @@ does with them:
 
 ## The agents (`.claude/agents/`)
 
-Four role-based subagents, each with focused instructions and tool access. Invoke them with the
+Three role-based subagents, each with focused instructions and tool access. Invoke them with the
 Agent/Task tool, or let the main session delegate.
 
-- **`frontend-engineer`** (sonnet) — applies an agreed change's `tasks.md`: Astro/Preact/CSS to
-  the repo's conventions (scoped `<style>` + `@reference`, token utilities, path aliases,
-  `InternalLink`/`ExternalLink`). Surgical edits under `src/`; stops at the Verify step.
+Implementing has no agent, for the same reason planning has none. `/opsx:apply` already carries the
+site's guardrails — `openspec instructions apply` returns both the `context` block and the
+`operations.apply` guidance from `openspec/config.yaml` — and the apply flow pauses to ask when a
+task is ambiguous. A subagent cannot ask, because Claude Code strips `AskUserQuestion` from every
+subagent, so routing implementation through one would trade that gate for context isolation.
+
 - **`frontend-qa-engineer`** (sonnet) — runs Playwright visual-regression + axe in **both** themes (in
   the devcontainer, so rendering matches CI), regenerates baselines for intentional changes, and
   reports diffs. Also drives an **agent-assisted manual preview** via the Playwright MCP (host Chrome):

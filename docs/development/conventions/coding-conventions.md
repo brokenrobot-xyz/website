@@ -28,6 +28,9 @@ index, with `exports-last`. Prefer the path aliases (`@components`, `@layouts`, 
 - **One attribute per line** (`singleAttributePerLine`) — applies to Astro markup.
 - Tailwind classes auto-sorted (`prettier-plugin-tailwindcss`).
 - Covers `.astro, .js, .jsx, .ts, .tsx, .cjs, .mjs, .css, .json, .md, .mdx, .yml`.
+- **Format only the files you touched** — run `npx prettier --write` over them. Do not run
+  `npm run format:fix`, because that script rewrites the full repo glob and reformats files your
+  change never touched.
 
 ## Naming
 

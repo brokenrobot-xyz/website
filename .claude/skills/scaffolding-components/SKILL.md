@@ -101,4 +101,4 @@ export function Thing({ label }: Props) {
 
 - **Both themes:** sanity-check the component reads well in light and dark (token usage, not hard-coded values). New UI needs both-theme snapshot + a11y coverage — see the `testing-visual-regression` skill.
 - Keep it **surgical** — scaffold only what the task needs; no speculative props or configurability.
-- Run the `running-preflight-checks` skill (or `type:check` / `lint:check` / `format:fix`) before handing off.
+- Run the `running-preflight-checks` skill (or `type:check` / `lint:check`) before handing off, and format the files you touched with `npx prettier --write` — never `npm run format:fix`, which reformats files your change never touched.
