@@ -11,12 +11,17 @@ context: |
   every change:
 
   - Static output only — no SSR, no runtime backend.
-  - Strict CSP — no third-party scripts, no inline `on*` handlers; client JS loads from `self`.
-    The only inline script is the pre-paint theme-init in BaseLayout (passed via set:html).
+  - Strict CSP — no inline `on*` handlers; client JS loads from `self`. The one permitted
+    third-party script is the Cloudflare Web Analytics beacon (allowed in astro.config.ts,
+    injected at the edge, never present in dist/); add no others. Inline <script> is limited to
+    BaseLayout's pre-paint theme-init, whose CSP hash BaseLayout registers, and
+    application/ld+json structured-data blocks.
   - Both themes are first-class — components read design tokens (CSS custom properties on
-    <html>), never hard-coded colors; light and dark each carry Playwright visual + a11y coverage.
+    <html>), never hard-coded colors. Automated coverage is light-only today: the Playwright
+    projects are Desktop Chrome and Pixel 7, both light, so a dark-theme regression rests on
+    human review until dark projects are wired.
   - Interactivity ladder — stateful UI → Preact island (client:*); small DOM wiring → a bundled
-    Astro <script> importing a .ts module; pre-paint only → the single inline theme-init.
+    Astro <script> importing a .ts module; pre-paint only → BaseLayout's theme-init.
   - Stable contracts — the /blog/<slug>/ permalinks and rss.xml must keep working.
 
   Authoritative docs: docs/architecture.md, docs/development/conventions/coding-conventions.md,
