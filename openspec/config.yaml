@@ -45,6 +45,7 @@ rules:
     - Keep implementation choices out of specs — Astro page vs. Preact island, client directives, component or function names.
   tasks:
     - "Primitives-first ordering: the repo ships design tokens only — the prototype's primitives (.btn, .tag, .eyebrow, .card, .section-head, code-block chrome, reading-progress bar, scroll cue) are not in the codebase yet. A slice that uses a primitive MUST establish it in an earlier task; never reference a primitive the codebase does not define."
+    - "Name the interactivity tier in any task that adds or changes interactive UI: Preact island (client:*), a bundled Astro <script> importing a .ts module, or BaseLayout's pre-paint init. State it once in the task that creates the component, then refer to the component by name, because two tasks naming different tiers for one component send the implementer down the wrong path — the theme toggle shipped as an island, then became a script to remove a post-hydration icon flash."
     - Keep the template's seeded Verify group last — renumber it to follow the work groups; do not drop or weaken its items.
     - Nested checkboxes count toward tracked progress; nest a sub-task only when it is genuinely separate work rather than a note on its parent.
 
