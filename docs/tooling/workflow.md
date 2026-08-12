@@ -112,9 +112,11 @@ subagent, so routing implementation through one would trade that gate for contex
   in `tasks.md`** (visual/a11y, the gate, build), marking partial ones — e.g. _light only_ while dark is
   deferred. It reports the manual-preview findings but leaves that checkbox for the human at the review gate. Read-only
   on `src/`; hands styling bugs back to the engineer.
-- **`frontend-code-reviewer`** (opus) — a read-only guardrail gate over the diff before commit, grouping
-  findings as Blocking / Should-fix / Nits. Flags CSP, theming, interactivity-ladder, and convention
-  violations the implementer missed.
+- **`frontend-code-reviewer`** (opus) — a read-only guardrail gate over the diff, at either placement:
+  the working tree before commit, or the branch at the pull-request gate (the delegation says which,
+  and the agent reads `git diff HEAD` or `git diff main...HEAD` accordingly). Groups findings as
+  Blocking / Should-fix / Nits. Flags CSP, theming, interactivity-ladder, and convention violations
+  the implementer missed.
 - **`dependency-update-researcher`** (opus) — read-only research on a single npm dependency bump
   (current → target version): reads the changelog, checks how the repo actually uses the package, and
   returns a compatibility verdict with the concrete edits the bump would require. Invoked per
