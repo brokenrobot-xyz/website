@@ -1,15 +1,15 @@
 ---
 name: running-preflight-checks
-description: Runs the brokenrobot.xyz quality gate — type-check, lint, format-check, spec validation, DESIGN lint, design-token drift, build, the third-party-resource guardrail, and the Terraform check — and summarizes failures. Use before committing a change or handing it to review; the same set CI's Pipeline jobs enforce. This is the non-visual half of Verify; pair it with testing-visual-regression.
+description: Runs the brokenrobot.xyz quality gate — type-check, lint, format-check, spec validation, DESIGN lint, design-token drift, the CSP header sync, build, the third-party-resource guardrail, and the Terraform check — and summarizes failures. Use before committing a change or handing it to review; the same set CI's Pipeline jobs enforce. This is the non-visual half of Verify; pair it with testing-visual-regression.
 compatibility: Requires Node and npm at the package.json engine versions, with dependencies installed. `terraform:check` additionally needs Terraform on PATH (the devcontainer pins 1.15.8 to match CI) and `infra/cloudflare` already initialized.
 model: claude-sonnet-5
 allowed-tools: Bash
 metadata:
     author: brokenrobot.xyz
-    version: '3.0'
+    version: '3.1'
 ---
 
-Run the gate from the repo root. Run all nine steps even when one fails — stopping at the first failure hides the rest.
+Run the gate from the repo root. Run all ten steps even when one fails — stopping at the first failure hides the rest.
 
 ```bash
 npm run type:check       # astro check && tsc --noEmit
@@ -18,6 +18,7 @@ npm run format:check     # prettier --check
 npm run specs:check      # openspec validate --all --strict
 npm run designmd:check   # errors fail; warnings and infos are advisory
 npm run tokens:check     # drift fix is `npm run tokens:generate`, which the caller runs
+npm run headers:check    # the CSP edge header's three copies stay byte-identical; exit 2 means extraction broke — report as `not run`
 npm run build            # astro build — static output
 npm run thirdparty:check # scans dist/; exit 2 means dist/ is missing or half-written — report as `not run`
 npm run terraform:check  # terraform fmt + validate over infra/cloudflare
@@ -30,7 +31,7 @@ Report each step as pass/fail from its own exit status. For a failing step, quot
 For example:
 
 ```
-red — 2 of 9 steps failed
+red — 2 of 10 steps failed
 
 type:check       pass
 lint:check       FAIL — src/components/ThemeToggle.tsx:18 — no-floating-promises (3 errors)
@@ -38,6 +39,7 @@ format:check     pass
 specs:check      pass — 4 specs, 0 failed
 designmd:check   pass — 0 errors (2 warnings, advisory)
 tokens:check     FAIL — src/styles/tokens.generated.css is stale; run `npm run tokens:generate`
+headers:check    pass — CSP header byte-identical across 3 files
 build            pass
 thirdparty:check pass — no third-party requests in dist/
 terraform:check  pass — fmt + validate clean (no plan; apply is Terraform Cloud's)

@@ -18,5 +18,5 @@
 ## N. Verify
 
 - [ ] Visual + a11y snapshots pass for every touched view — light via the Playwright projects, dark by manual review until the dark projects are wired (testing-visual-regression skill)
-- [ ] All eight gate steps pass — `type:check`, `lint:check`, `format:check`, `specs:check`, `designmd:check`, `tokens:check`, `build`, `thirdparty:check` (running-preflight-checks skill)
+- [ ] All nine gate steps pass — `type:check`, `lint:check`, `format:check`, `specs:check`, `designmd:check`, `tokens:check`, `headers:check`, `build`, `thirdparty:check` (running-preflight-checks skill)
 - [ ] Manual preview: no theme flash, interactions work, console clean, responsive at 375px

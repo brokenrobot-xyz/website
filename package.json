@@ -24,6 +24,7 @@
         "tokens:generate": "node scripts/generate-tokens.mjs",
         "tokens:check": "node scripts/generate-tokens.mjs --check",
         "designmd:check": "design.md lint DESIGN.md && design.md lint DESIGN.dark.md",
+        "headers:check": "node scripts/check-header-sync.mjs",
         "thirdparty:check": "node scripts/check-third-party-resources.mjs",
         "terraform:check": "terraform -chdir=infra/cloudflare fmt -check -recursive && terraform -chdir=infra/cloudflare validate -no-color",
         "hooks:check": "for t in .claude/hooks/tests/*-cases.sh; do echo \"== $t\"; bash \"$t\" || exit 1; done",

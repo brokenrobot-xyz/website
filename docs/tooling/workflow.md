@@ -73,7 +73,7 @@ does with them:
 - **CI is two workflows: one that checks, one that ships.**
   [`pipeline.yml`](../../.github/workflows/pipeline.yml) holds every check as a named job — **Verify
   site** (`format:check` / `lint:check` / `type:check` / `specs:check` / `designmd:check` /
-  `tokens:check`), **Verify Terraform**, **Build site** (with `thirdparty:check`), and **Test site**
+  `tokens:check` / `headers:check`), **Verify Terraform**, **Build site** (with `thirdparty:check`), and **Test site**
   (the e2e suite) — the same gates the `running-preflight-checks` and `testing-visual-regression`
   skills run locally. It runs on every pull request **and** on every push to `main`, unfiltered, so
   a merge always gets the full picture rather than only the parts a path filter thought were
@@ -139,7 +139,7 @@ vendored names. The `reviewing-claude-skills` skill enforces this as checklist i
 - **`scaffolding-components`** — scaffold a new Astro component or Preact island to convention
   (placement, typed props, scoped token-driven styles, the right interactivity tier).
 - **`running-preflight-checks`** — run the non-visual gate (`type:check` + `lint:check` +
-  `format:check` + `specs:check` + `designmd:check` + `tokens:check` + `build` +
+  `format:check` + `specs:check` + `designmd:check` + `tokens:check` + `headers:check` + `build` +
   `thirdparty:check`) and summarize failures. Matches CI's verify and build jobs, so a green gate
   predicts a green PR.
 - **`checking-dev-env`** — audit host readiness (toolchain against the pins, dependencies, the
@@ -273,7 +273,7 @@ instruction + context). The seeded Verify section is:
 ## N. Verify
 
 - [ ] Visual + a11y snapshots pass for every touched view — light via the Playwright projects, dark by manual review until the dark projects are wired (testing-visual-regression skill)
-- [ ] All eight gate steps pass — `type:check`, `lint:check`, `format:check`, `specs:check`, `designmd:check`, `tokens:check`, `build`, `thirdparty:check` (running-preflight-checks skill)
+- [ ] All nine gate steps pass — `type:check`, `lint:check`, `format:check`, `specs:check`, `designmd:check`, `tokens:check`, `headers:check`, `build`, `thirdparty:check` (running-preflight-checks skill)
 - [ ] Manual preview: no theme flash, interactions work, console clean, responsive at 375px
 ```
 

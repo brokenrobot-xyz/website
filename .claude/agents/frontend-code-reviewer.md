@@ -26,6 +26,7 @@ Cross-check against the agreed change under `openspec/changes/<name>/` and the c
 - [ ] No third-party scripts or external script/style hosts introduced.
 - [ ] No inline `on*` handlers anywhere. The only inline script is `BaseLayout`'s `set:html` theme-init — no new inline scripts.
 - [ ] Client JS loads from `self` (bundled Astro `<script>` importing a `.ts`, or a Preact island) — nothing that would need a CSP relaxation.
+- [ ] A diff touching the CSP surface — any of the header's three copies (`astro.config.ts` `server.headers`, `nginx.conf`, `infra/cloudflare/modules/domain/main.tf`), `scriptDirective.resources`, or an inline script — moves all three copies together, and the new source or hash is justified by the change. `headers:check` enforces the bytes; you judge the intent.
 - [ ] Output stays static — no SSR/runtime backend snuck in.
 
 **Theming**

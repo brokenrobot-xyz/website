@@ -155,7 +155,8 @@ each one.
     because the inline CSS survives, while fonts and every bundled script fail. When the
     Cloudflare stack was first stood up it carried a single-layer policy copied from another
     site, which intersected with the `<meta>` layer to block `font-src` outright and admit no
-    script at all. Check all three when changing any.
+    script at all. Check all three when changing any — `npm run headers:check` (in the preflight
+    gate and CI's Verify job) fails on any byte of drift between them.
 
 The header keeps `'unsafe-inline'` on `script-src`/`style-src` **deliberately**: a static header
 cannot carry per-page hashes, so without it this layer would block the very inline scripts the
