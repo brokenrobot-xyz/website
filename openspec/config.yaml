@@ -43,15 +43,19 @@ rules:
   specs:
     - The observable behavior that matters here is what visitors and downstream consumers (feeds, crawlers) rely on; the external constraints that matter are accessibility, CSP, performance, and compatibility.
     - Keep implementation choices out of specs — Astro page vs. Preact island, client directives, component or function names.
+  design:
+    - "Create design.md when any of these apply — this repo's reading of the generic inclusion criteria: a new interactive component, a new dependency, a change to the CSP surface (inline scripts, script sources, edge headers), a change to token or theming structure, or a migration touching a stable contract (the /blog/<slug>/ permalinks, rss.xml)."
+    - "A change that adds or alters interactive UI records the interactivity-tier choice as a Decision with rationale and the alternatives ruled out — Preact island (client:*) vs. bundled Astro <script> importing a .ts module vs. BaseLayout's pre-paint init. State why the choice is correct on the first frame: the theme toggle shipped as an island and was reworked as a script to remove a post-hydration icon flash."
+    - Decisions that touch color, spacing, or elevation name design tokens, never raw values; when a needed token does not exist, the decision says so and the tasks establish it.
   tasks:
     - "Primitives-first ordering: the repo ships design tokens only — the prototype's primitives (.btn, .tag, .eyebrow, .card, .section-head, code-block chrome, reading-progress bar, scroll cue) are not in the codebase yet. A slice that uses a primitive MUST establish it in an earlier task; never reference a primitive the codebase does not define."
     - "Name the interactivity tier in any task that adds or changes interactive UI: Preact island (client:*), a bundled Astro <script> importing a .ts module, or BaseLayout's pre-paint init. State it once in the task that creates the component, then refer to the component by name, because two tasks naming different tiers for one component send the implementer down the wrong path — the theme toggle shipped as an island, then became a script to remove a post-hydration icon flash."
-    - Keep the template's seeded Verify group last — renumber it to follow the work groups; do not drop or weaken its items.
+    - Keep the template's seeded Verify group last — renumber it to follow the work groups; do not drop or weaken its items. When a change touches no views, mark the view-dependent items N/A with a short note rather than deleting them; the gate steps always run.
     - Nested checkboxes count toward tracked progress; nest a sub-task only when it is genuinely separate work rather than a note on its parent.
 
 # Per-operation guidance (OpenSpec 1.7+) — appended to the composed instructions for the apply and
 # archive operations only, so it reaches `/opsx:apply` and `/opsx:archive` without bloating every
-# artifact's context. Read it back with `openspec instructions apply|archive`.
+# artifact's context. Read it back with `openspec instructions apply|archive --change <name>`.
 operations:
   apply:
     guidance:

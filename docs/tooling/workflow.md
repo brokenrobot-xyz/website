@@ -248,9 +248,10 @@ template seeds** (cheap to reconcile):
 - **`openspec/config.yaml` → `rules`** — per-artifact constraints, appended to that artifact's
   composed instructions as a `<rules>` block. Read `config.yaml` for the current set; it shapes the
   proposal (**Non-Goals**, the blog-prose scope check, cross-change dependencies, and the
-  `retire_capabilities` marker described above), the specs (domain flavor), and the tasks
-  (**primitives-first** — a slice that uses a `.btn`/`.tag`/`.card`/… primitive must establish it
-  first, since the foundation shipped tokens only).
+  `retire_capabilities` marker described above), the specs (domain flavor), the design (site-fitted
+  inclusion criteria, and the **interactivity-tier decision** recorded with rationale), and the
+  tasks (**primitives-first** — a slice that uses a `.btn`/`.tag`/`.card`/… primitive must
+  establish it first, since the foundation shipped tokens only).
 - **`openspec/schemas/frontend-change/`** — a project-local schema. Its `schema.yaml` is a verbatim
   copy of the built-in `spec-driven` schema except the `name:` and `description:` lines, and only
   two of its templates diverge: `templates/proposal.md` adds the **Non-Goals** heading and
@@ -261,7 +262,7 @@ template seeds** (cheap to reconcile):
 - **`openspec/config.yaml` → `operations`** — advisory guidance attached to the **apply** and
   **archive** operations only, so branch/hand-off rules reach `/opsx:apply` and delta-merge rules
   reach `/opsx:archive` without padding every artifact's context. Read it back with
-  `openspec instructions apply|archive`. Each `rules`/`guidance` entry must be a **string**: quote
+  `openspec instructions apply|archive --change <name>`. Each `rules`/`guidance` entry must be a **string**: quote
   any bullet containing a `key: value` pair, or YAML parses it as a map and OpenSpec silently drops
   the whole list with a warning on stderr.
 
@@ -271,10 +272,20 @@ instruction + context). The seeded Verify section is:
 ```markdown
 ## N. Verify
 
-- [ ] Visual + a11y snapshots pass in **both themes** for every touched view (testing-visual-regression skill)
+- [ ] Visual + a11y snapshots pass for every touched view — light via the Playwright projects, dark by manual review until the dark projects are wired (testing-visual-regression skill)
 - [ ] All eight gate steps pass — `type:check`, `lint:check`, `format:check`, `specs:check`, `designmd:check`, `tokens:check`, `build`, `thirdparty:check` (running-preflight-checks skill)
 - [ ] Manual preview: no theme flash, interactions work, console clean, responsive at 375px
 ```
+
+View-dependent Verify items are marked **N/A** (with a short note) on a change that touches no
+views; the gate steps always run.
+
+How coding conventions reach the generated code is deliberately split, and the split is the reason
+no prompt restates them: conventions a machine enforces (types, lint, formatting, token drift,
+third-party resources) are left to the gate; conventions that need judgment mid-plan ride the
+artifact `rules` above (the interactivity-tier decision in design, tier naming and primitives-first
+in tasks); scaffolding conventions ride the `scaffolding-components` skill at implementation time;
+the `frontend-code-reviewer` and the human review gates backstop the rest.
 
 This shapes _generation_. Structural validity is also **enforced** in CI: the `verify` job runs
 `npm run specs:check` (`openspec validate --all --strict`), so malformed proposals or spec deltas

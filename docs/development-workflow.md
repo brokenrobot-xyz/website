@@ -20,8 +20,13 @@ For changes to the site itself:
 - **Design** — visual and layout changes (typography, colour, spacing, components).
 - **Infrastructure** — Terraform, deployment, CI/CD, and hosting changes under `infra/`.
 
-Refactors and other non-trivial code changes follow the same flow when they're worth agreeing on up
-front.
+The line is explicit: **any change to the site itself follows the flow, however small** — code
+under `src/`, `public/`, or `tests/`, infrastructure and CI, and a dependency change that alters
+site behaviour. The proposal is the agreement, even when no behaviour (and so no spec) changes —
+see [What gets a spec](#what-gets-a-spec). Outside the flow: blog article prose (below),
+repository documentation and agent tooling (`docs/`, `CLAUDE.md`, `.claude/`), which commit
+directly, and routine dependency refreshes, which follow their own procedure (see
+[tooling/workflow.md](tooling/workflow.md)).
 
 ### Out of scope: writing blog articles
 
@@ -83,6 +88,19 @@ We keep two things: a **living record of how the site behaves today**, and the *
 modifying it. The record answers "how does it work now?"; a change answers "what are we changing, and
 why?". When a change is done, its agreed behaviour merges into the record — which is what keeps the
 record honest.
+
+### What gets a spec
+
+The record describes **externally observable behaviour** — what visitors and downstream consumers
+(feeds, crawlers) rely on — and the external constraints we hold (accessibility, CSP, performance,
+compatibility). A change updates the record exactly when it moves one of those. A change that
+doesn't — a pure refactor, tooling, CI, a dependency bump — still gets a proposal and the gates,
+and declares that it changes no behaviour; auditing that claim is part of the proposal review.
+Never invent a requirement to satisfy a validator: a fabricated requirement is drift, not record.
+
+Bug fixes sit on both sides of the line: a fix that **restores** behaviour the record already
+describes changes no spec; a fix that **changes** the agreed behaviour modifies the record. The
+mechanics — the `skip_specs` marker — are in [tooling/workflow.md](tooling/workflow.md).
 
 ## Guardrails
 
