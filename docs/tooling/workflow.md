@@ -108,10 +108,10 @@ subagent, so routing implementation through one would trade that gate for contex
   the devcontainer, so rendering matches CI), regenerates baselines for intentional changes, and
   reports diffs. Also drives an **agent-assisted manual preview** via the Playwright MCP (host Chrome):
   console clean, no theme flash, interactions, 375px — plus an **advisory perf/SEO audit** via the Chrome
-  DevTools MCP (SEO/best-practices + Core Web Vitals, not a gate). It **ticks the automated Verify items
-  in `tasks.md`** (visual/a11y, the gate, build), marking partial ones — e.g. _light only_ while dark is
-  deferred. It reports the manual-preview findings but leaves that checkbox for the human at the review gate. Read-only
-  on `src/`; hands styling bugs back to the engineer.
+  DevTools MCP (SEO/best-practices + Core Web Vitals, not a gate). It **reports which Verify items its
+  evidence supports** (visual/a11y, the gate), marking partial ones — e.g. _light only_ while dark is
+  deferred — and the main session ticks `tasks.md` where you can see the edit. The manual-preview
+  checkbox stays yours at the review gate. Fully read-only; hands styling bugs back to the engineer.
 - **`frontend-code-reviewer`** (opus) — a read-only guardrail gate over the diff, at either placement:
   the working tree before commit, or the branch at the pull-request gate (the delegation says which,
   and the agent reads `git diff HEAD` or `git diff main...HEAD` accordingly). Groups findings as
