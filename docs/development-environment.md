@@ -9,8 +9,8 @@ truth rather than restating them, so versions and commands live in one place.
 
 | Tool | Version       | Source of truth                                |
 | ---- | ------------- | ---------------------------------------------- |
-| Node | **26.2.0**    | [`.node-version`](../.node-version)            |
-| npm  | **≥ 11.13.0** | `engines` in [`package.json`](../package.json) |
+| Node | **26.8.1**    | [`.node-version`](../.node-version)            |
+| npm  | **≥ 11.19.0** | `engines` in [`package.json`](../package.json) |
 
 [`.npmrc`](../.npmrc) sets `engine-strict=true`, so installs **fail** if your Node/npm fall below
 those floors — this is intentional, keeping everyone on the pinned toolchain. It also sets
@@ -23,7 +23,7 @@ tool that reads it works (fnm, nvm, asdf, volta). Using [fnm](https://github.com
 worked example:
 
 ```sh
-fnm install # installs the version named in .node-version (26.2.0)
+fnm install # installs the version named in .node-version (26.8.1)
 fnm use     # switches the current shell to it
 ```
 
@@ -138,7 +138,7 @@ declares the recommended extensions, worth installing in your host editor too:
 After setup, confirm the environment:
 
 ```sh
-node -v && npm -v                    # 26.2.0 / ≥ 11.13.0
+node -v && npm -v                    # 26.8.1 / ≥ 11.19.0
 npm run type:check                   # Astro + tsc, no errors
 npm run lint:check                   # ESLint clean
 npm run format:check                 # Prettier clean
@@ -198,8 +198,9 @@ The plugin is committed in [`.claude/settings.json`](../.claude/settings.json) u
 
 ### ✗ codegraph MCP not enabled
 
-[`.mcp.json`](../.mcp.json) registers the server (committed); enabling it is per-machine — add
-`"codegraph"` to `enabledMcpjsonServers` in `.claude/settings.local.json`. Background in
+Both halves are committed: [`.mcp.json`](../.mcp.json) registers the server and
+[`.claude/settings.json`](../.claude/settings.json) enables it through `enabledMcpjsonServers`. A ✗
+means this checkout's config diverged — restore `"codegraph"` to that list. Background in
 [tooling/code-intelligence.md](tooling/code-intelligence.md).
 
 ### ✗ codegraph pins drifted
