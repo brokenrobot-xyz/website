@@ -50,6 +50,12 @@ not surface it.
   cuts a 293 MB platform binary from every worktree's install in favour of one `npx` cache per
   machine. **Enabled** by adding `"codegraph"` to `enabledMcpjsonServers` in your (gitignored)
   `.claude/settings.local.json`.
+- `CODEGRAPH_EXPLORE_DEDUP=0`, alongside those env vars, keeps `codegraph_explore` returning
+  verbatim line-numbered source on **every** call. Codegraph 1.6.0 made deduplication the default:
+  source already shown earlier in a conversation comes back as a short pointer (path, symbols, line
+  range) instead. That saves context, but a pointer is not something `Edit` can match against, so
+  the tool stops being the Read-equivalent its own instructions promise. Turning it on is a
+  deliberate change to make on its own, not a side effect of a version bump.
 - We deliberately do **not** run `codegraph install` — that writes a global `~/.claude.json` entry
   pointing at a global binary, defeating the repo-scoped version pin.
 - The index lives in `.codegraph/` (SQLite + a daemon lock). It is **checkout-specific** — the lock
@@ -102,11 +108,20 @@ exits non-zero on any ✗). The mutating steps stay manual: run `npm install` an
 > hook finishes — no restart needed.
 
 > A worktree **nested inside the main checkout** — which is where Claude Code puts them,
-> `.claude/worktrees/<name>/` (see [sandbox.md](sandbox.md)) — currently gets **no index of its
-> own**: codegraph's project detection walks up from the worktree, anchors on the main checkout's
-> `.codegraph/`, and while any session's MCP server holds that database, both the health probe and a
-> rebuild fail with "database file is in use". The hook handles it as designed — it reports "NO
-> usable index — use the normal file-reading tools" and continues; dependencies still install. The
-> failure is specific to nesting: a checkout with no `.codegraph/` in any ancestor probes
-> `initialized:false` and inits normally. Observed with codegraph 1.5.0 (July 2026); whether a
-> nested worktree indexes correctly with no parent session running is unverified.
+> `.claude/worktrees/<name>/` (see [sandbox.md](sandbox.md)) — gets **no index of its own**:
+> codegraph's project detection walks up from the worktree and anchors on the main checkout's
+> `.codegraph/`. The health probe does **not** fail on that. It answers `initialized:true` for the
+> parent's index even while a live session's MCP server holds the database — WAL mode admits
+> concurrent readers — and it names the split in a `worktreeMismatch` field carrying both
+> `worktreeRoot` and `indexRoot`. So the hazard is not a missing index but a **misattributed** one:
+> queries made from the worktree answer from the main checkout's files, which is wrong exactly when
+> the branch has diverged. Read codegraph results in a nested worktree as the parent's, and fall
+> back to Read/Grep/Glob for anything the branch changed. A checkout with no `.codegraph/` in any
+> ancestor is unaffected — it probes `initialized:false` and inits normally.
+>
+> Re-verified September 2026 against codegraph **1.5.0 and 1.6.0**, with a parent daemon holding the
+> database; both behave identically, so 1.6.0's project-resolution work does not touch this. What
+> stays untested is the **write** path: whether `index`/`init` from inside the nested worktree fails
+> on the parent's lock, and which file set it would write if it did not. Running it rebuilds the
+> shared parent index, so it is not a probe to fire casually — the earlier "database file is in use"
+> report most likely came from that write path rather than from the probe.

@@ -52,8 +52,9 @@ This is **assistance, not the gate** — report what you observed; the human sti
 
 Against the same host preview, run a Lighthouse + perf pass with the **Chrome DevTools MCP** (`mcp__chrome-devtools`, headless host Chrome) for the signal that axe and visual-regression don't cover. **`lighthouse_audit`** gives **SEO** and **best-practices** (it also returns an accessibility score — **ignore it**, axe owns a11y); **`performance_start_trace`** gives **Core Web Vitals**.
 
-1. `lighthouse_audit` (mode `navigation`, device `mobile`) against `http://localhost:8080/<view>` — report the **SEO** and **best-practices** scores and any failed audits.
-2. `performance_start_trace` (reload, autoStop) — report **LCP** and **CLS** (and INP if present).
+1. `new_page` with `http://localhost:8080/<view>`, then take the page id from its result and pass it as **`pageId`** on every later call. Since chrome-devtools-mcp 1.8.0 every page-scoped tool **requires** `pageId` — 27 of its 29 tools, with only `list_pages` and `new_page` exempt — so a call that omits it fails schema validation before it runs. `list_pages` takes no arguments and re-lists the ids if you lose one.
+2. `lighthouse_audit` (mode `navigation`, device `mobile`) on that `pageId` — report the **SEO** and **best-practices** scores and any failed audits.
+3. `performance_start_trace` (reload, autoStop) on that `pageId` — report **LCP** and **CLS** (and INP if present).
 
 This is **advisory, not a gate.** Local-preview scores run over loopback with no CDN or throttling, so treat them as a **relative regression signal** — flag a notable drop versus the page's usual, but never fail Verify on an absolute number, and never present them as prod figures.
 

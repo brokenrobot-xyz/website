@@ -21,7 +21,7 @@
 # so this works in a checkout that has never been installed — codegraph is deliberately not a
 # devDependency. Drift between the three committed pins lands in the report instead of surfacing
 # as a reindexRecommended loop.
-CODEGRAPH_VERSION="1.5.0"
+CODEGRAPH_VERSION="1.6.0"
 codegraph() { npx -y "@colbymchenry/codegraph@${CODEGRAPH_VERSION}" "$@"; }
 
 # --- Toolchain ----------------------------------------------------------------------------------
