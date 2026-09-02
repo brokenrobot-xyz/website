@@ -36,7 +36,8 @@ slash commands:
 - **`/opsx:archive`** — merges the change's spec deltas into the living `openspec/specs/` tree and
   moves the change to `openspec/changes/archive/`.
 
-`openspec list` and `openspec validate` inspect changes and specs from the CLI.
+`openspec list`, `openspec status --all`, and `openspec validate` inspect changes and specs from the CLI;
+`openspec show <change> --diff` renders a change's delta requirements against the main spec they modify.
 
 Two per-change markers live in `openspec/changes/<name>/.openspec.yaml` and change what validation
 and archive will accept:
@@ -276,12 +277,12 @@ instruction + context). The seeded Verify section is:
 ```
 
 This shapes _generation_. Structural validity is also **enforced** in CI: the `verify` job runs
-`npm run specs:check` (`openspec validate --all --strict`), so malformed proposals or spec deltas
-fail a PR. The _content_ rules above (the Verify section, primitives-first) are generation-shaped
+`npm run specs:check` (`openspec validate --all --strict`, then `openspec validate --archived`), so
+malformed proposals or spec deltas fail a PR, as does an archived change with unticked tasks. The _content_ rules above (the Verify section, primitives-first) are generation-shaped
 only — not hard-checked — so the `frontend-code-reviewer` and your review are the backstop.
 
 The schema fork is OpenSpec-experimental and needs reconciling when OpenSpec updates its upstream
-schema. Because the fork is upstream-verbatim, that's mechanical (last done against **1.8.0**):
+schema. Because the fork is upstream-verbatim, that's mechanical (last done against **1.11.0**):
 
 1. `cp node_modules/@fission-ai/openspec/schemas/spec-driven/schema.yaml openspec/schemas/frontend-change/schema.yaml`,
    then restore the `name: frontend-change` and `description:` lines.

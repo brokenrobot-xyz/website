@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change design-overhaul-foundation. Update Purpose after archive.
+Type is the site's main design material: a display face for UI, a serif for long-form prose, and a monospace for code and labels. This capability fixes those roles and their font-family tokens, and requires fonts to be self-hosted and loaded without blocking text, so the CSP stays strict and reading starts immediately.
 
 ## Requirements
 

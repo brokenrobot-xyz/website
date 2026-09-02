@@ -188,7 +188,9 @@ One global install per machine: `npm i -g typescript-language-server typescript`
 One global install per machine, matching the `@fission-ai/openspec` version pinned in
 [`package.json`](../package.json): `npm i -g @fission-ai/openspec@<pinned version>`. The why — the
 `/opsx` commands launch a bare `openspec` from your shell `PATH` — and the one-time machine-global
-settings that go with it are in [tooling/workflow.md § Setup](tooling/workflow.md#setup).
+settings that go with it are in [tooling/workflow.md § Setup](tooling/workflow.md#setup). Check
+`openspec config get profile` prints `core` too: on a `custom` profile, `openspec update` regenerates
+only the workflows that machine once generated, not the full six the repo commits.
 
 ### ✗ typescript-lsp plugin not enabled
 
