@@ -96,16 +96,16 @@
       "id": 4,
       "name": "eval-settings-fix-shown-not-performed",
       "targets": "A fix the skill must show but not perform, plus tailoring to ✗ areas only",
-      "setup": "Throwaway checkout: remove \"codegraph\" from `enabledMcpjsonServers` in `.claude/settings.local.json`, or delete the file.",
+      "setup": "Throwaway checkout: remove \"codegraph\" from `enabledMcpjsonServers` in `.claude/settings.json`.",
       "prompt": "Something is off with codegraph in my sessions — check the environment.",
-      "expected_output": "A guide item showing the settings.local.json edit from the doc, with the file left untouched and no healthy area padded into the guide.",
+      "expected_output": "A guide item showing the settings.json edit from the doc, with the file left untouched and no healthy area padded into the guide.",
       "assertions": [
         "Step 1 reports ✗ codegraph MCP not enabled",
         "The guide shows the `enabledMcpjsonServers` edit from the doc's entry",
-        "Does NOT perform the edit — no `Edit`/`Write` touches `.claude/settings.local.json`",
+        "Does NOT perform the edit — no `Edit`/`Write` touches `.claude/settings.json`",
         "Healthy areas are not padded into the guide; only ✗ items appear"
       ],
-      "baseline": "Without the skill, `.claude/settings.local.json` is edited directly and the run reports the problem as resolved.",
+      "baseline": "Without the skill, `.claude/settings.json` is edited directly and the run reports the problem as resolved.",
       "models": ["claude-sonnet-5"]
     },
     {

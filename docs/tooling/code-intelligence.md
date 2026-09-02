@@ -1,10 +1,9 @@
 # Code intelligence
 
 Two tools give Claude Code code-intelligence in this repo. Both run **on the host** (where the
-interactive session runs, not the devcontainer), are **version-pinned in committed config** — one in
-`package.json`, one in `.mcp.json` — so the setup is reproducible; but each is _enabled_ locally,
-mirroring the existing
-`.mcp.json` + `enabledMcpjsonServers` convention (see [sandbox.md](sandbox.md)).
+interactive session runs, not the devcontainer) and are **pinned and enabled in committed config** —
+the pins in `package.json` and `.mcp.json`, the enabling in `.claude/settings.json` — so a fresh
+clone reproduces the setup with no per-machine step (see [sandbox.md](sandbox.md)).
 
 ## typescript-lsp (a Claude Code plugin)
 
@@ -48,8 +47,8 @@ not surface it.
   costing the pin — a bare `npx <pkg>` starts fine but silently fetches the latest release. Codegraph
   is deliberately **not** a devDependency: nothing loads it from `node_modules`, and keeping it out
   cuts a 293 MB platform binary from every worktree's install in favour of one `npx` cache per
-  machine. **Enabled** by adding `"codegraph"` to `enabledMcpjsonServers` in your (gitignored)
-  `.claude/settings.local.json`.
+  machine. **Enabled** through `enabledMcpjsonServers` in the committed
+  [`.claude/settings.json`](../../.claude/settings.json) — a clone gets it without a setup step.
 - `CODEGRAPH_EXPLORE_DEDUP=0`, alongside those env vars, keeps `codegraph_explore` returning
   verbatim line-numbered source on **every** call. Codegraph 1.6.0 made deduplication the default:
   source already shown earlier in a conversation comes back as a short pointer (path, symbols, line

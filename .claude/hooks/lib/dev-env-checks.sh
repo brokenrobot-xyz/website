@@ -170,11 +170,15 @@ dev_env_check_claude() { # requires jq; returns 1 on any ✗
     else
         bad="✗ typescript-lsp plugin not enabled — Claude Code runs without TypeScript language intelligence"
     fi
+    # Both halves are committed: .mcp.json registers the server, .claude/settings.json enables it.
+    # Deliberately NOT settings.local.json — that file is gitignored and sandbox-denied for reads, so
+    # probing it always fails from the sandboxed shell the checking-dev-env skill runs in, whatever
+    # it holds. A per-machine opt-in cannot be verified here; a committed one can.
     if jq -e '.mcpServers.codegraph' .mcp.json >/dev/null 2>&1 &&
-        jq -e '.enabledMcpjsonServers | index("codegraph")' .claude/settings.local.json >/dev/null 2>&1; then
+        jq -e '.enabledMcpjsonServers | index("codegraph")' .claude/settings.json >/dev/null 2>&1; then
         ok="${ok}${ok:+, }codegraph MCP enabled"
     else
-        bad="${bad}${bad:+$'\n'}✗ codegraph MCP not enabled — it must be in .mcp.json and in enabledMcpjsonServers of .claude/settings.local.json"
+        bad="${bad}${bad:+$'\n'}✗ codegraph MCP not enabled — it must be in .mcp.json and in enabledMcpjsonServers of .claude/settings.json"
     fi
     # nvm is a shell function, not an executable — command -v cannot see it, its install dir can.
     for m in fnm asdf volta; do

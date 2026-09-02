@@ -198,8 +198,9 @@ The plugin is committed in [`.claude/settings.json`](../.claude/settings.json) u
 
 ### ✗ codegraph MCP not enabled
 
-[`.mcp.json`](../.mcp.json) registers the server (committed); enabling it is per-machine — add
-`"codegraph"` to `enabledMcpjsonServers` in `.claude/settings.local.json`. Background in
+Both halves are committed: [`.mcp.json`](../.mcp.json) registers the server and
+[`.claude/settings.json`](../.claude/settings.json) enables it through `enabledMcpjsonServers`. A ✗
+means this checkout's config diverged — restore `"codegraph"` to that list. Background in
 [tooling/code-intelligence.md](tooling/code-intelligence.md).
 
 ### ✗ codegraph pins drifted

@@ -88,10 +88,11 @@ mkdir -p "${proj}/.codegraph" "${proj}/node_modules/.bin" "${proj}/.claude"
 git hash-object "${proj}/package-lock.json" >"${proj}/node_modules/.session-start-stamp"
 printf '#!/usr/bin/env bash\nexit 0\n' >"${proj}/node_modules/.bin/devcontainer"
 chmod +x "${proj}/node_modules/.bin/devcontainer"
-settings() { printf '{"enabledPlugins":{"typescript-lsp@claude-plugins-official":true}}\n' >"${proj}/.claude/settings.json"; }
-settings_local() { printf '{"enabledMcpjsonServers":["codegraph"]}\n' >"${proj}/.claude/settings.local.json"; }
+settings() {
+    printf '{"enabledPlugins":{"typescript-lsp@claude-plugins-official":true},"enabledMcpjsonServers":["codegraph"]}\n' \
+        >"${proj}/.claude/settings.json"
+}
 settings
-settings_local
 
 pass=0
 fail=0
@@ -191,13 +192,14 @@ out="$(run)"
 contains "a disabled typescript-lsp plugin is reported" "✗ typescript-lsp plugin not enabled" "${out}"
 settings
 
-rm "${proj}/.claude/settings.local.json"
+printf '{"enabledPlugins":{"typescript-lsp@claude-plugins-official":true}}\n' >"${proj}/.claude/settings.json"
 out="$(run)"
-contains "a missing settings.local.json means the MCP is not enabled" "✗ codegraph MCP not enabled" "${out}"
-printf '{"enabledMcpjsonServers":["playwright"]}\n' >"${proj}/.claude/settings.local.json"
+contains "settings.json with no enabled list means the MCP is not enabled" "✗ codegraph MCP not enabled" "${out}"
+printf '{"enabledPlugins":{"typescript-lsp@claude-plugins-official":true},"enabledMcpjsonServers":["playwright"]}\n' \
+    >"${proj}/.claude/settings.json"
 out="$(run)"
 contains "an enabled list without codegraph is the same problem" "✗ codegraph MCP not enabled" "${out}"
-settings_local
+settings
 
 rm "${shim}/fnm"
 out="$(run)"
