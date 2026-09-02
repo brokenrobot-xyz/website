@@ -313,7 +313,8 @@ so each machine sets them once:
 
 - **`openspec config profile core`** — installs the full six-workflow set (propose, explore, apply,
   update, sync, archive). Without it a machine that once generated a subset is pinned to a `custom`
-  profile, and `openspec update` keeps regenerating only those workflows.
+  profile, and `openspec update` keeps regenerating only those workflows. The `SessionStart`
+  report flags any profile other than `core`.
 - **`openspec config set telemetry.enabled false`** — turns off anonymous telemetry **and** the npm
   update check `openspec update` otherwise performs. Worth setting: the update check writes to that
   global config on every run, which fails outright under the agent sandbox (see

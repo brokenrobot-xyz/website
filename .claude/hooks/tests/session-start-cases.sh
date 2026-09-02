@@ -88,11 +88,18 @@ printf '#!/usr/bin/env bash\nexit 0\n' >"${shim}/typescript-language-server"
 chmod +x "${shim}/typescript-language-server"
 
 # Stub openspec: the sanity check compares its --version against the fixture package.json pin (an
-# arbitrary value — the probe never reads the repo's). OPENSPEC_VERSION fakes a drifted global
-# install. The missing case lives in the dev-env-checks suite, whose PATH is fully controlled;
-# here the shim only prefixes the host PATH, so removing the stub would not be host-independent.
+# arbitrary value — the probe never reads the repo's) and reads `config get profile`.
+# OPENSPEC_VERSION fakes a drifted global install, OPENSPEC_PROFILE a machine on another profile.
+# The missing case lives in the dev-env-checks suite, whose PATH is fully controlled; here the shim
+# only prefixes the host PATH, so removing the stub would not be host-independent.
 OS_PIN="9.1.0"
-printf '#!/usr/bin/env bash\n[ "$1" = "--version" ] && echo "${OPENSPEC_VERSION:-%s}"\n' "${OS_PIN}" >"${shim}/openspec"
+cat >"${shim}/openspec" <<STUB
+#!/usr/bin/env bash
+case "\$1" in
+  --version) echo "\${OPENSPEC_VERSION:-${OS_PIN}}" ;;
+  config) [ "\$2 \$3" = "get profile" ] && echo "\${OPENSPEC_PROFILE:-core}" ;;
+esac
+STUB
 chmod +x "${shim}/openspec"
 
 export PATH="${shim}:${PATH}"
@@ -262,6 +269,9 @@ mcp_json "${CG_PIN}"
 out="$(OPENSPEC_VERSION=0.0.1 run)"
 contains "a drifted global openspec is reported against the package.json pin" \
     "openspec is 0.0.1 but package.json pins ${OS_PIN}" "${out}"
+
+out="$(OPENSPEC_PROFILE=custom run)"
+contains "a non-core openspec profile is reported" "openspec profile is custom" "${out}"
 
 # --- environment guards ---
 
