@@ -168,25 +168,29 @@ vendored names. The `reviewing-claude-skills` skill enforces this as checklist i
 
 ## MCP servers (`.mcp.json`)
 
-Project-scoped and committed, so the team shares them:
+Project-scoped and committed, so the team shares them. Every server's version is pinned in
+[`.mcp.json`](../../.mcp.json) — in the `npx` command for the node servers, in the image tag for the
+Docker ones — and is **deliberately not repeated here**. That file is the single source of truth;
+a number copied into prose only rots. Version numbers below name a release where behaviour
+_changed_, which stays true no matter what is pinned today.
 
 - **`astro-docs`** (http) — Astro's documentation, for framework questions during propose/implement.
-- **`playwright`** — Microsoft's `@playwright/mcp` (version pinned in the `npx` command), driving **host Chrome**
+- **`playwright`** — Microsoft's `@playwright/mcp`, driving **host Chrome**
   (`--browser=chrome --headless --isolated`). The `frontend-qa-engineer` uses it for the manual-preview Verify
   item (theme flash, console, interactions, 375px); it also serves interactive exploration and
   locating selectors when authoring specs. Host rendering is **non-authoritative** — pixel baselines
   stay in the devcontainer suite. Approve it once in `/mcp`.
-- **`chrome-devtools`** — Google's `chrome-devtools-mcp` (version pinned in the `npx` command), host Chrome headless.
+- **`chrome-devtools`** — Google's `chrome-devtools-mcp`, host Chrome headless.
   Performance traces (Core Web Vitals) and a `lighthouse_audit` (a11y / SEO / best-practices) against the
   local preview — the perf/SEO angle that axe and visual-regression don't cover. Local-preview scores
   are a **relative regression signal**, not prod-authoritative.
-- **`codegraph`** — `@colbymchenry/codegraph` (version pinned in the `npx` command), a code-intelligence
+- **`codegraph`** — `@colbymchenry/codegraph`, a code-intelligence
   knowledge graph over the workspace, queried instead of grep/read loops. How it's pinned, enabled, and
   used across worktrees lives in [code-intelligence.md](code-intelligence.md).
-- **`terraform`** — HashiCorp's official `terraform-mcp-server` (Docker, pinned `:0.5.2`, `--toolsets=registry`).
+- **`terraform`** — HashiCorp's official `terraform-mcp-server` (Docker, `--toolsets=registry`).
   Public Terraform Registry docs — Cloudflare provider and module lookup — for authoring `infra/`. Docs
   lookup only; CI still runs `fmt`/`validate`. Needs Docker running.
-- **`github`** — GitHub's official `github-mcp-server` (Docker, pinned `:v1.2.0`), forced **read-only**
+- **`github`** — GitHub's official `github-mcp-server` (Docker), forced **read-only**
   (`GITHUB_READ_ONLY=1`) with the `context,repos,issues,pull_requests,actions` toolsets. Lets the agent
   inspect PRs, diffs, CI/Actions runs and logs, and issues during local work — e.g. debugging a red PR
   check. Read-only by design: it cannot comment, merge, or otherwise write. Needs Docker running and a

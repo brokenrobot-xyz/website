@@ -40,7 +40,8 @@ release is something to go looking for — it is not a devDependency either, so 
 not surface it.
 
 - **Registered** in [`.mcp.json`](../../.mcp.json) as
-  `npx -y @colbymchenry/codegraph@1.5.0 serve --mcp`, with the version pinned **in the command**.
+  `npx -y @colbymchenry/codegraph@<pin> serve --mcp`, with the version pinned **in the command** —
+  read the pin there, never from this page.
   Claude Code launches MCP servers before anything can install dependencies, so a
   `node_modules/.bin/…` path is simply absent in a fresh worktree and the server never starts for
   that session; `npx` has no such dependency. The explicit `@version` is what keeps that from
