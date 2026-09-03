@@ -20,7 +20,7 @@
         "format:fix": "prettier '**/*.{astro,js,jsx,ts,tsx,cjs,mjs,css,json,md,mdx,yml}' --write",
         "lint:check": "astro sync && eslint 'src/**/*.{astro,ts,tsx}'",
         "type:check": "astro check && tsc --noEmit",
-        "specs:check": "openspec validate --all --strict",
+        "specs:check": "openspec validate --all --strict && openspec validate --archived",
         "tokens:generate": "node scripts/generate-tokens.mjs",
         "tokens:check": "node scripts/generate-tokens.mjs --check",
         "designmd:check": "design.md lint DESIGN.md && design.md lint DESIGN.dark.md",
@@ -62,7 +62,7 @@
     "devDependencies": {
         "@axe-core/playwright": "4.13.0",
         "@devcontainers/cli": "0.89.0",
-        "@fission-ai/openspec": "1.8.0",
+        "@fission-ai/openspec": "1.11.0",
         "@google/design.md": "0.4.0",
         "@playwright/test": "1.62.1",
         "@typescript-eslint/eslint-plugin": "8.69.0",

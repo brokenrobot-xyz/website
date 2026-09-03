@@ -71,9 +71,20 @@ printf '#!/usr/bin/env bash\nexit 0\n' >"${shim}/typescript-language-server"
 printf '#!/usr/bin/env bash\nexit 0\n' >"${shim}/fnm"
 
 # Stub openspec: answers --version with the fixture pin below — an arbitrary value, since the
-# probe compares it against the fixture package.json, not the repo's.
+# probe compares it against the fixture package.json, not the repo's — and `config get profile`
+# with OPENSPEC_PROFILE, defaulting to the core profile the committed integration expects.
 OS_PIN="9.1.0"
-printf '#!/usr/bin/env bash\n[ "$1" = "--version" ] && echo "%s"\n' "${OS_PIN}" >"${shim}/openspec"
+openspec_stub() {
+    cat >"${shim}/openspec" <<STUB
+#!/usr/bin/env bash
+case "\$1" in
+  --version) echo "${OS_PIN}" ;;
+  config) [ "\$2 \$3" = "get profile" ] && echo "\${OPENSPEC_PROFILE:-core}" ;;
+esac
+STUB
+    chmod +x "${shim}/openspec"
+}
+openspec_stub
 chmod +x "${shim}"/*
 
 # A checkout every probe calls healthy; the cases below break one thing at a time and restore it.
@@ -143,6 +154,7 @@ out="$(run)"
 rc=$?
 check "a healthy checkout exits 0" "0" "${rc}"
 contains "and reports the toolchain" "✓ tools:" "${out}"
+contains "crediting the openspec profile" "openspec ${OS_PIN} (profile core)" "${out}"
 contains "and fresh dependencies" "✓ dependencies: fresh" "${out}"
 contains "and a readable index" "✓ codegraph: index present and readable" "${out}"
 contains "and the claude code integration" "✓ claude code: typescript-lsp plugin enabled, codegraph MCP enabled, node manager fnm" "${out}"
@@ -168,8 +180,17 @@ rc=$?
 check "a missing openspec cli exits 1" "1" "${rc}"
 contains "and is reported with the pinned install" "✗ openspec missing" "${out}"
 contains "naming the fixture pin" "@fission-ai/openspec@${OS_PIN}" "${out}"
-printf '#!/usr/bin/env bash\n[ "$1" = "--version" ] && echo "%s"\n' "${OS_PIN}" >"${shim}/openspec"
-chmod +x "${shim}/openspec"
+openspec_stub
+
+# The profile is read from the machine-global config, so it can be wrong on a machine whose CLI
+# matches the pin exactly.
+out="$(OPENSPEC_PROFILE=custom run)"
+rc=$?
+check "a non-core openspec profile exits 1" "1" "${rc}"
+contains "and is reported" "✗ openspec profile is custom" "${out}"
+contains "naming the fix" "openspec config profile core" "${out}"
+contains "while the matching CLI is still credited" "openspec ${OS_PIN}" "${out}"
+lacks "but not as core" "(profile core)" "${out}"
 
 printf '{"v":2}\n' >"${proj}/package-lock.json"
 out="$(run)"

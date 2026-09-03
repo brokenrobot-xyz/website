@@ -145,6 +145,7 @@ npm run format:check                 # Prettier clean
 npm run build                        # production build succeeds
 typescript-language-server --version # global LSP present
 openspec --version                   # matches the @fission-ai/openspec pin in package.json
+openspec config get profile          # core — the six-workflow set the repo commits
 npm run codegraph:status             # "Index is up to date"
 ```
 
@@ -189,6 +190,13 @@ One global install per machine, matching the `@fission-ai/openspec` version pinn
 [`package.json`](../package.json): `npm i -g @fission-ai/openspec@<pinned version>`. The why — the
 `/opsx` commands launch a bare `openspec` from your shell `PATH` — and the one-time machine-global
 settings that go with it are in [tooling/workflow.md § Setup](tooling/workflow.md#setup).
+
+### ✗ openspec profile is …
+
+`openspec config profile core` — once per machine. The committed `/opsx` integration is the
+six-workflow core set; on any other profile `openspec update` regenerates only that profile's
+workflows and leaves the rest stale at the previous version. Why the setting is machine-global
+rather than committed is in [tooling/workflow.md § Setup](tooling/workflow.md#setup).
 
 ### ✗ typescript-lsp plugin not enabled
 

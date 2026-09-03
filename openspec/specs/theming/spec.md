@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change design-overhaul-foundation. Update Purpose after archive.
+Light and dark are both first-class on brokenrobot.xyz. This capability defines the semantic design tokens components read instead of raw colors, how the two themes are selected and persisted, how the resolved theme is applied before first paint without weakening the strict CSP, and the control readers use to switch.
 
 ## Requirements
 

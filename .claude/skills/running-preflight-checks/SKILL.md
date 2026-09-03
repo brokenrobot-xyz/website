@@ -15,7 +15,7 @@ Run the gate from the repo root. Run all nine steps even when one fails — stop
 npm run type:check       # astro check && tsc --noEmit
 npm run lint:check       # astro sync && eslint
 npm run format:check     # prettier --check
-npm run specs:check      # openspec validate --all --strict
+npm run specs:check      # openspec validate --all --strict && openspec validate --archived
 npm run designmd:check   # errors fail; warnings and infos are advisory
 npm run tokens:check     # drift fix is `npm run tokens:generate`, which the caller runs
 npm run build            # astro build — static output

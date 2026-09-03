@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change design-overhaul-foundation. Update Purpose after archive.
+The header and footer are the frame every page shares: the brand lockup, primary navigation, the theme toggle, and the site's outbound links. This capability defines what that chrome must contain, how it adapts on small screens, and the navigation contract it must preserve, so existing destinations, the RSS feed, and article permalinks keep working through redesigns.
 
 ## Requirements
 

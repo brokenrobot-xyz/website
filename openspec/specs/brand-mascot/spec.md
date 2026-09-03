@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change design-overhaul-foundation. Update Purpose after archive.
+The Broken Robot mascot is the site's recurring brand motif: the face of "embracing imperfection" and of the human behind the machine. This capability makes that character a reusable, theme-aware, accessible component, so the logo, footer, callouts, and the 404 page all show the same robot instead of each surface redrawing it.
 
 ## Requirements
 
