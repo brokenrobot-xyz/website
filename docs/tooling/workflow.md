@@ -282,7 +282,7 @@ malformed proposals or spec deltas fail a PR, as does an archived change with un
 only — not hard-checked — so the `frontend-code-reviewer` and your review are the backstop.
 
 The schema fork is OpenSpec-experimental and needs reconciling when OpenSpec updates its upstream
-schema. Because the fork is upstream-verbatim, that's mechanical (last done against **1.11.0**):
+schema. Because the fork is upstream-verbatim, that's mechanical (last done against **1.12.0**):
 
 1. `cp node_modules/@fission-ai/openspec/schemas/spec-driven/schema.yaml openspec/schemas/frontend-change/schema.yaml`,
    then restore the `name: frontend-change` and `description:` lines.
