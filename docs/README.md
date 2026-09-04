@@ -21,6 +21,8 @@ feel, and how the code is built. Read these before working on the design overhau
 - [development-workflow.md](development-workflow.md) — the way we work: spec-driven planning +
   scaled trunk-based development (and why writing blog articles is out of scope). Tool-agnostic; the
   mechanics live in [tooling/workflow.md](tooling/workflow.md).
+- [checks.md](development/checks.md) — every automated check: what it inspects, how to run it, and
+  why it exists. The only place they are listed.
 - [design-md-assessment.md](design-md-assessment.md) — evaluation of Google Labs' DESIGN.md format
   for this repo: fit, benefits, tradeoffs, the dual-theme catch, and a recommended PoC.
 
