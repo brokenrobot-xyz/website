@@ -1,8 +1,8 @@
 # Coding conventions
 
 The rules below are enforced by tooling (`.eslintrc.json`, `.prettierrc.json`,
-`tsconfig.json`). They are documented here so the overhaul stays consistent. Run
-`npm run format:check`, `npm run lint:check`, and `npm run type:check` before committing.
+`tsconfig.json`). They are documented here so the overhaul stays consistent. Run the preflight
+gate before committing — see [checks.md](../checks.md).
 
 ## TypeScript
 

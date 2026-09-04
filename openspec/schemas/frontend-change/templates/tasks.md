@@ -16,5 +16,5 @@
 ## N. Verify
 
 - [ ] Visual + a11y snapshots pass in **both themes** for every touched view (testing-visual-regression skill)
-- [ ] All nine gate steps pass — `type:check`, `lint:check`, `format:check`, `specs:check`, `designmd:check`, `tokens:check`, `build`, `thirdparty:check`, `terraform:check` (running-preflight-checks skill)
+- [ ] All preflight gate checks pass — the set in `docs/development/checks.md` (running-preflight-checks skill)
 - [ ] Manual preview: no theme flash, interactions work, console clean, responsive at 375px

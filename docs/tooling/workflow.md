@@ -68,10 +68,10 @@ does with them:
   updated spec together — they land atomically.
 - **CI is two workflows: one that checks, one that ships.**
   [`pipeline.yml`](../../.github/workflows/pipeline.yml) holds every check as a named job — **Verify
-  site** (`format:check` / `lint:check` / `type:check` / `specs:check` / `designmd:check` /
-  `tokens:check`), **Verify Terraform**, **Build site** (with `thirdparty:check`), and **Test site**
-  (the e2e suite) — the same gates the `running-preflight-checks` and `testing-visual-regression`
-  skills run locally. It runs on every pull request **and** on every push to `main`, unfiltered, so
+  site**, **Verify Terraform**, **Verify tooling**, **Build site**, and **Test site**. Which check
+  belongs to which job is in
+  [checks.md](../development/checks.md#the-ci-pipeline); it is close to what the
+  `running-preflight-checks` and `testing-visual-regression` skills run locally, but CI runs more. It runs on every pull request **and** on every push to `main`, unfiltered, so
   a merge always gets the full picture rather than only the parts a path filter thought were
   affected. [`deploy.yml`](../../.github/workflows/deploy.yml) ships the result.
 - **`infra/` is checked, but only shallowly.** **Verify Terraform** is one job with a
@@ -136,10 +136,9 @@ vendored names. The `reviewing-claude-skills` skill enforces this as checklist i
   Playwright projects.
 - **`scaffolding-components`** — scaffold a new Astro component or Preact island to convention
   (placement, typed props, scoped token-driven styles, the right interactivity tier).
-- **`running-preflight-checks`** — run the non-visual gate (`type:check` + `lint:check` +
-  `format:check` + `specs:check` + `designmd:check` + `tokens:check` + `build` +
-  `thirdparty:check`) and summarize failures. Matches CI's verify and build jobs, so a green gate
-  predicts a green PR.
+- **`running-preflight-checks`** — run the non-visual gate
+  ([checks.md](../development/checks.md#the-preflight-gate)) and summarize failures. Matches CI's
+  verify and build jobs, so a green gate predicts a green PR.
 - **`checking-dev-env`** — audit host readiness (toolchain against the pins, dependencies, the
   Codegraph index, Claude Code integration, Docker/devcontainer) and turn any ✗ into an ordered fix
   guide sourced from development-environment.md's Troubleshooting section. Read-only — it never
@@ -272,7 +271,7 @@ instruction + context). The seeded Verify section is:
 ## N. Verify
 
 - [ ] Visual + a11y snapshots pass in **both themes** for every touched view (testing-visual-regression skill)
-- [ ] All nine gate steps pass — `type:check`, `lint:check`, `format:check`, `specs:check`, `designmd:check`, `tokens:check`, `build`, `thirdparty:check`, `terraform:check` (running-preflight-checks skill)
+- [ ] All preflight gate checks pass — the set in `docs/development/checks.md` (running-preflight-checks skill)
 - [ ] Manual preview: no theme flash, interactions work, console clean, responsive at 375px
 ```
 
