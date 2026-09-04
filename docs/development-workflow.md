@@ -47,7 +47,7 @@ back.
 4. **Implement** — do the agreed work on a short-lived branch, surgically; nothing beyond the
    proposal.
 5. **Verify** — the change is checked: visual + accessibility coverage in **both themes**, and the
-   quality gate (types, lint, formatting, build).
+   preflight gate ([checks.md](development/checks.md)).
 6. **Archive** — fold the agreed behaviour into the living record **on the branch**, so the change
    carries its code and its spec together when it goes to review.
 7. **Review the implementation** — **you** examine the change against the guardrails (below) and

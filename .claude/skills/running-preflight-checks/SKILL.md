@@ -6,41 +6,29 @@ model: claude-sonnet-5
 allowed-tools: Bash
 metadata:
     author: brokenrobot.xyz
-    version: '3.0'
+    version: '4.0'
 ---
 
-Run the gate from the repo root. Run all nine steps even when one fails — stopping at the first failure hides the rest.
+Run the gate from the repo root. The commands are listed under **The preflight gate** in [docs/development/checks.md](../../../docs/development/checks.md), which is the only place they are listed. Read that section first, then run every command in the order it gives. Run them all even when one fails — stopping at the first failure hides the rest.
 
-```bash
-npm run type:check       # astro check && tsc --noEmit
-npm run lint:check       # astro sync && eslint
-npm run format:check     # prettier --check
-npm run specs:check      # openspec validate --all --strict && openspec validate --archived
-npm run designmd:check   # errors fail; warnings and infos are advisory
-npm run tokens:check     # drift fix is `npm run tokens:generate`, which the caller runs
-npm run build            # astro build — static output
-npm run thirdparty:check # scans dist/; exit 2 means dist/ is missing or half-written — report as `not run`
-npm run terraform:check  # terraform fmt + validate over infra/cloudflare
-```
+Report each check as pass/fail from its own exit status. For a failing check, quote its first error, as `file:line` + message where the check reports one. A check that never ran is `not run`, not pass. Open with the overall verdict: red when any check failed or is `not run`. Report failures — do not fix anything; the caller reviews and fixes.
 
-Report each step as pass/fail from its own exit status. For a failing step, quote its first error, as `file:line` + message where the step reports one. A step that never ran is `not run`, not pass. Open with the overall verdict: red when any step failed or is `not run`. Report failures — do not fix anything; the caller reviews and fixes.
+Some checks fail for reasons that are not the caller's code — Terraform missing from PATH, an uninitialized `infra/cloudflare`, a `thirdparty:check` that found no `dist/`. checks.md documents these against each check and says which are `not run` rather than `FAIL`. Read a failing check's section there before you judge its exit status. One fix the caller must run is `terraform -chdir=infra/cloudflare init -backend=false`: it needs network access to the Terraform registry, so it will not work from a sandboxed shell.
 
-`terraform:check` has two failure modes that are not the caller's code, and both are `not run` rather than `FAIL`: Terraform missing from PATH (exit 127), and `infra/cloudflare` never initialized, which `validate` reports as `Module not installed` with `Run "terraform init" to install all modules required by this configuration`. Fixing the latter is one `terraform -chdir=infra/cloudflare init -backend=false`, which the caller runs — it needs network access to the Terraform registry, so it will not work from a sandboxed shell. Do not report the whole step as `not run` for a `fmt` failure: `fmt` needs no initialization, so it is a real `FAIL`. When the step does run, say what it covers and what it does not: `fmt` and `validate` catch formatting and configuration errors, but no plan runs and the apply belongs to Terraform Cloud, so a change that is valid and wrong still passes.
+Where a check's section says what it does not cover, carry that into the report. `terraform:check` is the one that misleads most: it runs no plan, so a change that is valid and wrong still passes it.
 
 For example:
 
 ```
-red — 2 of 9 steps failed
+red — 2 checks failed
 
 type:check       pass
 lint:check       FAIL — src/components/ThemeToggle.tsx:18 — no-floating-promises (3 errors)
-format:check     pass
-specs:check      pass — 4 specs, 0 failed
 designmd:check   pass — 0 errors (2 warnings, advisory)
 tokens:check     FAIL — src/styles/tokens.generated.css is stale; run `npm run tokens:generate`
-build            pass
-thirdparty:check pass — no third-party requests in dist/
 terraform:check  pass — fmt + validate clean (no plan; apply is Terraform Cloud's)
 ```
+
+The example is abridged to show the shape of a row. A real report has one row per check, in the order checks.md lists them.
 
 This gate covers no visual regression or accessibility — a change is not verified until `testing-visual-regression` has also run.
