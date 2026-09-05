@@ -25,17 +25,20 @@ with no vendor coupling — and accepts that Cloudflare's check stays red.
 - Add a source-to-Markdown transform that strips `import` lines, rewrites
   `<BlogPostPicture src={ident} alt="..." />` into a standard Markdown image with an absolute image
   URL, and is fenced-code-aware so code samples in articles are never rewritten.
-- Give each twin YAML frontmatter (`title`, `excerpt`, `publishDate`, `tags`, `canonical`) and the
-  same copyright/attribution line `llms.txt` already carries, so licensing terms travel with the
-  file.
+- Give each twin YAML frontmatter (`title`, `excerpt`, `publishDate`, `tags`, `heroImage`,
+  `canonical`) and the same copyright/attribution line `llms.txt` already carries, so licensing terms
+  travel with the file.
 - Advertise each twin from its HTML page via
   `<link rel="alternate" type="text/markdown" href="/blog/<slug>/index.md">`, alongside the existing RSS
   `alternate` link.
 - Extend `/llms.txt` so every post entry also points at its `.md` twin.
-- Add a build-output guardrail — `npm run twins:check` — that validates every generated twin in
-  `dist/` and joins the CI gate beside the existing third-party-resource check. Twin corruption is
-  silent in exactly the way CSP breakage is: agents receive broken content and no human ever opens
-  the file.
+- Add a build-output auditor — `npm run twins:check` — that confirms the build did its job: every
+  built post page has a twin beside it, each is non-empty, and each opens with frontmatter that
+  parses. It runs in the CI Build job beside the existing third-party-resource check. Its scope stops
+  there; content faults are the transform's to catch, at the source, before anything is written.
+- Exclude `.md` files from `npm run thirdparty:check`. One post's code sample contains a raw
+  third-party `<link>` tag, which the HTML page escapes and a Markdown twin does not — and Markdown
+  is not a document a browser turns into requests, so it is out of that check's remit.
 - Record in the docs that the Cloudflare Agent Readiness "Content" check is knowingly left red, and
   why, so the decision is not re-litigated at every dashboard scan.
 
@@ -58,8 +61,13 @@ special meaning to the host, so nothing is shadowed.
   lists `llms.txt` already describes.
 - **Not** emitting a `Link:` HTTP header for discovery — that would add a second, competing place
   where response headers are defined, next to the existing zone rulesets.
+- **Not** deciding what content type the twins are served with. The built artifact carries no
+  host-specific configuration, so the type comes from whichever platform serves `dist/` — a
+  serving-layer concern, and one that turns out to differ between local and production. It belongs to
+  the follow-up work on platform parity, not here.
 - **Not** authoring or editing article prose.
-- **Not** changing the CSP, adding dependencies, or adding third-party resources.
+- **Not** changing the CSP or adding third-party resources. The one dependency added, `yaml`, is
+  already present in the tree at the pinned version, so declaring it installs nothing new.
 
 ## Capabilities
 
@@ -83,13 +91,16 @@ visual and chrome behaviour; none describes machine-readable content, and none c
   `src/pages/llms.txt.ts` endpoint style.
 - A transform module under `src/utils/` converting MDX source to agent-facing Markdown, using the
   `satteri` parser Astro already compiles these posts with.
-- `scripts/check-markdown-twins.mjs` — post-build validation of every twin, modelled on the existing
-  `scripts/check-third-party-resources.mjs`.
+- `scripts/check-markdown-twins.mjs` — post-build coverage audit, modelled on the existing
+  `scripts/check-third-party-resources.mjs` down to its three-state exit codes.
 
 **Modified code**
 
 - `src/pages/llms.txt.ts` — post entries gain their `.md` twin URL.
 - `src/layouts/ArticleLayout.astro` — adds the `alternate` link via the existing `seo` slot.
+- `src/pages/blog/[...slug].astro` — passes the post's id to `ArticleLayout`, which today receives
+  only the post's frontmatter and so cannot build the twin URL itself.
+- `scripts/check-third-party-resources.mjs` — skips `.md` files.
 - `package.json` — adds the `twins:check` script and `yaml` 2.9.0 as a dependency, used to edit each
   post's own frontmatter block rather than re-serializing it. It is already in the tree at that
   version, deduped via Vite and `@astrojs/yaml2ts`, so this declares what is installed rather than
@@ -103,11 +114,14 @@ visual and chrome behaviour; none describes machine-readable content, and none c
 - `docs/development/checks.md` — registers `twins:check`: its own section under **Build output
   (`dist/`)**, the command in the preflight-gate block, and the check in the CI pipeline's **Build
   site** row. This page is the only place the checks are listed, so nothing else grows a copy.
-- A short note recording the deliberate red Cloudflare check and the reasoning behind it.
+- `docs/tech-stack.md` — a short note under **Build & deployment** recording the deliberate red
+  Cloudflare check and the reasoning behind it, beside the existing discoverability claims about RSS
+  and the sitemap.
 
 **Build & verification**
 
-- Output grows by ten `.md` files; no new dependencies and no CSP change, so
-  `npm run thirdparty:check` is unaffected.
+- Output grows by ten `.md` files. No CSP change — `<link rel="alternate">` fetches nothing — but
+  `npm run thirdparty:check` does need the `.md` exclusion above, or a fenced code sample in one post
+  fails the Build job.
 - The added `<link>` is a `<head>` element with no rendered output, so Playwright visual baselines
   and axe accessibility results are expected to be unchanged.

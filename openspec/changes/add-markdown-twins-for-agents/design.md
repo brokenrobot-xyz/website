@@ -75,10 +75,14 @@ trailing slash, but today it would make the twin a sibling of the directory rath
 
 ### Parse with satteri, then splice the source at node offsets
 
-`mdxToMdast(source, { position: true })` returns a materialized mdast whose nodes carry byte offsets.
-The transform walks that tree and rewrites the raw source by range: `mdxjsEsm` ranges are deleted, and
-each `mdxJsxFlowElement` named `BlogPostPicture` becomes `![alt](url)`, built from attributes the
-parser has already separated. Every byte outside a spliced range is copied through untouched.
+`mdxToMdast(source, { position: true })` returns a materialized mdast whose nodes carry `position`
+offsets. Those offsets index the JavaScript string, not the UTF-8 bytes: `source.slice(start, end)`
+returns the node verbatim, while the same numbers applied to a `Buffer` drift by one position per
+multi-byte character — and several posts carry emoji and typographic quotes, so a byte-based reading
+would corrupt exactly those. The transform therefore splices the source string by range: `mdxjsEsm`
+ranges are deleted, and each `mdxJsxFlowElement` named `BlogPostPicture` becomes `![alt](url)`, built
+from attributes the parser has already separated. Everything outside a spliced range is copied
+through untouched.
 
 This costs no new dependency, and it means the twin's idea of "what is inside a code fence" is by
 construction the one that renders the site, rather than a second notion that can drift from it.
@@ -95,13 +99,18 @@ defeats the goal of reproducing the article as authored.
 
 The trade-off taken instead is a coupling to satteri's mdast API at 0.10.5, before 1.0.
 
-### Fail loudly on unknown component syntax
+### Fail loudly on unknown component syntax, and on an image that does not resolve
 
 The guard is a question about the tree, not a search of the text: if the walk ends with any
 `mdxJsxFlowElement`, `mdxJsxTextElement`, `mdxFlowExpression`, or `mdxTextExpression` node the
 transform did not handle — because a future post uses a new component — generation fails and names the
 offending slug rather than publishing JSX to agents. Asking the parser what is left over is exact,
 where scanning output for residual markup could only approximate it.
+
+The same guard covers the image lookup below: an identifier that resolves to no asset fails
+generation rather than emitting an empty or literal `{identifier}` target. This is the transform's
+job rather than a post-build scan's, because here the failure is still attached to a post and an
+identifier; downstream it is only a URL that looks wrong.
 
 ### Resolve image URLs through an eager asset map
 
@@ -118,6 +127,7 @@ built from the statements, not from the nodes. Aliased specifiers such as
 
 The hero image is not part of the body — the non-goals above count it as presentation — so it stays in
 frontmatter, rewritten to an absolute URL from the `heroImage` the collection schema already resolves.
+The spec requires it there, and requires it absolute, so it survives being read away from the origin.
 
 ### Keep the author's frontmatter, edit two fields in it
 
@@ -152,34 +162,47 @@ The twin URL is derived in one place and used by the endpoint, `llms.txt`, and t
 `alternate` link. The copyright/attribution sentence currently inlined in `llms.txt.ts` moves beside
 it so both emit the same text. This is what keeps the three discovery surfaces from disagreeing.
 
-### Three verification layers, not one
+### Three verification layers, each answering a different question
 
-The failure modes differ in when they can be caught, so verification is layered:
+The layers are not three depths of the same check. Each answers a question the others cannot:
 
-1. **Generation-time guard**, inside the transform — fails the build when a post uses a component the
-   transform has not been taught. Catches the unknown-unknown at the earliest possible moment.
-2. **Post-build artifact check** — `scripts/check-markdown-twins.mjs`, run as `npm run twins:check`,
-   walks every twin in `dist/`: one twin per built post page, no residual authoring syntax outside
-   code fences, frontmatter that parses with a `canonical` matching its page, every image URL
-   absolute _and_ present in `dist/`, no unresolved identifiers, and no twin in the sitemap. Fast, no
-   browser, runs in CI's Build job beside `thirdparty:check`.
-3. **Behavioural specs over HTTP** — Playwright asserts content type, both discovery entry points,
-   and the fenced `<link` sample surviving verbatim.
+1. **Is the content right?** The generation-time guard, inside the transform. A post using an
+   untaught component, or an image identifier that resolves to nothing, fails the build and names
+   the post. Content faults belong here and nowhere else: this is the only point where the failure
+   is still attached to a source file rather than to a line of output.
+2. **Did the build produce the artifact?** `scripts/check-markdown-twins.mjs`, run as
+   `npm run twins:check` in CI's Build job beside `thirdparty:check`. It is an auditor, not a
+   content check: a twin beside every built post page and no orphans, each one non-empty, each one
+   opening with frontmatter that parses. It runs where the artifact is made, so it fails before the
+   Playwright job is even reached, and it needs no browser.
+3. **Does the served site behave?** Playwright over HTTP — both discovery entry points and the fenced
+   `<link` sample surviving verbatim.
 
 The repo has no unit-test runner, and this change does not add one: testing here is Playwright
-against a built preview server, and a new dependency for a single module is not warranted. All three
-layers test the contract the spec states — what an agent receives — rather than an internal function
-signature.
+against a built preview server, and a new dependency for a single module is not warranted.
 
-Layer 2 follows a precedent this repo already set. `check-third-party-resources.mjs` exists because a
-CSP violation in built output is _silent_ — the page simply breaks and nothing complains. A corrupted
-twin is silent in the same way, and worse: its audience is machines, so no human is ever surprised by
-it. That script's three-state exit codes are adopted with it — 0 pass, 1 fail, and 2 "not verified"
-when `dist/` is missing or holds nothing to scan, so a failed build cannot be reported as a passing
-check.
+Layer 2's scope is deliberately narrow. Twins and pages are generated from one source on every build,
+so they cannot drift apart — the failure worth auditing is not a wrong twin but a missing or empty
+one, which is a real failure mode in the wild: sites serving `.md` that return 200 with no body,
+where nothing looks broken to anyone. Its three-state exit codes follow
+`check-third-party-resources.mjs` — 0 pass, 1 fail, and 2 "not verified" when `dist/` is missing or
+holds nothing to scan, so a failed build cannot be reported as a passing check.
 
-Layer 2 is also the only place image resolution is proven end to end: layers 1 and 3 can both pass
-while a twin points at an asset URL that does not exist.
+What no layer here asserts is the content type. That is not the artifact's property but the serving
+layer's, it differs between local and production, and it is the follow-up work's to settle. A
+Playwright assertion would have proved only the preview server's MIME table.
+
+### Markdown is out of the third-party check's remit
+
+`check-third-party-resources.mjs` scans every non-binary file in `dist/`, and one post's fenced code
+sample is a `<link rel="canonical" href="https://www.my-website.com/…">` snippet. The HTML page
+escapes it, so the check has never seen it; the twin carries it raw, and the check would report a
+third-party resource request and fail the Build job.
+
+The fix is to skip `.md`, not to special-case the sample. That check exists because a resource a
+browser fetches from a third party is a page the site's own CSP silently breaks. A Markdown file is
+data an agent reads, not a document a browser parses into requests, so nothing inside one can
+produce a fetch — it is outside what the check is for, and narrowing it says so.
 
 ### Discovery through the existing `seo` slot
 
@@ -197,22 +220,24 @@ nothing.
   move as a unit, so the exposure is not new; `twins:check` and the Playwright specs turn a shape
   change into a red build rather than a corrupted twin.
 - **The `yaml` round-trip renders a scalar differently from how it was authored** → the document model
-  preserves scalar styles, and `twins:check` asserts every twin's frontmatter parses and carries the
-  values it should. The corpus's `: `-bearing titles and quote-bearing excerpts are the cases this
-  covers.
+  preserves scalar styles, and `twins:check` asserts every twin's frontmatter still parses. The
+  corpus's `: `-bearing titles and quote-bearing excerpts are the cases this covers.
 - **An exotic construct is mishandled** (component syntax indented inside a list, a four-space-indented
   code block) → the published output is asserted directly: the corpus already contains a fenced code
   sample holding `<link` markup, and a spec pins that it survives verbatim. The guard catches the rest.
-- **An image identifier resolves to nothing, or to a stale asset URL** — the most fragile step, since
-  it crosses from parsed text to Astro's hashed asset output → `twins:check` asserts every image URL
-  is absolute and that the file it names exists in `dist/`, which is the only check in the plan that
-  proves this end to end.
+- **An image identifier resolves to nothing** — the most fragile step, since it crosses from parsed
+  text to Astro's hashed asset output → the generation-time guard fails the build and names the post
+  and the identifier. A stale URL is a narrower worry than it first appears: the twin and the page
+  read the same `ImageMetadata`, so an asset URL that is wrong in the twin is wrong on the page too,
+  where the visual suite already fails.
 - **The raw-source glob stops matching** if posts are ever laid out differently under
   `src/content/blog/` → the endpoint reads the raw file rather than `entry.body`, so its coupling is to
   the file layout, not to the collection's `retainBody` option; noted here so it is visible when either
   is next touched.
 - **Duplicate content concerns** → twins stay out of the sitemap (verified behaviour, not
-  configuration), are not HTML, and name the canonical page in frontmatter.
+  configuration) and are not HTML. The `canonical` in frontmatter states the relationship for a human
+  or an agent reading the file; it is not a signal any crawler consumes, so the sitemap exclusion is
+  what actually carries this.
 - **Cloudflare's Agent Readiness check stays red** → accepted and documented; this is the deliberate
   outcome of the decision in `proposal.md`, not an unfinished task.
 - **Twins can go stale relative to a post** only if generation is bypassed; they are built from the
@@ -220,13 +245,13 @@ nothing.
 
 ## Migration Plan
 
-Purely additive: new URLs, two modified files, no data migration and no change to existing routes.
-Deploy is the normal Pages build. Rollback is deleting the endpoint and reverting the `llms.txt` and
-`ArticleLayout` edits; nothing external depends on the twins, and no existing URL changes, so
-rollback carries no reader-visible consequence.
+Purely additive: new URLs, no data migration and no change to existing routes. Deploy is the normal
+Pages build. Rollback is deleting the endpoint and reverting the `llms.txt`, layout, and check-script
+edits; nothing external depends on the twins, and no existing URL changes, so rollback carries no
+reader-visible consequence.
 
 ## Open Questions
 
-- Whether the twin's frontmatter should also carry reading time (available via
-  `remarkPluginFrontmatter.minutesRead`). Deferrable: it adds a metadata field without affecting the
-  specs, the approach, or the task breakdown.
+None. Two were settled while planning: the twin's frontmatter does not carry reading time — it is a
+rendering convenience, not article metadata — and the content type the twins are served with is out
+of scope here, belonging to the follow-up work on platform parity.

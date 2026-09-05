@@ -10,20 +10,18 @@ those representations carry, and how an agent discovers them from an HTML page o
 ### Requirement: Markdown representation of every blog post
 
 The site SHALL publish a Markdown representation of every published blog post at a stable,
-predictable URL derived from that post's permalink, and SHALL serve it with a `text/markdown`
-content type. Every post SHALL have exactly one such representation, and it SHALL be available
-without any request header, query parameter, or negotiation on the client's part.
+predictable URL derived from that post's permalink. Every post SHALL have exactly one such
+representation, and it SHALL be available without any request header, query parameter, or
+negotiation on the client's part.
+
+How that representation is identified to a client — the content type it is served with — is a
+property of the serving layer rather than of the built artifact, and is out of scope here.
 
 #### Scenario: Every post has a Markdown representation
 
 - **WHEN** the site is built
 - **THEN** each published blog post has a corresponding Markdown representation, and no post is
   missing one
-
-#### Scenario: Served as Markdown
-
-- **WHEN** a client requests a post's Markdown representation
-- **THEN** the response body is Markdown and its content type identifies it as `text/markdown`
 
 #### Scenario: Reachable without negotiation
 
@@ -66,15 +64,21 @@ imports — SHALL remain in the output.
 ### Requirement: Markdown representations carry metadata and licensing terms
 
 Each Markdown representation SHALL begin with structured metadata identifying at least the article's
-title, summary, publication date, tags, and the canonical URL of the human-readable page. It SHALL
-also state the copyright and attribution terms, so that the terms travel with the content when it is
-consumed detached from the site.
+title, summary, publication date, tags, hero image, and the canonical URL of the human-readable page.
+Any image the metadata names SHALL be an absolute URL resolvable outside the site, not a path
+relative to the article's source. The metadata SHALL also state the copyright and attribution terms,
+so that the terms travel with the content when it is consumed detached from the site.
 
 #### Scenario: Metadata present
 
 - **WHEN** an agent reads a post's Markdown representation
-- **THEN** it finds the title, summary, publication date, tags, and canonical page URL in structured
-  metadata at the top of the file
+- **THEN** it finds the title, summary, publication date, tags, hero image, and canonical page URL in
+  structured metadata at the top of the file
+
+#### Scenario: Metadata images resolve away from the site
+
+- **WHEN** an agent reads a post's Markdown representation away from the origin
+- **THEN** the hero image it names is an absolute URL that resolves to the published image
 
 #### Scenario: Terms travel with the content
 
