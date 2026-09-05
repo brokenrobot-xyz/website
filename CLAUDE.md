@@ -84,5 +84,6 @@ Read these before working on the design overhaul — they are the shared source 
 - [docs/development/conventions/branching-conventions.md](docs/development/conventions/branching-conventions.md) — branch naming, worktrees, the human-only push gate, and squash-merging.
 - [docs/development-workflow.md](docs/development-workflow.md) — the way we work: spec-driven planning + scaled trunk-based development (the tool-agnostic _what_); writing blog articles is out of scope.
 - [docs/development/checks.md](docs/development/checks.md) — every automated check: what it inspects, how to run it, and why it exists. The only place they are listed.
+- [docs/known-gaps.md](docs/known-gaps.md) — intent the site does not yet meet, or does not yet record. Read it before assuming the docs above describe what actually happens.
 
 Those cover the **application**. For how this repo is worked on with Claude Code — the agent/skill workflow and the sandbox (why git in worktrees and Docker behave as they do) — see [docs/tooling/](docs/tooling/README.md), in particular [docs/tooling/sandbox.md](docs/tooling/sandbox.md).

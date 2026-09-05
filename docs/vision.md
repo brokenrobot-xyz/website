@@ -56,7 +56,11 @@ docs.
 
 - **Ad-free and tracking-free.** No ads, affiliate links, analytics spyware, or third-party
   trackers. This is core to the brand promise.
-- **Static by design.** A static-site model delivered from Cloudflare Pages. See
+- **Static by design.** A static-site model: every page is built ahead of time, and the site needs
+  no runtime backend. See [tech-stack](tech-stack.md).
+- **Portable artifact.** The build produces site content only, with no configuration that belongs to
+  one host. Whatever a platform needs in order to serve that content lives with that platform's own
+  infrastructure, so the same build ships to a different provider unchanged. See
   [tech-stack](tech-stack.md).
 - **Strict security.** A strict CSP and hardened security headers. See
   [architecture](architecture.md) for what this means for theming.

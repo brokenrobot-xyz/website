@@ -38,6 +38,11 @@ design overhaul.
 
 - `astro build` produces a fully **static** `dist/`. HTML is compressed, stylesheets are
   **always inlined**, and images use responsive styles (see `astro.config.ts`).
+- **The artifact is content, not configuration.** `dist/` holds the site and nothing a single host
+  needs in order to serve it. Response headers, content types, redirects, and caching belong to the
+  deployment target — the Terraform under `infra/`, or the container's own server config. Changing
+  provider means changing those, not the build. Where this is not yet true, see
+  [known-gaps](known-gaps.md).
 - **CI/CD** runs in GitHub Actions as two workflows. `pipeline.yml` carries every check as a job —
   **Verify site** (format, lint, type-check, OpenSpec validation, DESIGN lint and token drift),
   **Verify Terraform** (`fmt`/`init`/`validate` over `infra/cloudflare`), **Build site**, and

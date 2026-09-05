@@ -23,6 +23,8 @@ feel, and how the code is built. Read these before working on the design overhau
   mechanics live in [tooling/workflow.md](tooling/workflow.md).
 - [checks.md](development/checks.md) — every automated check: what it inspects, how to run it, and
   why it exists. The only place they are listed.
+- [known-gaps.md](known-gaps.md) — intent the site does not yet meet, or does not yet record. Where
+  a principle is captured before it earns a place in the documents above.
 - [design-md-assessment.md](design-md-assessment.md) — evaluation of Google Labs' DESIGN.md format
   for this repo: fit, benefits, tradeoffs, the dual-theme catch, and a recommended PoC.
 
