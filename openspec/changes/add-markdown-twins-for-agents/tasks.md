@@ -22,16 +22,21 @@
 
 - [ ] 2.1 Create `src/pages/blog/[...slug].md.ts` as a static endpoint with `getStaticPaths()` over
       the `blog` collection, returning `Content-Type: text/markdown; charset=utf-8`, in the style of
-      the existing `src/pages/llms.txt.ts`. Read each post's raw source through an eager
+      the existing `src/pages/llms.txt.ts`. Append `/index` to each post's id when returning the
+      `slug` param, so the rest parameter — which matches slashes — yields `/blog/<slug>/index.md`
+      from this one endpoint file, with no nested route. Read each post's raw source through an eager
       `import.meta.glob(…, { query: '?raw' })` rather than `entry.body`, which the loader has already
-      stripped of frontmatter. Verify `npm run build` emits `dist/blog/<slug>.md` for all ten posts.
+      stripped of frontmatter. Verify `npm run build` emits `dist/blog/<slug>/index.md` for all ten
+      posts, beside each post's existing `index.html`.
 - [ ] 2.2 Build the processed-image lookup with an eager `import.meta.glob` over the blog tree's image
       files and resolve each body image to an absolute URL against the configured `site`. Verify the
       four image-bearing posts' twins contain `![alt](https://www.brokenrobot.xyz/...)` and no
       unresolved `{identifier}` placeholders.
 - [ ] 2.3 Add `yaml` (2.9.0, exact-pinned) as a dependency and emit the twin's frontmatter from the
       post's own block: `parseDocument`, then `set('heroImage', …)` to the built asset's absolute URL
-      and `set('canonical', …)` to the post's page URL. Verify a built twin carries every authored
+      and `set('canonical', …)` to the post's page URL — the trailing-slash directory URL the page's
+      own `rel="canonical"` already declares, which is the directory the twin sits in. Verify a built
+      twin carries every authored
       field with its original quoting — including a `: `-bearing title and the excerpt containing
       double quotes — plus the rewritten `heroImage` and the new `canonical`.
 - [ ] 2.4 Assemble the body: `# <title>` as its first line, then the transformed prose, then the
@@ -52,7 +57,7 @@
 
 ## 4. Published-output coverage
 
-- [ ] 4.1 Add a Playwright spec that, for every post, requests `/blog/<slug>.md` and asserts a 200
+- [ ] 4.1 Add a Playwright spec that, for every post, requests `/blog/<slug>/index.md` and asserts a 200
       response, a `text/markdown` content type, frontmatter present, a `# ` H1 as the body's first
       line, and no `import ` line or `<BlogPostPicture` anywhere in the body.
 - [ ] 4.2 Extend that spec to pin the fenced code sample in
@@ -73,8 +78,9 @@
       no `import` line or component markup outside a fenced code block in any twin. Verify it passes
       on a clean build and exits 1 naming the slug when a twin is deleted from `dist/`.
 - [ ] 5.3 Assert each twin's frontmatter parses, carries the required keys, declares a `canonical`
-      matching that post's page URL, and carries a `heroImage` that is an absolute URL rather than the
-      authored relative path. Verify it exits 1 naming the file when a `canonical` value is tampered
+      matching that post's page URL in the trailing-slash form, and carries a `heroImage` that is an
+      absolute URL rather than the authored relative path. Verify it exits 1 naming the file when a
+      `canonical` value is tampered
       with in `dist/`, and again when a `heroImage` is left relative.
 - [ ] 5.4 Assert every image URL in a twin is absolute and that the file it names exists in `dist/`.
       Verify it exits 1 naming both twin and URL when a referenced asset is removed from `dist/` —

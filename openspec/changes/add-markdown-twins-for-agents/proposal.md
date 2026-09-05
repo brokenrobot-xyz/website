@@ -20,7 +20,7 @@ with no vendor coupling — and accepts that Cloudflare's check stays red.
 
 ## What Changes
 
-- Add a static endpoint emitting a Markdown twin at `/blog/<slug>.md` for every blog post,
+- Add a static endpoint emitting a Markdown twin at `/blog/<slug>/index.md` for every blog post,
   generated from the post's real MDX source rather than from rendered HTML.
 - Add a source-to-Markdown transform that strips `import` lines, rewrites
   `<BlogPostPicture src={ident} alt="..." />` into a standard Markdown image with an absolute image
@@ -29,7 +29,7 @@ with no vendor coupling — and accepts that Cloudflare's check stays red.
   same copyright/attribution line `llms.txt` already carries, so licensing terms travel with the
   file.
 - Advertise each twin from its HTML page via
-  `<link rel="alternate" type="text/markdown" href="/blog/<slug>.md">`, alongside the existing RSS
+  `<link rel="alternate" type="text/markdown" href="/blog/<slug>/index.md">`, alongside the existing RSS
   `alternate` link.
 - Extend `/llms.txt` so every post entry also points at its `.md` twin.
 - Add a build-output guardrail — `npm run twins:check` — that validates every generated twin in
@@ -39,8 +39,10 @@ with no vendor coupling — and accepts that Cloudflare's check stays red.
 - Record in the docs that the Cloudflare Agent Readiness "Content" check is knowingly left red, and
   why, so the decision is not re-litigated at every dashboard scan.
 
-No breaking changes: `/blog/<slug>/` permalinks, `rss.xml`, and the sitemap are untouched. The twins
-are new sibling URLs.
+No breaking changes: `/blog/<slug>/` permalinks, `rss.xml`, and the sitemap are untouched, and
+`/blog/<slug>` keeps redirecting to the trailing-slash form as it does today. Each twin is a new file
+inside the post's existing directory, beside the `index.html` it mirrors; only `index.html` carries
+special meaning to the host, so nothing is shadowed.
 
 ## Non-Goals
 

@@ -55,15 +55,23 @@ authored form. Working from source keeps code fences, link text, and emphasis ex
 avoids importing an HTML→Markdown dependency. It also means the twins stay correct if the site's
 visual rendering changes.
 
-### URL shape `/blog/<slug>.md`, via `src/pages/blog/[...slug].md.ts`
+### URL shape `/blog/<slug>/index.md`, via `src/pages/blog/[...slug].md.ts`
 
-Astro strips the `.ts` extension at build time, so a file named `[...slug].md.ts` emits
-`/blog/<slug>.md`. Astro serves endpoints whose URLs carry a file extension without a trailing
-slash, which is exactly the shape wanted. It sits beside the existing `[...slug].astro` without
-competing for the same route, and matches the `/page.md` convention agents already probe.
+The llms.txt spec puts a page's Markdown twin at the page's own URL with `.md` appended or the
+extension replaced — and for URLs without a filename, at `index.md` under that URL. This site's
+canonical URLs have no filename: production 308-redirects `/blog/<slug>` to `/blog/<slug>/`, and the
+page's own `rel="canonical"` is the trailing-slash form. So the twin sits beside the `index.html` it
+mirrors, and the canonical it names is that same directory URL — there is no second URL form to
+reconcile.
 
-Rejected: `/blog/<slug>/index.md`, which would need a nested route under the existing rest-parameter
-path and is the rarer convention.
+This needs no new route. `src/pages/blog/[...slug].md.ts` is a single endpoint file whose
+`getStaticPaths()` appends `/index` to each post's id when returning the `slug` param. The rest
+parameter matches slashes, so the route generator yields `/blog/<slug>/index.md`, and Astro writes
+endpoints to `dirname + basename` — `dist/blog/<slug>/index.md`. It sits beside the existing
+`[...slug].astro` without competing for the same route.
+
+Rejected: `/blog/<slug>.md`. Equally spec-valid, and the shape to use if these URLs ever lose their
+trailing slash, but today it would make the twin a sibling of the directory rather than of the page.
 
 ### Parse with satteri, then splice the source at node offsets
 
