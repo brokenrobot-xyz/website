@@ -208,8 +208,26 @@ produce a fetch — it is outside what the check is for, and narrowing it says s
 
 `ArticleLayout` already fills `BaseLayout`'s `seo` slot, and `BaseLayout` already emits
 `<link rel="alternate" type="application/rss+xml">`. The Markdown link follows that established
-pattern rather than introducing a new mechanism. No CSP implications: `<link rel="alternate">` fetches
-nothing.
+pattern rather than introducing a new mechanism. No CSP implications: a `<link>` with these relations
+fetches nothing.
+
+Two relations go in, because the llms.txt spec recommends them as a pair: `alternate` with
+`type="text/markdown"` names this page's twin, and `describedby` names the index that covers the
+page. `describedby` is a registered IANA relation, defined by POWDER as "a resource providing
+information about the link's context"; pointing it at `llms.txt` is the llms.txt proposal's
+convention rather than a web standard. Nothing in a browser consumes either one, so the payoff is
+confined to agents that already know the convention — which is the audience the twins exist for.
+
+### The index links the Markdown, not the page
+
+The llms.txt spec states that the links in an llms.txt file should point to LLM-friendly content,
+because an agent is expected to search the index and then follow its links. Listing both URLs per
+post would double every line to carry one that is derivable: each twin names its own `canonical`, so
+an agent that needs the human page is one hop away. Home, About, and the blog index keep their page
+links — they have no twin, and the rule only reaches as far as content that has one.
+
+This also settles the URL form. The current entries link `/blog/<slug>`, which production redirects
+to `/blog/<slug>/`; a twin URL is an exact file path, so no redirect is involved.
 
 ## Risks / Trade-offs
 

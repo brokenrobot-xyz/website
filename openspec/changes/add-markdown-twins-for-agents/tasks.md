@@ -52,13 +52,18 @@
 - [ ] 3.1 Extract twin-URL construction and the copyright/attribution sentence into one shared
       module, and have the endpoint use it. Verify `npm run type:check` passes and the sentence is no
       longer duplicated between the endpoint and `llms.txt.ts`.
-- [ ] 3.2 Extend `src/pages/llms.txt.ts` so each post entry also lists its `.md` twin URL, using the
-      shared construction. Verify `dist/llms.txt` lists ten `.md` URLs and still carries its summary,
-      Pages section, licensing note, and RSS/sitemap references.
-- [ ] 3.3 Add `<link rel="alternate" type="text/markdown" href="...">` to `ArticleLayout`'s `seo`
-      slot, alongside the existing RSS alternate link. The layout receives only the post's
-      frontmatter today, so pass the post's id to it from `src/pages/blog/[...slug].astro` and widen
-      its `Props`. Verify a built post's HTML contains the link with that post's correct twin URL.
+- [ ] 3.2 Repoint the post entries in `src/pages/llms.txt.ts` at the twins, using the shared
+      construction: each entry links the post's `.md` URL and keeps its summary after the colon.
+      Leave the Home, About and Blog entries on their page URLs, with a comment recording that they
+      have no twin to point at. Verify `dist/llms.txt` lists ten `.md` URLs, no `/blog/<slug>` page
+      URLs among the post entries, and still carries its summary, Pages section, licensing note, and
+      RSS/sitemap references.
+- [ ] 3.3 Add two links to `ArticleLayout`'s `seo` slot, alongside the existing RSS alternate link:
+      `<link rel="alternate" type="text/markdown" href="...">` naming that post's twin, and
+      `<link rel="describedby" href="/llms.txt">` naming the index that covers it. The layout
+      receives only the post's frontmatter today, so pass the post's id to it from
+      `src/pages/blog/[...slug].astro` and widen its `Props`. Verify a built post's HTML contains
+      both links, with the correct twin URL for that post.
 
 ## 4. Published-output coverage
 
@@ -71,7 +76,8 @@
       `url-redirect-with-amazon-cloudfront-and-amazon-route-53` — which contains `<link` markup —
       appearing verbatim in the twin, proving code samples are never rewritten.
 - [ ] 4.3 Assert discovery from both entry points: a post's HTML page exposes its `alternate`
-      Markdown link, and `/llms.txt` lists that post's `.md` URL.
+      Markdown link and its `describedby` link to `/llms.txt`, and `/llms.txt` lists that post by its
+      `.md` URL.
 - [ ] 4.4 Assert the twins stay out of `dist/sitemap-0.xml`, pinning the sitemap exclusion the design
       relies on so a future integration change cannot silently start indexing them.
 

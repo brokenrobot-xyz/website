@@ -90,9 +90,12 @@ so that the terms travel with the content when it is consumed detached from the 
 
 An agent SHALL be able to find a post's Markdown representation from two independent starting
 points: the post's own HTML page, which SHALL advertise the Markdown URL as an alternate
-representation of itself; and the site's `llms.txt` index, which SHALL list the Markdown URL
-alongside each post's human-readable URL. Discovery SHALL NOT require the agent to guess a URL
-pattern.
+representation of itself and SHALL point to the site's machine-readable index; and that index
+itself, which SHALL link each post by its Markdown representation rather than by the page a human
+reads. Discovery SHALL NOT require the agent to guess a URL pattern.
+
+Entries in the index for pages that have no Markdown representation SHALL continue to link those
+pages themselves.
 
 #### Scenario: Discoverable from the HTML page
 
@@ -100,10 +103,22 @@ pattern.
 - **THEN** the page advertises that post's Markdown URL as an alternate `text/markdown`
   representation
 
+#### Scenario: The page points at the index
+
+- **WHEN** an agent fetches a post's HTML page
+- **THEN** the page also points to the site's `llms.txt`, so an agent arriving at any single post
+  can reach the index describing the rest
+
 #### Scenario: Discoverable from the index
 
 - **WHEN** an agent fetches the site's `llms.txt`
-- **THEN** each listed post entry includes its Markdown URL in addition to its human-readable URL
+- **THEN** each listed post entry links that post's Markdown representation, and its summary is
+  retained
+
+#### Scenario: Pages without a Markdown representation still listed
+
+- **WHEN** an agent fetches the site's `llms.txt`
+- **THEN** entries for pages that have no Markdown representation still link those pages
 
 #### Scenario: Existing index content preserved
 

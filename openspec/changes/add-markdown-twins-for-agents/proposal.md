@@ -29,9 +29,13 @@ with no vendor coupling — and accepts that Cloudflare's check stays red.
   `canonical`) and the same copyright/attribution line `llms.txt` already carries, so licensing terms
   travel with the file.
 - Advertise each twin from its HTML page via
-  `<link rel="alternate" type="text/markdown" href="/blog/<slug>/index.md">`, alongside the existing RSS
-  `alternate` link.
-- Extend `/llms.txt` so every post entry also points at its `.md` twin.
+  `<link rel="alternate" type="text/markdown" href="/blog/<slug>/index.md">`, alongside the existing
+  RSS `alternate` link, and add `<link rel="describedby" href="/llms.txt">` beside it. Both relations
+  are the pair the llms.txt spec recommends; `describedby` is registered with IANA and lets an agent
+  that lands on one post reach the index covering the rest.
+- Repoint `/llms.txt` post entries at the twins. The spec is explicit that the links in an llms.txt
+  file should lead to LLM-friendly content, so each post is listed by its `.md` URL with its summary
+  retained. Home, About and the blog index keep their page links — they have no twin to point at.
 - Add a build-output auditor — `npm run twins:check` — that confirms the build did its job: every
   built post page has a twin beside it, each is non-empty, and each opens with frontmatter that
   parses. It runs in the CI Build job beside the existing third-party-resource check. Its scope stops
