@@ -19,7 +19,8 @@ Three constraints shape every decision below.
 **Goals:**
 
 - Every phase starts from a delegation message plus files, and ends with a file.
-- The two human gates stay, and each is preceded by a file the human can read.
+- The three human stops stay — the proposal gate, the implementation gate, and the look at the merged
+  specs — and each is preceded by a file the human can read.
 - A fresh session can run the process from what the coordinator skill names.
 
 **Non-Goals:**
@@ -56,13 +57,21 @@ undeclared because declaring them would put Verify and the implementation review
 graph, where `apply` would demand them before the code they describe exists. _Alternative rejected:_
 a `reports/` directory outside the change, which archive would leave behind.
 
-**Each reviewing agent writes its own report, with a `Write` tool restricted to that one path.**
+**Each reviewing agent writes its own report, and holds itself to that one path by instruction.**
 This is the only shape where a report reaches the human without passing through the main thread.
-Each agent keeps its existing prohibition on every other write, and `frontend-code-reviewer` already
-flags a diff that touches files outside a change's scope, so a stray write is visible at the gate.
-_Alternatives rejected:_ the main thread writing the file, which is the leak this change exists to
-close; and a general-purpose subagent writing it, which adds a hop per review and holds the report in
-a second context for no gain.
+The grant is `Write` itself, not a path-restricted tool: a subagent definition grants tools by name,
+and the Claude Code subagent docs offer only a `PreToolUse` hook for allowing some uses of a tool
+while blocking others. Such a hook would guard `Write` alone while each of these agents already holds
+an unrestricted `Bash` grant, so the boundary was never mechanical. The rule is therefore the one
+that already governs `Bash`: the definition names the one file the agent writes, every other write
+stays forbidden, and the diff at the gate is the check — `frontend-code-reviewer` already flags a
+diff that touches files outside a change's scope. `frontend-qa-engineer` also gains `Edit` for the
+Verify checkboxes in the change's `tasks.md`, because a tick is a one-line edit, not a rewrite.
+_Alternatives rejected:_ the main thread writing
+the file, which is the leak this change exists to close; a general-purpose subagent writing it, which
+adds a hop per review and holds the report in a second context for no gain; and a `PreToolUse` hook
+on `Write`, which needs a script under `.claude/hooks/` that the sandbox cannot write, is unverified
+as a deny mechanism from agent frontmatter, and closes one of two doors.
 
 **Two new agents, named for their role:** `frontend-planner` (Propose and Update) and
 `frontend-proposal-reviewer` (the proposal review). Both are pinned to opus, matching
@@ -77,13 +86,15 @@ with judging a diff, and one definition serving both would fit neither.
 **The coordinator is one project-owned skill, `coordinating-changes`, with two entry points as two
 sections:** start a change, and apply a named change. A change starts in one session and is applied
 in another, so both entries are reachable, and one skill avoids two copies of the same sequence. It
-is a runbook that points at the process table rather than restating it, and it carries the rules
-belonging to no single agent: the main thread never invokes the three procedure skills during a
-change; an answer to a planner question is appended to the brief and the same planner resumed; the
-proposal is reviewed again after every Update; commits are delegated and follow a human approval.
-`CLAUDE.md` gains one pointer line, which is the backstop for a missed trigger. _Alternatives
-rejected:_ the sequence in `CLAUDE.md` itself, which every session would pay for; and two skills,
-which would share most of their content.
+is a runbook that points at the process table in `docs/tooling/workflow.md` rather than restating
+it, and it carries the rules belonging to no single agent: the main thread never invokes the three
+procedure skills during a change; an answer to a planner question is appended to the brief and the
+same planner resumed; the proposal is reviewed again after every Update; commits are delegated and
+each follows a human stop. The apply entry runs from the engineer to the specs commit, so the look at
+the merged specs and the second commit are named where a fresh session reads them. `CLAUDE.md` gains
+one pointer line, which is the backstop for a missed trigger. _Alternatives rejected:_ the sequence
+in `CLAUDE.md` itself, which every session would pay for; and two skills, which would share most of
+their content.
 
 **The three procedure skills stay inline.** `running-preflight-checks`, `testing-visual-regression`,
 and `scaffolding-components` are procedures, not phases. Invoked from inside a phase's agent their
@@ -98,27 +109,49 @@ for running the gate by hand outside a change is follow-up work, after a probe.
 the full diff, which belongs in a subagent rather than the main thread. The delegation answers the
 three questions the skill asks — the branch is the change's branch, the scope is the engineer's
 touched-files list, staging is explicit paths — and a question it still hits comes back in the
-subagent's report. Docs-only commits outside a change stay inline, because the human is present and
-no phase follows. _Alternative rejected:_ forking the skill inside the plugin, which would cost every
-other consumer its questions.
+subagent's report. A change makes two commits, each after a human stop: the code commit after the
+implementation gate; then Archive runs in the main thread, the human looks at the merged specs, and
+the specs commit follows. Docs-only commits outside a change stay inline, because the human is
+present and no phase follows. _Alternative rejected:_ forking the skill inside the plugin, which
+would cost every other consumer its questions.
+
+**The intent graduates into two documents before its known-gaps entry goes.** The known-gaps page
+deletes an entry only once its intent has reached the document that owns it. The principle — a phase
+starts from the files the phase before it left and ends with a file; the session that runs a change
+routes between phases and does not do their work — is about how work moves, not which tool moves it,
+so it goes into `docs/development-workflow.md`, which names no agent, skill, or file. The process
+table — each step's owner, input files, and output file — is the implementation, so it goes into
+`docs/tooling/workflow.md` in place of that page's phase table, and the coordinator points there.
+The entry is deleted only after both. _Alternative rejected:_ leaving the principle to the
+coordinator skill and this archived design, which the page's own rule does not count as graduated.
+
+**This change carries a hand-written brief and review.** Once `review` gates `apply`, a change
+without one reads as not ready, and this change was planned before either file existed. Both are
+written by hand at planning time — the brief from the Explore record, the review from the proposal
+review that preceded implementation — so the gate never rejects the change that adds it, and the
+folder is the first complete record of the new shape. Writing two files is not running the change
+through the process it creates. The two agent smoke tests therefore run against a throwaway change,
+so neither overwrites the real files. _Alternatives rejected:_ ordering the schema task last, which
+holds only until someone resumes the apply session; and accepting a not-ready state, which has the
+change violate the gate it introduces.
 
 ## Risks / Trade-offs
 
 - **A required artifact changes what OpenSpec expects of existing changes.** The six archived changes
-  carry no `brief.md` and no `review.md`, and neither does this change. → Establish the behaviour
-  first, against a throwaway copy of the schema, before any schema edit: `openspec validate --all
---strict`, `openspec validate --archived`, and `openspec instructions apply`. `npm run specs:check`
-  gates CI on the first two. If archived changes fail, the schema edit stops and the plan returns to
-  the human.
+  carry no `brief.md` and no `review.md`. → Establish the behaviour first, against a throwaway copy
+  of the schema, before any schema edit: `openspec validate --all --strict` and
+  `openspec validate --archived`, which `npm run specs:check` gates CI on. If archived changes fail,
+  the schema edit stops and the plan returns to the human. The apply instructions over a change
+  without `review.md` are probed too, but not-ready there is the intended outcome, not a stop.
 - **The schema fork drifts further from upstream.** Two declared artifacts are two more pieces to
   reconcile at the next `openspec update`. → The reconcile recipe in `docs/tooling/workflow.md` gains
   a step naming the two additions, so the diff against upstream stays explainable.
 - **The review gate proves existence, not approval.** A stale or negative `review.md` still satisfies
   `apply`. → The coordinator re-reviews after every Update, and the human reads the report before
   applying. The first-line verdict is the fallback if that proves too weak.
-- **Three agents gain a write capability they did not have.** → Each grant names one path, every
-  other write stays forbidden, and the diff at the implementation gate shows any file that appears
-  outside it.
+- **Three agents gain a write grant they did not have.** → Each definition names the one path by
+  instruction, as it already does for `Bash`, every other write stays forbidden, and the diff at the
+  implementation gate shows any file that appears outside it.
 - **More hops per change means more delegation messages to get right.** A message that omits an
   input costs a full phase re-run. → Each agent states what its delegation message must carry and
   stops when it is missing, as the three existing agents already do.
