@@ -33,8 +33,9 @@ Three constraints shape every decision below.
 is what makes every change start from one; a convention would be skipped on the first small change.
 The vendored explore skill writes it after `openspec new change`, which it may do within a scope the
 human confirms with an explicit yes. For a one-line idea with no Explore, the main thread writes the
-few lines itself. Its template is five headings — Problem and goal, Decisions, Rejected directions,
-Open questions and scope, Answers — with an instruction that caps it at about one screen and sends
+few lines itself. Its template opens with a `# Brief` title, as every template does since OpenSpec
+1.13.1, followed by five headings — Problem and goal, Decisions, Rejected directions, Open
+questions and scope, Answers — with an instruction that caps it at about one screen and sends
 anything longer to the proposal. The Answers section is where the coordinator appends an answer to a
 planner question. _Alternative rejected:_ an undeclared `brief.md` by convention, which OpenSpec
 would neither require nor track.
@@ -106,7 +107,7 @@ other consumer its questions.
 - **A required artifact changes what OpenSpec expects of existing changes.** The six archived changes
   carry no `brief.md` and no `review.md`, and neither does this change. → Establish the behaviour
   first, against a throwaway copy of the schema, before any schema edit: `openspec validate --all
-  --strict`, `openspec validate --archived`, and `openspec instructions apply`. `npm run specs:check`
+--strict`, `openspec validate --archived`, and `openspec instructions apply`. `npm run specs:check`
   gates CI on the first two. If archived changes fail, the schema edit stops and the plan returns to
   the human.
 - **The schema fork drifts further from upstream.** Two declared artifacts are two more pieces to

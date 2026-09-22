@@ -102,7 +102,7 @@ site output, permalink, feed, or check result changes, so `.openspec.yaml` sets 
 - Adding a required artifact changes what OpenSpec expects of every change that already exists. The
   six archived changes carry no `brief.md` and no `review.md`, and neither does this change. Whether
   `openspec validate --all --strict`, `openspec validate --archived`, and `openspec instructions
-  apply` still pass is **unverified**, and `npm run specs:check` gates CI on the first two. The first
+apply` still pass is **unverified**, and `npm run specs:check` gates CI on the first two. The first
   task establishes this against a throwaway copy of the schema, before any schema edit.
 
 **Build & verification**

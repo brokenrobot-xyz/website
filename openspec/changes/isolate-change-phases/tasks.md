@@ -17,13 +17,15 @@
       graph, `requires: []` — and make `proposal` require it. Verify with
       `openspec instructions brief --change <a throwaway change>` printing the brief instruction.
 - [ ] 2.2 Add `openspec/schemas/frontend-change/templates/brief.md` with the five headings from
-      design.md and the instruction that caps it at about one screen. Verify the template appears in
-      the `template` field of `openspec instructions brief`.
+      design.md under a `# Brief` title, and the instruction that caps it at about one screen. Verify
+      the template appears in the `template` field of `openspec instructions brief` and opens with
+      `# Brief`.
 - [ ] 2.3 Add the `review` artifact, requiring `tasks`, and add `review` to `apply.requires`. Verify
       `openspec instructions apply --change <a throwaway change>` reports the change as not ready
       while `review.md` is absent, then ready once the file exists.
-- [ ] 2.4 Add `openspec/schemas/frontend-change/templates/review.md`, holding the attack list from
-      proposal.md. Verify it appears in `openspec instructions review`.
+- [ ] 2.4 Add `openspec/schemas/frontend-change/templates/review.md`, opening with a `# Review`
+      title and holding the attack list from proposal.md. Verify it appears in
+      `openspec instructions review` and opens with `# Review`.
 - [ ] 2.5 Run `npm run specs:check` and verify it passes with the archived changes untouched.
 
 ## 3. The two new agents
