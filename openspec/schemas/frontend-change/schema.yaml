@@ -2,6 +2,30 @@ name: frontend-change
 version: 1
 description: Frontend change workflow for brokenrobot.xyz — guardrails, primitives-first tasks, and a both-theme Verify gate
 artifacts:
+  - id: brief
+    generates: brief.md
+    description: The Explore record the proposal starts from — problem, decisions, rejected directions, open questions, answers
+    template: brief.md
+    instruction: |
+      Write the brief: the record of Explore that the proposal starts from. It is
+      the planner's only input besides the files on disk, so it carries what the
+      exploration settled and nothing the proposal should re-derive.
+
+      Sections, under the template's headings:
+      - **Problem and goal**: what is wrong or missing, and what done looks like.
+      - **Decisions**: each direction taken, with the reason it won.
+      - **Rejected directions**: each direction considered and dropped, with the
+        reason, so the proposal does not reopen it.
+      - **Open questions and scope**: what is still undecided, and the limits of
+        the change - what it touches and what it leaves alone.
+      - **Answers**: empty at first. When the planner returns a question, the
+        answer is appended here, and the planner resumes from the file.
+
+      Keep it to about one screen. Anything longer belongs in the proposal, which
+      the brief exists to seed, not to replace. For a one-line idea with no
+      Explore, a few lines under the first heading are enough.
+    requires: []
+
   - id: proposal
     generates: proposal.md
     description: Initial proposal document outlining the change
@@ -45,7 +69,8 @@ artifacts:
       implementation details belong in design.md.
 
       This is the foundation - specs, design, and tasks all build on this.
-    requires: []
+    requires:
+      - brief
 
   - id: specs
     generates: "specs/**/*.md"
@@ -231,8 +256,29 @@ artifacts:
       - specs
       - design
 
+  - id: review
+    generates: review.md
+    description: Adversarial review of the change folder against the living specs, written before the human reads the proposal
+    template: review.md
+    instruction: |
+      Review the change folder before the human does. Read every planning
+      artifact in it and the living specs under `openspec/specs/`, then attack
+      the change on the template's list. Each finding names the artifact and the
+      line, states what is wrong, and gives the concrete fix.
+
+      Report what you found, not what you would like to find. When an item on the
+      list turns up nothing, say so under that item rather than inventing a
+      finding. Group the findings by severity - Blocking, Should-fix, Nits - and
+      close with a one-line verdict.
+
+      This file proves that a review ran. It does not prove the review passed,
+      and it goes stale when an Update round rewrites the artifacts, so it is
+      written again after every Update.
+    requires:
+      - tasks
+
 apply:
-  requires: [tasks]
+  requires: [tasks, review]
   tracks: tasks.md
   instruction: |
     Read context files, work through pending tasks, mark complete as you go.

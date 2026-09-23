@@ -3,8 +3,9 @@ schema: frontend-change
 # Project context — shown to the AI when creating any artifact (proposal, specs, design, tasks).
 # These are the site's enduring constraints; honor them in every change. See docs/ for detail.
 # All project-specific prose lives in this file (context, rules, operations). The frontend-change
-# schema fork stays upstream-verbatim except its name/description and two template seeds (the
-# proposal Non-Goals heading, the tasks Verify group) — see docs/tooling/workflow.md.
+# schema fork stays upstream-verbatim except its name/description, two template seeds (the
+# proposal Non-Goals heading, the tasks Verify group), and the two declared artifacts it adds
+# (brief, review) — see docs/tooling/workflow.md.
 context: |
   brokenrobot.xyz is a static, ad-free, CSP-strict personal site: Astro with Preact islands,
   self-hosted fonts, and first-class light/dark theming. Honor these enduring constraints in
@@ -59,7 +60,7 @@ operations:
   apply:
     guidance:
       - Work on the change's own `<type>/<change-name>` branch. Never push — pushing is a human-only gate.
-      - Stop at the Verify group. Run neither the snapshot suite nor the gate yourself; hand Verify to the frontend-qa-engineer agent (testing-visual-regression) and the running-preflight-checks skill.
+      - Stop at the Verify group. Run neither the snapshot suite nor the gate yourself; the frontend-qa-engineer agent owns all of Verify, gate included, and writes the change's verify-report.md.
       - Leave the manual-preview checkbox for the human at the review gate, even when the automated Verify items pass.
       - Establish a design-system primitive before any task uses it — the repo ships tokens, not primitives.
   archive:
