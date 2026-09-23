@@ -97,10 +97,10 @@
 
 ## 7. Verify
 
-- [ ] Visual + a11y snapshots pass in **both themes** for every touched view
+- [x] Visual + a11y snapshots pass in **both themes** for every touched view
       (testing-visual-regression skill) — **N/A**: no `src/`, `public/`, or `tests/` change, so no
       view is touched.
 - [x] All preflight gate checks pass — the set in `docs/development/checks.md`
       (running-preflight-checks skill)
-- [ ] Manual preview: no theme flash, interactions work, console clean, responsive at 375px —
+- [x] Manual preview: no theme flash, interactions work, console clean, responsive at 375px —
       **N/A**: no view is touched.
