@@ -44,25 +44,43 @@ proposal, the implementation, and the production release; the rest is execution 
 back.
 
 1. **Explore** _(optional)_ — clarify the idea and investigate the codebase before committing to a
-   proposal. No code is written.
-2. **Propose** — capture the intent: the why and scope, how the site's behaviour changes, and the
-   work broken into small steps. This is the agreement.
-3. **Review the proposal** — **you** read, refine, and approve it **before any code is written**.
-   The earliest and cheapest gate.
-4. **Implement** — do the agreed work on a short-lived branch, surgically; nothing beyond the
+   proposal. No code is written. It ends with a written brief: the problem, the decisions taken,
+   the directions rejected, and what is still open.
+2. **Propose** — capture the intent from the brief: the why and scope, how the site's behaviour
+   changes, and the work broken into small steps. This is the agreement.
+3. **Review the proposal** — an adversarial read of the proposal against the living record, before
+   you see it: scenarios that cannot be tested, requirements that contradict the record, work the
+   proposal does not name, a claim of no behaviour change that hides one. It ends with a written
+   set of findings, and it runs again whenever the proposal is revised.
+4. **Approve the proposal** — **you** read the proposal and the findings, refine, and approve
+   **before any code is written**. The earliest and cheapest gate.
+5. **Implement** — do the agreed work on a short-lived branch, surgically; nothing beyond the
    proposal.
-5. **Verify** — the change is checked: visual + accessibility coverage in **both themes**, and the
-   preflight gate ([checks.md](development/checks.md)).
-6. **Archive** — fold the agreed behaviour into the living record **on the branch**, so the change
-   carries its code and its spec together when it goes to review.
-7. **Review the implementation** — **you** examine the change against the guardrails (below) and
-   approve it before it merges.
-8. **Integrate** — merge the short-lived branch into the trunk. Only complete, verified changes
-   merge, so the trunk stays releasable.
-9. **Deploy** — the merge releases the change to production; **you** approve the release.
+6. **Verify** — the change is checked: visual + accessibility coverage in **both themes**, and the
+   preflight gate ([checks.md](development/checks.md)). It ends with a written report.
+7. **Review the implementation** — a read of the change against the guardrails (below), ending in
+   a written set of findings.
+8. **Approve the implementation** — **you** read the reports and the diff, and approve the change
+   before it is committed. Findings you send back go through Implement, Verify, and Review again.
+9. **Archive** — fold the agreed behaviour into the living record **on the branch**, so the change
+   carries its code and its spec together when it goes to integration. **You** look at the merged
+   record before it is committed.
+10. **Integrate** — merge the short-lived branch into the trunk. Only complete, verified changes
+    merge, so the trunk stays releasable.
+11. **Deploy** — the merge releases the change to production; **you** approve the release.
 
-The three **you** steps are the decision gates: accept the proposal, accept the implementation,
-accept the release. Everything between is execution you oversee.
+The three **you** gates are the decisions: accept the proposal, accept the implementation, accept
+the release. Everything between is execution you oversee.
+
+### How phases hand off
+
+A phase starts from the files the phase before it left, and it ends with a file. The brief, the
+proposal, each set of findings, the verification report, and the record itself are all files on
+disk, so every hand-off is traceable and is a checkpoint you can correct before the next phase
+reads it. The session that runs a change routes between phases and does not do their work: it
+holds your gate decisions and one short report per phase, and nothing else from it reaches the
+next phase, so stale reasoning, rejected directions, and earlier tangents cannot steer what comes
+after. A phase that would need to ask you stops and returns the question instead of guessing.
 
 ## Trunk-based integration
 
@@ -78,7 +96,7 @@ The integration half keeps a few invariants — the _why_ behind the branch rule
   production. The site's version (in `package.json`) is bumped deliberately for notable releases, not
   on every merge.
 
-> The **release gate** (step 9) — a required approval before the production deploy — is the intended
+> The **release gate** (step 11) — a required approval before the production deploy — is the intended
 > third gate, but it is not yet configured. Setting it up is a planned infrastructure change. See
 > [tech-stack](tech-stack.md) for how deployment works today.
 

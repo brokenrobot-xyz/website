@@ -3,27 +3,46 @@
 The mechanics behind the [development workflow](../development-workflow.md). We implement it with
 **OpenSpec** for the artifacts, **role-based Claude Code agents** for the phases, a few **skills** for
 the repeatable procedures, and **scaled trunk-based** development (one change = one short-lived
-branch = one PR). Each phase maps to a concrete tool:
+branch = one PR).
 
-| Phase                     | How it's run                                                                                     |
-| ------------------------- | ------------------------------------------------------------------------------------------------ |
-| Explore                   | `/opsx:explore` (or the `openspec-explore` skill)                                                |
-| Propose                   | `/opsx:propose` (or the `openspec-propose` skill)                                                |
-| Review the proposal       | **you** read and approve the change folder                                                       |
-| Implement                 | `frontend-engineer` agent (drives `/opsx:apply`), on a `<type>/<change-name>` branch             |
-| Verify                    | `frontend-qa-engineer` agent + `running-preflight-checks` skill                                  |
-| Archive                   | `/opsx:archive` (on the branch, so the PR carries code + spec)                                   |
-| Review the implementation | the pull request: CI runs the gates, `frontend-code-reviewer` surfaces findings, **you** approve |
-| Integrate                 | merge the PR into `main`                                                                         |
-| Deploy                    | `deploy.yml` releases to production (the release gate is not yet configured)                     |
+## The process
+
+One owner per step, skills as the owner's capabilities, every output a file. A step starts from the
+files the step before it left on disk and its delegation message, and nothing else, so that stale
+reasoning and rejected directions cannot steer it. The main session is the router: it delegates
+each step to its owner, relays the owner's short message, and stops at every **you** row. The
+`coordinating-changes` skill is the runbook for this table, with one entry point for starting a
+change and one for applying a named one.
+
+| Step                  | Input                                        | Output on disk                                                  | Owner                        | Skills                                                  |
+| --------------------- | -------------------------------------------- | --------------------------------------------------------------- | ---------------------------- | ------------------------------------------------------- |
+| Explore               | the idea, the codebase                       | `brief.md`                                                      | main session, with **you**   | `openspec-explore` (`/opsx:explore`)                    |
+| Propose               | the brief                                    | proposal, specs, design, tasks                                  | `frontend-planner`           | `openspec-propose`, `openspec-update-change`            |
+| Proposal review       | the planning artifacts, the brief, the specs | `review.md`                                                     | `frontend-proposal-reviewer` | none                                                    |
+| _Gate_                | the change folder                            | your approval                                                   | **you**                      |                                                         |
+| Implement             | tasks, the rest of the folder                | code and ticked tasks, on a `<type>/<change-name>` branch       | `frontend-engineer`          | `openspec-apply-change`, `scaffolding-components`       |
+| Verify                | the code, the tasks Verify group             | `verify-report.md`, ticked Verify items                         | `frontend-qa-engineer`       | `testing-visual-regression`, `running-preflight-checks` |
+| Implementation review | the diff, the change folder, the conventions | `code-review.md`                                                | `frontend-code-reviewer`     | none                                                    |
+| _Gate_                | the two reports, the diff                    | your approval, the manual-preview tick                          | **you**                      |                                                         |
+| Commit the code       | the approved diff, the touched-files list    | a commit                                                        | a general-purpose subagent   | `committing-conventionally`                             |
+| Archive               | the change folder                            | merged specs, the archived folder                               | main session                 | `openspec-archive-change` (`/opsx:archive`)             |
+| _Look_                | the merged specs                             | your go                                                         | **you**                      |                                                         |
+| Commit the specs      | the archive diff                             | a commit                                                        | a general-purpose subagent   | `committing-conventionally`                             |
+| Integrate             | the pull request; CI runs the gates          | the merge into `main`                                           | **you**                      |                                                         |
+| Deploy                | the merge                                    | the production release (the release gate is not yet configured) | `deploy.yml`                 |                                                         |
+
+The three report files — `review.md`, `verify-report.md`, `code-review.md` — live in the change
+folder, so archive moves them with it and the folder is the change's audit log. `review.md` is a
+declared artifact that `apply` requires, so OpenSpec refuses to apply a change nobody reviewed; it
+proves a review ran, not that it passed, so the proposal is reviewed again after every Update. The
+other two are undeclared, because declaring them would put Verify and the implementation review
+inside the artifact graph, where `apply` would demand them before the code they describe exists.
 
 Nothing is automatic: each agent hands back to you, and **you** hold the three gates — the proposal
-before any code, the implementation before it merges, and the production release.
-
-Planning has no agent by design: the propose flow asks clarifying questions and **you** hold the
-proposal gate, so it runs in the main thread where you can answer and steer. The shaping it applies
-lives in OpenSpec's own configuration — see
-[How the proposer is customized](#how-the-proposer-is-customized).
+before any code, the implementation before it merges, and the production release — plus the look at
+the merged specs before they are committed. Both review loops keep you in them: findings come to
+you, you decide which go back, and the reviewer runs again. The shaping the planner applies lives in
+OpenSpec's own configuration — see [How the proposer is customized](#how-the-proposer-is-customized).
 
 ## OpenSpec — the artifacts and commands
 
@@ -96,9 +115,23 @@ does with them:
 
 ## The agents (`.claude/agents/`)
 
-Four role-based subagents, each with focused instructions and tool access. Invoke them with the
-Agent/Task tool, or let the main session delegate.
+Six role-based subagents, each with focused instructions and tool access. The `coordinating-changes`
+skill delegates to them step by step; you can also invoke one directly with the Agent/Task tool.
+The three that review or verify each write one report file into the change folder and hold
+themselves to that path by instruction, the way their unrestricted `Bash` grant is already held —
+the diff at the gate is the check.
 
+- **`frontend-planner`** (opus) — writes a change's planning artifacts from its `brief.md` by driving
+  the vendored `openspec-propose` skill inside its own context, and revises them with
+  `openspec-update-change` when review findings come back. Its input is the brief plus the disk, by
+  design: it never sees the Explore conversation. It cannot ask, so a question that would change
+  scope comes back in its report, the answer is appended to the brief's **Answers** section, and
+  the same planner is resumed. Writes only under the change folder; never edits code.
+- **`frontend-proposal-reviewer`** (opus) — attacks the change folder before you read it: untestable
+  scenarios, requirements that contradict the living specs, tasks that use a primitive nobody
+  establishes, a missing tier decision, unnamed scope, a `skip_specs` claim that hides a behaviour
+  change. The attack list lives in the schema's `review.md` template. Writes the change's
+  `review.md` — the declared artifact `apply` requires — and nothing else.
 - **`frontend-engineer`** (sonnet) — implements an agreed change by driving `/opsx:apply` inside its
   own context, so a long implementation's file reads, lint output, and edits stay out of the main
   session. It carries no guardrails of its own: `openspec instructions apply` returns both the
@@ -107,19 +140,20 @@ Agent/Task tool, or let the main session delegate.
   a subagent cannot ask, because Claude Code strips `AskUserQuestion` from every subagent, so an
   ambiguous task comes back **unticked, with the question**, and the main thread re-delegates with
   the answer. Ticks tasks as it goes; stops at the Verify group; never commits.
-- **`frontend-qa-engineer`** (sonnet) — runs Playwright visual-regression + axe in **both** themes (in
-  the devcontainer, so rendering matches CI), regenerates baselines for intentional changes, and
-  reports diffs. Also drives an **agent-assisted manual preview** via the Playwright MCP (host Chrome):
-  console clean, no theme flash, interactions, 375px — plus an **advisory perf/SEO audit** via the Chrome
-  DevTools MCP (SEO/best-practices + Core Web Vitals, not a gate). It **reports which Verify items its
-  evidence supports** (visual/a11y, the gate), marking partial ones — e.g. one theme covered and the
-  other not run — and the main session ticks `tasks.md` where you can see the edit. The manual-preview
-  checkbox stays yours at the review gate. Fully read-only; hands styling bugs back to the engineer.
-- **`frontend-code-reviewer`** (opus) — a read-only guardrail gate over the diff, at either placement:
-  the working tree before commit, or the branch at the pull-request gate (the delegation says which,
-  and the agent reads `git diff HEAD` or `git diff main...HEAD` accordingly). Groups findings as
-  Blocking / Should-fix / Nits. Flags CSP, theming, interactivity-ladder, and convention violations
-  the implementer missed.
+- **`frontend-qa-engineer`** (sonnet) — owns all of Verify. Runs Playwright visual-regression + axe
+  in **both** themes (in the devcontainer, so rendering matches CI), regenerates baselines for
+  intentional changes through `test:e2e:update`, and runs the preflight gate through
+  `running-preflight-checks`. Also drives an **agent-assisted manual preview** via the Playwright MCP
+  (host Chrome): console clean, no theme flash, interactions, 375px — plus an **advisory perf/SEO
+  audit** via the Chrome DevTools MCP (SEO/best-practices + Core Web Vitals, not a gate). Writes the
+  change's `verify-report.md` and **ticks the Verify items its own evidence supports** in `tasks.md`,
+  marking partial ones — e.g. one theme covered and the other not run — as unsupported. The
+  manual-preview checkbox stays yours at the review gate. Hands styling bugs back to the engineer.
+- **`frontend-code-reviewer`** (opus) — the guardrail gate over the diff, at either placement: the
+  working tree before commit, or the branch at the pull-request gate (the delegation says which, and
+  the agent reads `git diff HEAD` or `git diff main...HEAD` accordingly). Groups findings as
+  Blocking / Should-fix / Nits in the change's `code-review.md`, and writes nothing else. Flags CSP,
+  theming, interactivity-ladder, and convention violations the implementer missed.
 - **`dependency-update-researcher`** (external plugin, from `frontend-toolkit`) — read-only research
   on a single npm dependency bump (current → target version): reads the changelog, checks how the
   repo actually uses the package, and returns a compatibility verdict with the concrete edits the
@@ -139,6 +173,13 @@ via the marketplace config in `.claude/settings.json` (`extraKnownMarketplaces` 
 (preferred form; lowercase/hyphens only). Generated skills (`openspec-*`, `opsx:*`) keep their
 vendored names. The `reviewing-claude-skills` skill enforces this as checklist item `R6`.
 
+- **`coordinating-changes`** — the runbook for [the process](#the-process): two entry points, start
+  a change and apply a named change, each naming the owner, input files, output file, and human
+  stops of every step, plus the rules that belong to no single agent — the main session never
+  invokes the three procedure skills below during a change, a planner question is answered through
+  the brief, the proposal is reviewed again after every Update, and commits are delegated and each
+  follows a human stop. Runs in the main session by design: it routes, so it has nothing to isolate.
+  `CLAUDE.md` carries one pointer line to it, the backstop for a missed trigger.
 - **`testing-visual-regression`** — run/update Playwright visual + a11y in light **and** dark (in the
   devcontainer), with the baseline-review steps. Knows the both-theme dependency on the dark
   Playwright projects.
@@ -267,10 +308,14 @@ template seeds** (cheap to reconcile):
   tasks (**primitives-first** — a slice that uses a `.btn`/`.tag`/`.card`/… primitive must
   establish it first, since the foundation shipped tokens only).
 - **`openspec/schemas/frontend-change/`** — a project-local schema. Its `schema.yaml` is a verbatim
-  copy of the built-in `spec-driven` schema except the `name:` and `description:` lines, and only
-  two of its templates diverge: `templates/proposal.md` adds the **Non-Goals** heading and
-  `templates/tasks.md` pre-seeds the mandatory **Verify** group. `config.yaml` selects it via
-  `schema: frontend-change`. (OpenSpec has no schema inheritance — a project schema must be a
+  copy of the built-in `spec-driven` schema except the `name:` and `description:` lines and two
+  declared artifacts upstream does not have: **`brief`**, first in the graph and required by
+  `proposal`, so every change starts from a written Explore record; and **`review`**, requiring
+  `tasks` and listed in `apply.requires`, so `apply` reports a change not ready until its
+  `review.md` exists. Each has a template of its own (`templates/brief.md`, `templates/review.md`);
+  of the four upstream templates only two diverge: `templates/proposal.md` adds the **Non-Goals**
+  heading and `templates/tasks.md` pre-seeds the mandatory **Verify** group. `config.yaml` selects
+  it via `schema: frontend-change`. (OpenSpec has no schema inheritance — a project schema must be a
   complete copy, which is why the fork exists at all: templates only load from the schema's own
   directory.)
 - **`openspec/config.yaml` → `operations`** — advisory guidance attached to the **apply** and
@@ -294,6 +339,11 @@ instruction + context). The seeded Verify section is:
 View-dependent Verify items are marked **N/A** (with a short note) on a change that touches no
 views; the gate steps always run.
 
+Verify is the change-wide gate over the finished change, not the place a task list collects its
+testing. Since **1.13.2** the upstream schema requires each task group to land the tests and
+documentation its own work calls for, so a group that adds a view carries its Playwright coverage
+and its docs in that group; the `tasks` rule in `config.yaml` says the same in this project's terms.
+
 How coding conventions reach the generated code is deliberately split, and the split is the reason
 no prompt restates them: conventions a machine enforces (types, lint, formatting, token drift,
 third-party resources) are left to the gate; conventions that need judgment mid-plan ride the
@@ -307,18 +357,25 @@ malformed proposals or spec deltas fail a PR, as does an archived change with un
 only — not hard-checked — so the `frontend-code-reviewer` and your review are the backstop.
 
 The schema fork is OpenSpec-experimental and needs reconciling when OpenSpec updates its upstream
-schema. Because the fork is upstream-verbatim, that's mechanical (last done against **1.12.0**):
+schema. Because the fork is upstream-verbatim apart from the two declared artifacts, that's
+mechanical (last done against **1.13.2**):
 
 1. `cp node_modules/@fission-ai/openspec/schemas/spec-driven/schema.yaml openspec/schemas/frontend-change/schema.yaml`,
    then restore the `name: frontend-change` and `description:` lines.
-2. Diff the four templates against `node_modules/@fission-ai/openspec/schemas/spec-driven/templates/`;
+2. Restore the two declared artifacts from git: the `brief` entry (first in `artifacts`,
+   `requires: []`, and `proposal` requiring `brief`) and the `review` entry (after `tasks`,
+   requiring `tasks`, and `review` added to `apply.requires`). Their templates, `brief.md` and
+   `review.md`, have no upstream counterpart and are left as they are.
+3. Diff the four upstream templates against `node_modules/@fission-ai/openspec/schemas/spec-driven/templates/`;
    `design.md` and `spec.md` should stay identical, `proposal.md` keeps only the added **Non-Goals**
    section, `tasks.md` keeps only the appended **Verify** group and its keep-last comment.
-3. `config.yaml` (`context`/`rules`/`operations`) is untouched by upgrades — but skim the release
+4. `config.yaml` (`context`/`rules`/`operations`) is untouched by upgrades — but skim the release
    notes for new config capabilities worth adopting.
-4. Verify with a throwaway change: `openspec new change probe`, then
+5. Verify with a throwaway change: `openspec new change probe`, then
+   `openspec status --change probe` must list `brief` first and `review` last,
    `openspec instructions proposal|tasks --change probe` must show the `<rules>` block and the
-   seeded Verify group; delete the change and run `npm run specs:check`.
+   seeded Verify group, and `openspec instructions apply --change probe` must report `review`
+   missing; delete the change and run `npm run specs:check`.
 
 ## Setup
 

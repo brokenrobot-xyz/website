@@ -96,3 +96,5 @@ Read these before working on the design overhaul — they are the shared source 
 - [docs/known-gaps.md](docs/known-gaps.md) — intent the site does not yet meet, or does not yet record. Read it before assuming the docs above describe what actually happens.
 
 Those cover the **application**. For how this repo is worked on with Claude Code — the agent/skill workflow and the sandbox (why git in worktrees and Docker behave as they do) — see [docs/tooling/](docs/tooling/README.md), in particular [docs/tooling/sandbox.md](docs/tooling/sandbox.md).
+
+A change — starting one, or applying a named one — is run through the `coordinating-changes` skill, which routes each phase to its owning agent and stops at the human gates.

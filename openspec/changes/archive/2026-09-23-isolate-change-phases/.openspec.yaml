@@ -1,0 +1,6 @@
+schema: frontend-change
+created: 2026-09-15
+# No spec-level behavior changes: this changes how a change is planned, applied, and reviewed —
+# the workflow tooling under .claude/ and openspec/. No site output, permalink, feed, or check
+# result changes. See proposal.md — Capabilities.
+skip_specs: true

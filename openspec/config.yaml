@@ -3,8 +3,9 @@ schema: frontend-change
 # Project context — shown to the AI when creating any artifact (proposal, specs, design, tasks).
 # These are the site's enduring constraints; honor them in every change. See docs/ for detail.
 # All project-specific prose lives in this file (context, rules, operations). The frontend-change
-# schema fork stays upstream-verbatim except its name/description and two template seeds (the
-# proposal Non-Goals heading, the tasks Verify group) — see docs/tooling/workflow.md.
+# schema fork stays upstream-verbatim except its name/description, two template seeds (the
+# proposal Non-Goals heading, the tasks Verify group), and the two declared artifacts it adds
+# (brief, review) — see docs/tooling/workflow.md.
 context: |
   brokenrobot.xyz is a static, ad-free, CSP-strict personal site: Astro with Preact islands,
   self-hosted fonts, and first-class light/dark theming. Honor these enduring constraints in
@@ -49,7 +50,9 @@ rules:
   tasks:
     - "Primitives-first ordering: the repo ships design tokens only — the prototype's primitives (.btn, .tag, .eyebrow, .card, .section-head, code-block chrome, reading-progress bar, scroll cue) are not in the codebase yet. A slice that uses a primitive MUST establish it in an earlier task; never reference a primitive the codebase does not define."
     - "Name the interactivity tier in any task that adds or changes interactive UI: Preact island (client:*), a bundled Astro <script> importing a .ts module, or BaseLayout's pre-paint init. State it once in the task that creates the component, then refer to the component by name, because two tasks naming different tiers for one component send the implementer down the wrong path — the theme toggle shipped as an island, then became a script to remove a post-hydration icon flash."
-    - Keep the template's seeded Verify group last — renumber it to follow the work groups; do not drop or weaken its items. When a change touches no views, mark the view-dependent items N/A with a short note rather than deleting them; the gate steps always run.
+    # Quoted: the inner "go: a group" would otherwise parse as a YAML map and the whole
+    # tasks rules list would be dropped with a warning on stderr.
+    - "Keep the template's seeded Verify group last — renumber it to follow the work groups; do not drop or weaken its items. It is the change-wide gate over the finished change, not where a work group's own tests and docs go: a group that adds or changes a view lands its Playwright coverage and its documentation in that same group. When a change touches no views, mark the view-dependent items N/A with a short note rather than deleting them; the gate steps always run."
     - Nested checkboxes count toward tracked progress; nest a sub-task only when it is genuinely separate work rather than a note on its parent.
 
 # Per-operation guidance (OpenSpec 1.7+) — appended to the composed instructions for the apply and
@@ -59,7 +62,7 @@ operations:
   apply:
     guidance:
       - Work on the change's own `<type>/<change-name>` branch. Never push — pushing is a human-only gate.
-      - Stop at the Verify group. Run neither the snapshot suite nor the gate yourself; hand Verify to the frontend-qa-engineer agent (testing-visual-regression) and the running-preflight-checks skill.
+      - Stop at the Verify group. Run neither the snapshot suite nor the gate yourself; the frontend-qa-engineer agent owns all of Verify, gate included, and writes the change's verify-report.md.
       - Leave the manual-preview checkbox for the human at the review gate, even when the automated Verify items pass.
       - Establish a design-system primitive before any task uses it — the repo ships tokens, not primitives.
   archive:
