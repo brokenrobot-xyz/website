@@ -1,0 +1,130 @@
+---
+title: 'Who gets to say the code is wrong'
+excerpt: '"Just be direct" quietly assumes you are allowed to be. In global software teams, the argument we file under communication style is usually an argument about standing: who gets to tell whom that they are wrong.'
+publishDate: '2026-10-02T18:00:00.000Z'
+heroImage: './heroImage.jpg'
+tags: ['code review', 'distributed teams', 'team culture', 'psychological safety', 'engineering leadership']
+---
+
+Somewhere in every distributed team there is a code review that went wrong. The comment was correct, and to the person who wrote it, completely ordinary: this is wrong, here is why, change it. The person on the other end read something different: not a note about the code, but a judgement about them, written down where the whole team could see it. The reviewer decided their colleague was too sensitive. The colleague decided the reviewer was rude. Both walked away sure that the other one had a problem with communication.
+
+Our industry has a standard answer to this, and it sounds mature: just be direct. Say what you think, care about the person while you say it, and skip the polite softening that wastes everyone's time. It is good advice, and most of the engineers I respect believe some form of it.
+
+But "be direct" quietly assumes something it never says: that the person being asked to be direct is actually allowed to be. The argument we file under _communication style_ is usually an argument about _standing_. By standing I mean a person's recognised position in a group: the position that decides whether their criticism is heard as a contribution or as an offence. Standing decides who is allowed to tell whom that they are wrong, and it is decided for each person in the room before anyone types a word. So we should be precise about where standing comes from, because the popular advice assumes that everyone already has it.
+
+## The appeal of just being direct
+
+The clearest version of the popular advice is Kim Scott's _radical candor_, and it deserves a fair hearing at its strongest. Scott's idea has two parts, not one: care about the person, and still tell them the truth. It fails when one part is missing. Challenge without care is simply harsh. Care without challenge is nice but useless. Neither one at all is office politics. Real candor is both at once.
+
+Engineers tend to like this, and they are right to. If you are not direct, the result is not kindness. It is a slowly growing pile of things left unsaid: the design flaw nobody mentioned because mentioning it felt rude, the bug someone noticed and let through, the quiet unkindness of watching a colleague ship something you knew was broken. Code remembers those unsaid compromises for a long time, so saying the hard thing early pays off more than in most other work. Treating people as adults means trusting them with the truth about what they made.
+
+Scott is also careful, more careful than most people who quote her, to rule out the ugly version:
+
+> It's not brutal honesty.
+
+She spends real effort on the person who says something hurtful and then excuses it with "I'm only being honest." So I am not arguing against a caricature of the idea. Taken on its own terms, the framework is humane and mostly right. The problem is not what it says; it is what it assumes. For many people on a global team, on many days, that assumption does not hold. The two engineers in that code review show why.
+
+## The unwritten condition
+
+"Challenge directly" carries an unwritten condition: you can challenge directly only if the room treats your challenge as help, not as disrespect. For many people, the room does not.
+
+Return to that review for a moment. It is a scene I have seen more than once, and I offer it as an illustration, not as proof. One engineer is senior, wrote much of the code being changed, and speaks English as a first language. The other is newer to the team, works on the code from the outside, and writes each sentence carefully in a second language. The reviewer writes _this is wrong, rewrite it_. Between equals, that is a normal comment. But in this moment the two are not equals, and the same few words arrive as something final: a public correction, in writing, from someone with more authority, in front of everyone. The newer engineer cannot argue back without looking like they want a conflict, so they stay silent. The reviewer reads that silence as agreement. The words did not do the damage. The difference in position did.
+
+Look at what happened to the disagreement itself. It was supposed to be about the code. For the newer engineer, it stopped being about the code at all and became about their position in the team. That shift, from an argument about the work to an argument about the person, will matter later.
+
+This is the human layer that the tools hide, and it is where an earlier Broken Robot piece on [the human side of code reviews](https://www.brokenrobot.xyz/blog/the-human-side-of-code-reviews-in-large-teams/) began:
+
+> Code reviews are ultimately about people working together.
+
+Once you take that seriously, you can see the condition that the popular advice leaves out. Be direct - if you can afford to be. Not everyone can.
+
+## What decides who can challenge
+
+The [last post](https://www.brokenrobot.xyz/blog/navigating-cultural-clashes-in-global-software-teams/) looked at this through culture: feedback styles and attitudes to hierarchy. It ended by promising to look at what lies underneath. If standing is what really matters, the useful question is what creates it. We call the result a _cultural_ clash because culture is the most obvious word we have. But most of what decides standing is not cultural at all, and unlike a person's background, you can see it in advance. Start with structure. Who reports to whom, who owns the code being changed, whose name is on the design document: these decide whose challenge counts as legitimate, more reliably than anyone's personality. You can see them in a team before any argument begins. That matters, because it means standing is not a story we invent afterwards, once someone has already gone silent.
+
+Research is clear about the cost of getting this wrong. Anicich and colleagues found that [power without status](https://pubsonline.informs.org/doi/10.1287/orsc.2015.1019) - authority over people who do not actually respect you - reliably leads to conflict and poor treatment, with no cultural difference needed at all. The org chart alone can create the clash.
+
+Language comes next, and it distributes standing just as unevenly. A study of second-language speakers in [global software teams](https://link.springer.com/article/10.1007/s10606-024-09504-y) found that weaker language skills kept non-native speakers out of the influence and recognition their colleagues built up, and held them in lower positions over time. Picture an engineer carefully building a correct sentence in their second language, while a first-language speaker easily uses jokes and shorthand. The first engineer is just as capable. They are simply harder to hear in that moment, and being harder to hear means losing standing.
+
+A fair critic will point out that national culture may matter less than the stereotypes suggest. One large study of managers found some national differences [already shrinking](https://link.springer.com/article/10.1007/s10551-017-3488-4), although others held steady and some grew. That does not weaken the argument; it supports it. Differences in structure and language do not disappear after a generation of shared tools. Whatever happens to cultural differences over time, the standing that comes from reporting lines, code ownership, and fluency remains. That is exactly why it deserves to be examined first.
+
+Only after structure and language come the softer tendencies linked to culture. People usually mention these first, because they are the easiest to talk about. One is [power distance](https://en.wikipedia.org/wiki/Power_distance): how strongly people expect authority to be unequal, and how readily they accept it. Where power distance is high, correcting someone above you feels less like honesty and more like disrespect for the hierarchy. A consultancy that advises companies on exactly this describes the pattern plainly:
+
+> …people in higher positions challenge directly whereas people in lower reporting positions use an indirect approach…
+
+Read that as a tendency that comes with a position, not as a fact about any particular person. Next to it is face: what you stand to lose when someone corrects you in front of others, or when you correct someone above you. The [research on face](https://www.ebsco.com/research-starters/communication-and-mass-media/face-negotiation-theory) treats it as a separate concept. It is related to hierarchy but not the same: hierarchy is about who ranks where; face is about what a particular exchange costs you. It matters to keep the two apart. If you combine them into one big "culture" explanation, you get a theory that explains everything and predicts nothing.
+
+This leads to the most important limit on all of this: none of it lets you judge a person by their group. Smith and Bond, reviewing the [dimension scores](https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2019.02689/full), state clearly that the scores do not predict how any individual will behave. In the underlying measurements, Fischer and Schwartz found that the difference between two colleagues from the same background is usually larger than the average difference between backgrounds. McSweeney goes further still: he called Hofstede's model "a triumph of faith - a failure of analysis", and he doubts that national culture is a systematic cause of behaviour at all. This essay does not need to go that far. It needs only the weaker, safer claim: these tendencies are at most a hint. The actual situation confirms or contradicts them, and they are never a label to put on the person in front of you. Read the relationship, not the category.
+
+Structure also works in the other direction. A shared, automatic standard takes the argument away from the person. It turns "your code is wrong" into "this does not match the rule we all agreed on". This is why [coding conventions](https://www.brokenrobot.xyz/blog/the-power-of-coding-conventions-in-large-distributed-teams/) settle so many disputes: they make the argument about the rule, not about you. The line to draw is between objective standards for the code, which are impersonal and good, and personal feedback style, where blunt words still reach a human being. This essay extends that earlier one rather than contradicting it: automate the standard, and be careful with the person.
+
+For the newer engineer in our review, all of these pointed the same way at once. They were outside the code, working in a second language, and could answer only by correcting someone above them. None of it was about ability. All of it was about standing.
+
+## A one-sided licence
+
+Once you see standing, "just be direct" looks different. It is not a neutral virtue that everyone can use equally. It is a licence: a permission to be blunt. Anyone can give themselves that permission, but it only works if the room accepts it, and the room accepts it only from people with standing. The senior, first-language, code-owning side of the team has its licence accepted by default. Everyone else finds theirs refused. When the senior engineer is blunt, it reads as integrity. When the newer engineer is blunt in exactly the same way, it reads as difficult, or as "not a good fit". The behaviour is the same; the label is the opposite. Being direct is safe only for people who already have the standing to challenge.
+
+The costs are not shared either. When the senior engineer is blunt, the exchange ends: the point is made, the code changes, everyone moves on. When the newer engineer is blunt and it goes badly, the exchange does not end. People remember it as a sign of a bad attitude, and it reduces how much freedom the engineer gets next time. One person pays nothing for being direct. The other pays for it, and the person who never pays cannot see the cost.
+
+And the sides are not fixed to particular people. The engineer who owns this file and writes in their first language here is, in the next repository, the outsider working carefully in someone else's code. You hold standing in one review and lack it in the next. That is why this matters even for the people who usually have standing - especially for them.
+
+Scott saw this coming. So the fair target is not her framework, but the second-hand version of it: the slogan _just say what you think_, with the care and the attention to context removed. Her own writing on cultural difference says the same:
+
+> [Challenging Directly and Caring Personally] get measured at the listener's ear, not at the speaker's mouth.
+
+If feedback is measured at the listener's ear, then the speaker's honesty was never what mattered. What mattered was whether the listener was in a position to receive it as a peer. Taken seriously, Scott's own principle contradicts the flat "just be direct" that people repeat in her name. Erin Meyer, who has spent her career on this, states the result plainly:
+
+> What's considered constructive feedback in one culture can be perceived as destructive in another.
+
+Even the style we treat as the neutral default is not neutral. Meyer points out that the American habit of wrapping criticism in [three positive comments for every negative one](https://www.forbesindia.com/article/insead/the-pitfalls-of-giving-feedback-across-cultures/89873/1) confuses people from places where the hard thing is simply said directly. Neutral directness does not exist; every version of it comes from somewhere. "Just be direct" is one local style among many, and it belongs to some people more than to others.
+
+To be fair to our reviewer, they were not cruel. They were using a licence that they had and their colleague did not.
+
+## What candor was really after
+
+At its core, the advice was never about bluntness for its own sake. The goal was useful disagreement: the kind that actually improves the work. Useful disagreement needs the newer engineer to be able to say _this is wrong_ and be heard as helping, not as attacking. Research has a name for that condition: psychological safety, and there is good evidence that it shapes whether a team's differences help it or hurt it. Psychological safety is what a team has when standing is shared, so that even the person with the least standing in the room can say _this is wrong_ at no cost.
+
+The clearest single result comes from outside our field. Writing for INSEAD Knowledge, Bresman and Edmondson summarise their study of sixty-two drug-development teams:
+
+> on average, team diversity had a slight negative effect on performance… However, in those teams with high psychological safety, diversity was positively associated with performance.
+
+The same mix of people produced the opposite result, and the only difference was whether they could speak up. Difference is not an advantage by default. Standing is what turns it into one.
+
+That study was not about software, so treat it as suggestive, not settled. The one large study in our own field, by Verwijs and Russo, is even more cautious: psychological safety helped their [software teams](https://arxiv.org/abs/2301.12954), but it did not clearly explain the link between diversity and results, and the authors warn that context does much of the work. So the honest claim is smaller than the usual marketing claim, and deliberately so. Different people do not raise performance on their own. A team whose members genuinely see things differently has more to work with, but only when those views are actually expressed. Whether they are is a question of standing, not of how many different people you hired. Even then, the difference pays off only when the team works through it, [which does not happen automatically](https://research.aston.ac.uk/en/publications/the-categorization-elaboration-model-of-work-group-diversity-wiel/). The benefit is possible, not promised. Be suspicious of anyone who promises that cross-cultural friction guarantees innovation.
+
+What psychological safety provides is the distinction from the review: people can argue hard about the work without the argument becoming a fight about the person. That was what candor wanted all along, and it is the point where friction becomes useful.
+
+## Friction worth keeping
+
+So what should a team do with the friction, given that it will not go away and might be an asset? **With standing shared, the friction is useful material.** The research on team conflict is precise, and narrower than the slogans. In de Wit, Greer and Jehn's [meta-analysis of team conflict](https://pubmed.ncbi.nlm.nih.gov/21842974/), arguing about the work helps most when that argument stays separate from friction between people, and it helps mostly the quality of decisions rather than performance overall. You keep the two apart by making sure that challenging the code never costs anyone their standing. Shared standing is exactly what makes that separation possible. A one-sided licence to be blunt destroys the separation.
+
+Now imagine the same review the other way. The reviewer still writes _this is wrong_, but the newer engineer now has the standing to answer _here is why I did it this way_, and expects to be read as a colleague explaining a decision, not as someone being difficult. Sometimes the reviewer looks again and softens the comment. Sometimes the explanation does not hold and the code changes. Often the two of them reach a third option that neither had at the start. The disagreement was just as sharp. What changed is that it stayed about the code, and both people kept their standing. That is the version worth keeping. It is not about anyone being gentler. It is about who was allowed to argue back.
+
+**With standing hoarded, the same friction just makes hierarchy look like honesty.** The powerful stay direct, everyone else stays silent, and the team mistakes that silence for agreement. Blunt feedback that only flows down a hierarchy does not produce honesty. Over time it produces what an earlier piece called [learned helplessness](https://www.brokenrobot.xyz/blog/learned-helplessness-in-software-teams/): people stop objecting because objecting never changed anything. That is not a team that has worked through its differences. It is a team that has taught half its members to keep their objections to themselves.
+
+When a review goes wrong, the reflex is to ask who was too blunt or too sensitive. That is a question about style, and it rarely helps. The better question is about standing: who on this team cannot yet say _this is wrong_ and be heard? And what decided that for them: the reporting line, the language, or who owns the code? Ask it about yourself too, because on most teams you have standing in some rooms and lack it in others. Where do I still need to give someone room to tell me I am wrong?
+
+Our two engineers, one last time. The newer one's ability was never in question. What was missing was the standing to disagree and still be treated as a colleague doing their job. Style is the surface; standing is underneath it. A lead who fixes standing rarely has to argue about style.
+
+## Used resources
+
+- [What is Radical Candor? - Kim Scott (Medium)](https://kimmalonescott.medium.com/what-is-radical-candor-learn-the-basic-principles-in-6-minutes-50391b3ad76a)
+- [Navigating Radical Candor and Cultural Differences - Radical Candor](https://www.radicalcandor.com/blog/radical-candor-cultural-differences)
+- [Does Radical Candor Work in India? - Global Business Culture](https://www.globalbusinessculture.com/cultural-awareness/radical-candor-in-india/)
+- [The pitfalls of giving feedback across cultures - Erin Meyer (Forbes India / INSEAD)](https://www.forbesindia.com/article/insead/the-pitfalls-of-giving-feedback-across-cultures/89873/1)
+- [When the Bases of Social Hierarchy Collide: Power Without Status Drives Interpersonal Conflict - Anicich, Fast, Halevy & Galinsky, Organization Science (2016)](https://pubsonline.informs.org/doi/10.1287/orsc.2015.1019)
+- [Non-native speakers' experiences in global software development teams - CSCW (2024)](https://link.springer.com/article/10.1007/s10606-024-09504-y)
+- [Generational Shifts in Managerial Values and the Coming of a Unified Business Culture - van Hoorn, Journal of Business Ethics (2017)](https://link.springer.com/article/10.1007/s10551-017-3488-4)
+- [Power distance - Wikipedia](https://en.wikipedia.org/wiki/Power_distance)
+- [Face-Negotiation Theory - EBSCO Research Starter](https://www.ebsco.com/research-starters/communication-and-mass-media/face-negotiation-theory)
+- [Cultures and Persons: Characterizing National and Other Types of Cultural Difference Can Also Aid Our Understanding and Prediction of Individual Variability - Smith & Bond, Frontiers in Psychology (2019)](https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2019.02689/full)
+- [Whence Differences in Value Priorities? Individual, Cultural, or Artifactual Sources - Fischer & Schwartz, Journal of Cross-Cultural Psychology (2011)](https://doi.org/10.1177/0022022110381429)
+- [Hofstede's Model… A Triumph of Faith - a Failure of Analysis - Brendan McSweeney, Human Relations (2002)](https://journals.sagepub.com/doi/10.1177/0018726702551004)
+- [Psychological Safety Unlocks the Potential of Diverse Teams - INSEAD Knowledge (on Bresman & Edmondson)](https://knowledge.insead.edu/leadership-organisations/psychological-safety-unlocks-potential-diverse-teams)
+- [The Double-Edged Sword of Diversity in Software Teams - Verwijs & Russo (2023)](https://arxiv.org/abs/2301.12954)
+- [The Categorization-Elaboration Model of Work Group Diversity: Wielding the Double-Edged Sword - van Knippenberg & Van Ginkel (2010)](https://research.aston.ac.uk/en/publications/the-categorization-elaboration-model-of-work-group-diversity-wiel/)
+- [The Paradox of Intragroup Conflict: A Meta-Analysis - de Wit, Greer & Jehn (2012)](https://pubmed.ncbi.nlm.nih.gov/21842974/)
+- [Navigating cultural clashes in global software teams - Broken Robot](https://www.brokenrobot.xyz/blog/navigating-cultural-clashes-in-global-software-teams/)
+- [The human side of code reviews in large teams - Broken Robot](https://www.brokenrobot.xyz/blog/the-human-side-of-code-reviews-in-large-teams/)
+- [The power of coding conventions in large, distributed teams - Broken Robot](https://www.brokenrobot.xyz/blog/the-power-of-coding-conventions-in-large-distributed-teams/)
+- [Learned Helplessness in Software Teams - Broken Robot](https://www.brokenrobot.xyz/blog/learned-helplessness-in-software-teams/)
