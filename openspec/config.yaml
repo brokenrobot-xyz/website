@@ -50,7 +50,9 @@ rules:
   tasks:
     - "Primitives-first ordering: the repo ships design tokens only — the prototype's primitives (.btn, .tag, .eyebrow, .card, .section-head, code-block chrome, reading-progress bar, scroll cue) are not in the codebase yet. A slice that uses a primitive MUST establish it in an earlier task; never reference a primitive the codebase does not define."
     - "Name the interactivity tier in any task that adds or changes interactive UI: Preact island (client:*), a bundled Astro <script> importing a .ts module, or BaseLayout's pre-paint init. State it once in the task that creates the component, then refer to the component by name, because two tasks naming different tiers for one component send the implementer down the wrong path — the theme toggle shipped as an island, then became a script to remove a post-hydration icon flash."
-    - Keep the template's seeded Verify group last — renumber it to follow the work groups; do not drop or weaken its items. When a change touches no views, mark the view-dependent items N/A with a short note rather than deleting them; the gate steps always run.
+    # Quoted: the inner "go: a group" would otherwise parse as a YAML map and the whole
+    # tasks rules list would be dropped with a warning on stderr.
+    - "Keep the template's seeded Verify group last — renumber it to follow the work groups; do not drop or weaken its items. It is the change-wide gate over the finished change, not where a work group's own tests and docs go: a group that adds or changes a view lands its Playwright coverage and its documentation in that same group. When a change touches no views, mark the view-dependent items N/A with a short note rather than deleting them; the gate steps always run."
     - Nested checkboxes count toward tracked progress; nest a sub-task only when it is genuinely separate work rather than a note on its parent.
 
 # Per-operation guidance (OpenSpec 1.7+) — appended to the composed instructions for the apply and

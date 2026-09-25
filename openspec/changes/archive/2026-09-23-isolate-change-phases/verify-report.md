@@ -1,7 +1,7 @@
 # Verify report — isolate-change-phases
 
-verdict          green — preflight gate passed (11/11); visual + a11y and
-                 manual preview are N/A, no view is touched
+verdict green — preflight gate passed (11/11); visual + a11y and
+manual preview are N/A, no view is touched
 
 ## visual + a11y
 

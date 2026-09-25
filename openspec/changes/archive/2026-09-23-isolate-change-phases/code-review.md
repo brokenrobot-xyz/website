@@ -61,8 +61,8 @@ scratchpad, not from the repository.
 ## Checked and clean
 
 - `openspec validate --all --strict` → 6 passed, 0 failed; `openspec status --change
-  isolate-change-phases` → 5/5 artifacts, `brief` first and `review` last; `openspec instructions
-  apply` → ready, and it renders the new QA hand-off line. `openspec instructions brief|review`
+isolate-change-phases` → 5/5 artifacts, `brief` first and `review` last; `openspec instructions
+apply` → ready, and it renders the new QA hand-off line. `openspec instructions brief|review`
   both return their template, opening with `# Brief` and `# Review`.
 - The design's claim that archive carries the undeclared `verify-report.md` and `code-review.md`
   with the folder holds: archive renames the change directory

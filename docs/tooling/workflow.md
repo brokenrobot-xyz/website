@@ -339,6 +339,11 @@ instruction + context). The seeded Verify section is:
 View-dependent Verify items are marked **N/A** (with a short note) on a change that touches no
 views; the gate steps always run.
 
+Verify is the change-wide gate over the finished change, not the place a task list collects its
+testing. Since **1.13.2** the upstream schema requires each task group to land the tests and
+documentation its own work calls for, so a group that adds a view carries its Playwright coverage
+and its docs in that group; the `tasks` rule in `config.yaml` says the same in this project's terms.
+
 How coding conventions reach the generated code is deliberately split, and the split is the reason
 no prompt restates them: conventions a machine enforces (types, lint, formatting, token drift,
 third-party resources) are left to the gate; conventions that need judgment mid-plan ride the
@@ -353,7 +358,7 @@ only — not hard-checked — so the `frontend-code-reviewer` and your review ar
 
 The schema fork is OpenSpec-experimental and needs reconciling when OpenSpec updates its upstream
 schema. Because the fork is upstream-verbatim apart from the two declared artifacts, that's
-mechanical (last done against **1.13.1**):
+mechanical (last done against **1.13.2**):
 
 1. `cp node_modules/@fission-ai/openspec/schemas/spec-driven/schema.yaml openspec/schemas/frontend-change/schema.yaml`,
    then restore the `name: frontend-change` and `description:` lines.
