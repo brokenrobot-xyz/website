@@ -17,6 +17,7 @@ const { src, alt } = Astro.props;
     alt={alt}
     formats={['avif', 'webp']}
     widths={SITE_METADATA.SRC_SET_BREAKPOINTS}
+    class="mx-auto"
     loading="lazy"
     decoding="async"
 />
