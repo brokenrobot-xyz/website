@@ -179,7 +179,8 @@ vendored names. The `reviewing-claude-skills` skill enforces this as checklist i
   invokes the three procedure skills below during a change, a planner question is answered through
   the brief, the proposal is reviewed again after every Update, and commits are delegated and each
   follows a human stop. Runs in the main session by design: it routes, so it has nothing to isolate.
-  `CLAUDE.md` carries one pointer line to it, the backstop for a missed trigger.
+  The map in [`docs/README.md`](../README.md), which `AGENTS.md` pulls into every session, names it
+  as this document's runbook — the backstop for a missed trigger.
 - **`testing-visual-regression`** — run/update Playwright visual + a11y in light **and** dark (in the
   devcontainer), with the baseline-review steps. Knows the both-theme dependency on the dark
   Playwright projects.

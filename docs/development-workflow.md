@@ -24,7 +24,7 @@ The line is explicit: **any change to the site itself follows the flow, however 
 under `src/`, `public/`, or `tests/`, infrastructure and CI, and a dependency change that alters
 site behaviour. The proposal is the agreement, even when no behaviour (and so no spec) changes —
 see [What gets a spec](#what-gets-a-spec). Outside the flow: blog article prose (below),
-repository documentation and agent tooling (`docs/`, `CLAUDE.md`, `.claude/`), which commit
+repository documentation and agent tooling (`docs/`, `AGENTS.md`, `.claude/`), which commit
 directly, and routine dependency refreshes, which follow their own procedure (see
 [tooling/workflow.md](tooling/workflow.md)).
 
@@ -45,7 +45,12 @@ back.
 
 1. **Explore** _(optional)_ — clarify the idea and investigate the codebase before committing to a
    proposal. No code is written. It ends with a written brief: the problem, the decisions taken,
-   the directions rejected, and what is still open.
+   the directions rejected, and what is still open. A conversation becomes a change at its first
+   question about the site: an investigation, an analysis, or an interview about how the site
+   behaves is Explore, however it was asked for. "Optional" means a change may skip Explore; it
+   does not mean Explore may run outside the workflow. The brief states the goal as what the
+   visitor or reader experiences once the change is done, and names no mechanism, because a goal
+   that names a mechanism can be met by no other solution.
 2. **Propose** — capture the intent from the brief: the why and scope, how the site's behaviour
    changes, and the work broken into small steps. This is the agreement.
 3. **Review the proposal** — an adversarial read of the proposal against the living record, before

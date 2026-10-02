@@ -89,7 +89,8 @@ Pick the lightest tool for the job:
 
 ## Working principles
 
-Follow the principles in [CLAUDE.md](../../../CLAUDE.md), which govern how changes are made here:
+Follow the principles in [implementation-conventions.md](implementation-conventions.md), which
+govern how changes are made here:
 
 - **Simplicity First** — minimum code that solves the problem; nothing speculative.
 - **Surgical Changes** — touch only what the task requires; match existing style.
