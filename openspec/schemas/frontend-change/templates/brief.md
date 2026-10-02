@@ -7,7 +7,7 @@
 
 ## Problem and goal
 
-<!-- What is wrong or missing, and what done looks like. -->
+<!-- What is wrong or missing, and what the visitor or reader experiences once it is done. Name no mechanism: a goal that names one can be met by no other solution. -->
 
 ## Decisions
 

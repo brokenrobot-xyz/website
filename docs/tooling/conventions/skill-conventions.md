@@ -24,8 +24,10 @@ project's own convention documents. The lists below name the documents they reso
 ## How the portable criteria map onto this project
 
 - **`R1`–`R4`** (simplicity first, surgical edits, single source of truth, ask when uncertain)
-  state the same rules as `CLAUDE.md` § Behavioral guidelines, so a finding under one of those keys
-  is also a finding against this project's own guidelines.
+  state the same rules as this project's own conventions — `R1` to `R3` as
+  [implementation-conventions.md](../../development/conventions/implementation-conventions.md),
+  `R4` as [collaboration-conventions.md](../../development/conventions/collaboration-conventions.md)
+  — so a finding under one of those keys is also a finding against those conventions.
 - **`R7`–`R11`** (prose conventions) delegate to the `writing-simplified-technical-english` skill;
   how this project applies that skill is recorded in
   [writing-conventions.md](writing-conventions.md).

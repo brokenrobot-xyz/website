@@ -25,10 +25,11 @@ When the message names no change, stop and report that you cannot scope the run.
 
 ## Read before the first edit
 
-Read these two files in full before you change anything, because the apply instructions name them and do not restate them:
+Read these three files in full before you change anything, because the apply instructions name them and do not restate them:
 
 - `docs/architecture.md`
 - `docs/development/conventions/coding-conventions.md`
+- `docs/development/conventions/implementation-conventions.md`
 
 Then read the components next to the ones you will touch, and match their style rather than reinventing it. When a task creates a new component, invoke the **`scaffolding-components`** skill through the `Skill` tool rather than writing it from memory, because that skill owns the scaffolding conventions and a second copy of them here would drift.
 
