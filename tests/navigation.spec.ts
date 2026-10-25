@@ -198,19 +198,6 @@ test.describe('Post: Learned helplessness in software teams: Symptoms, causes, a
 });
 
 test.describe('Post: Your AI Platform Will Inherit Your Engineering Culture', () => {
-    test('should be accessible from the home page', async ({ page }) => {
-        await page.goto('./');
-        await expect(page).toHaveTitle(/Broken Robot/);
-
-        await page
-            .getByRole('heading')
-            .getByRole('link', {
-                name: 'Your AI Platform Will Inherit Your Engineering Culture'
-            })
-            .click();
-        await expect(page).toHaveTitle(/Your AI Platform Will Inherit Your Engineering Culture/);
-    });
-
     test('should be accessible from the blog page', async ({ page }) => {
         await page.goto('./blog');
         await expect(page).toHaveTitle(/Blog/);
@@ -278,5 +265,33 @@ test.describe('Post: More Agents, Same Mythical Month', () => {
             })
             .click();
         await expect(page).toHaveTitle(/More Agents, Same Mythical Month/);
+    });
+});
+
+test.describe('Post: Spec-driven development: promised benefits, measured costs', () => {
+    test('should be accessible from the home page', async ({ page }) => {
+        await page.goto('./');
+        await expect(page).toHaveTitle(/Broken Robot/);
+
+        await page
+            .getByRole('heading')
+            .getByRole('link', {
+                name: 'Spec-driven development: promised benefits, measured costs'
+            })
+            .click();
+        await expect(page).toHaveTitle(/Spec-driven development: promised benefits, measured costs/);
+    });
+
+    test('should be accessible from the blog page', async ({ page }) => {
+        await page.goto('./blog');
+        await expect(page).toHaveTitle(/Blog/);
+
+        await page
+            .getByRole('heading')
+            .getByRole('link', {
+                name: 'Spec-driven development: promised benefits, measured costs'
+            })
+            .click();
+        await expect(page).toHaveTitle(/Spec-driven development: promised benefits, measured costs/);
     });
 });
